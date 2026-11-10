@@ -1,0 +1,23 @@
+{
+  "name": "rag-prototype",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun --bun vitest run && bun test ./.claude/hooks",
+    "test:unit": "bun --bun vitest run",
+    "test:hooks": "bun test ./.claude/hooks",
+    "privacy:scan": "bun scripts/privacy-scan.ts --staged"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.6",
+    "@types/bun": "1.4.4",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}

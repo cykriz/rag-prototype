@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Privacy gate on staged content. Fails closed: missing bun or a scanner error blocks the commit.
+set -euo pipefail
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "pre-commit: bun not found in PATH — commit blocked (privacy gate fails closed)" >&2
+  exit 1
+fi
+
+exec bun "$(git rev-parse --show-toplevel)/scripts/privacy-scan.ts" --staged

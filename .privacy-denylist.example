@@ -1,0 +1,10 @@
+# Copy to .privacy-denylist (gitignored) and add your own entries.
+# One case-insensitive pattern per line, matched anywhere in a line; '#' lines and blanks are ignored.
+# Wildcards: '*' = any run of characters, '?' = exactly one character; everything else is literal.
+# Entries made of wildcards only are ignored (they would block every line).
+# The privacy gate blocks any staged line or commit message matching an entry.
+# Typical entries: employer and client names, colleagues' names, internal hostnames, project codenames.
+fictional widgets gmbh
+fictional*widgets
+j?ne roe
+*.corp.invalid
