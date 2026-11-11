@@ -22,6 +22,7 @@ import { appendFileSync, statSync } from 'node:fs';
 
 import { z } from 'zod';
 
+import { readHookInput, runFailOpen } from './hook-runtime';
 import { roundReviewState } from './plan-review-round';
 import { type TranscriptLine, findPlanFilePath, parseTranscript } from './plan-review-transcript';
 
@@ -129,14 +130,7 @@ export function denyPayload(protocol: string, planFilePath: string): string {
 }
 
 async function main(): Promise<void> {
-  const stdin = await Bun.stdin.text();
-  const debugPath = process.env.PLAN_REVIEW_GATE_DEBUG;
-  const debug = debugPath !== undefined && debugPath.length > 0 ? debugPath : null;
-
-  if (debug !== null) {
-    appendFileSync(debug, `${stdin.trim()}\n`);
-  }
-
+  const { stdin, debug } = await readHookInput('PLAN_REVIEW_GATE_DEBUG');
   const json: unknown = JSON.parse(stdin);
   const input = hookInputSchema.parse(json);
   const transcriptPath = input.transcript_path;
@@ -163,10 +157,6 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
-  try {
-    await main();
-  } catch (error) {
-    // Fail open: a skipped review beats a blocked plan mode.
-    console.error('[plan-review-gate]', error);
-  }
+  // Fail open: a skipped review beats a blocked plan mode.
+  await runFailOpen('plan-review-gate', main);
 }

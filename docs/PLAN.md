@@ -87,7 +87,7 @@ rag-prototype/
 ├── biome.json                    Lint and format config (baseline)
 ├── vitest.config.ts              Baseline excludes .claude/**; unit and integration projects added in M4
 ├── .privacy-denylist.example     Template for the local, gitignored privacy denylist (baseline)
-├── .claude/                      Plan review gate, plan-reviewer agent, review criteria (baseline)
+├── .claude/                      Plan review gate, plan-reviewer agent, review criteria, /review command, review-changes agent, code review checks and gate (baseline)
 ├── docker-compose.yml            Postgres (pgvector/pgvector:pg17); optional ollama profile for Linux
 ├── .env.example                  All variables with defaults, no secrets
 ├── config/

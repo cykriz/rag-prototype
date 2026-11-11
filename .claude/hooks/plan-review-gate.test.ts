@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { decide, denyPayload, planNeedsReview } from './plan-review-gate';
 import { findAnchorIndex, roundReviewState } from './plan-review-round';
 import { type TranscriptLine, findPlanFilePath, isUserTurn, parseTranscript } from './plan-review-transcript';
+import { agentCall, taskNotification, transcript, userTurn } from './transcript-fixtures';
 
 const PLAN = '/plans/my-plan.md';
 
@@ -26,20 +27,6 @@ function planMode(planFilePath = PLAN): string {
   });
 }
 
-function userTurn(text = 'build me this'): string {
-  return JSON.stringify({ type: 'user', message: { content: [{ type: 'text', text }] } });
-}
-
-function agentCall(subagentType: string, timestamp?: string): string {
-  return JSON.stringify({
-    type: 'assistant',
-    timestamp,
-    message: {
-      content: [{ type: 'tool_use', name: 'Agent', input: { subagent_type: subagentType } }],
-    },
-  });
-}
-
 function exitPlanModeCall(id: string): string {
   return JSON.stringify({
     type: 'assistant',
@@ -54,25 +41,12 @@ function toolResult(toolUseId: string, content = 'ok'): string {
   });
 }
 
-/** Written by the harness when a background subagent finishes — typed `user`, but not a user turn. */
-function taskNotification(): string {
-  return JSON.stringify({
-    type: 'user',
-    origin: { kind: 'task-notification', producer: 'session-task' },
-    message: { content: '<task-notification>done</task-notification>' },
-  });
-}
-
 function metaReminder(): string {
   return JSON.stringify({
     type: 'user',
     isMeta: true,
     message: { content: '<system-reminder>x</system-reminder>' },
   });
-}
-
-function transcript(...lines: string[]): TranscriptLine[] {
-  return parseTranscript(lines.join('\n'));
 }
 
 describe('parseTranscript', () => {

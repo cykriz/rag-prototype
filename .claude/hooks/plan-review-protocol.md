@@ -1,8 +1,8 @@
 This plan has not been reviewed automatically yet. Work through this procedure now — it does not replace
 any step of your planning, it comes before it.
 
-1. **Start the reviewer.** Agent `plan-reviewer` via the Agent tool, **synchronously**
-   (`run_in_background: false`), `subagent_type: "plan-reviewer"`. The prompt contains exactly two things:
+1. **Start the reviewer.** Agent `plan-reviewer` via the Agent tool, `subagent_type: "plan-reviewer"`, and
+   wait for its result before step 2. The prompt contains exactly two things:
    - the plan path `{{PLAN_PATH}}`
    - the user's **verbatim** original request from this session — no summarising, no rephrasing, no
      additions of your own interpretation. The reviewer is meant to judge without bias whether the plan

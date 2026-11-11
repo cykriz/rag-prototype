@@ -39,6 +39,18 @@ happens) and fails open on errors. Review criteria live only in `.claude/plan-re
 
 Debug: `PLAN_REVIEW_GATE_DEBUG=/path/dump.jsonl` logs each hook payload plus the decision.
 
+## Code Review
+
+Run `/review` before every commit (final look at the finished state — fixes applied by a review are not
+re-reviewed). Additionally `.claude/hooks/code-review-gate.ts`, registered in `.claude/settings.json` for
+`UserPromptSubmit` (snapshot of the dirty tree) and `Stop` (check), makes the main agent run it once per user
+turn that changed non-doc files; it fails open. Any review started in a turn satisfies the gate, so edits made
+after a mid-turn `/review` are only caught by the pre-commit run. The procedure (blind subagent, verifying and
+applying findings, running the gates) lives only in `.claude/commands/review.md`; checks live only in
+`.claude/review/checks.md`.
+
+Debug: `CODE_REVIEW_GATE_DEBUG=/path/dump.jsonl` logs each hook payload plus the decision.
+
 ## Privacy & Genericity
 
 - This is a public-ready, generic project: **no company or personal data** in code, fixtures, docs, results or

@@ -167,7 +167,8 @@ export function formatFindings(findings: Finding[]): string {
   return lines.join('\n');
 }
 
-function git(args: string[]): Buffer {
+/** Runs git with the given args (callers pass `-C <dir>` when needed); throws on a non-zero exit. */
+export function git(args: string[]): Buffer {
   const result = spawnSync('git', args, { maxBuffer: 256 * 1024 * 1024 });
 
   if (result.status !== 0) {

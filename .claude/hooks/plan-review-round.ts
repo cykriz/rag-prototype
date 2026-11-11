@@ -8,7 +8,8 @@ const REVIEWER_AGENT = 'plan-reviewer';
 const AGENT_TOOL = 'Agent';
 const EXIT_PLAN_MODE = 'ExitPlanMode';
 
-function lastUserTurnIndex(lines: TranscriptLine[]): number {
+/** Index of the last real user turn, or -1. */
+export function lastUserTurnIndex(lines: TranscriptLine[]): number {
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i];
 
@@ -50,11 +51,11 @@ export function findAnchorIndex(lines: TranscriptLine[]): number {
   return Math.max(lastUserTurnIndex(lines), lastCompletedExitPlanModeIndex(lines));
 }
 
-/** The tool name matters: any other tool carrying a `subagent_type` must not pass as a review. */
-function isReviewerStart(line: TranscriptLine): boolean {
+/** The tool name matters: any other tool carrying a `subagent_type` must not pass as a subagent start. */
+export function isAgentStart(line: TranscriptLine, subagentType: string): boolean {
   return contentParts(line).some(
     (part) =>
-      part.type === 'tool_use' && part.name === AGENT_TOOL && part.input?.subagent_type === REVIEWER_AGENT,
+      part.type === 'tool_use' && part.name === AGENT_TOOL && part.input?.subagent_type === subagentType,
   );
 }
 
@@ -81,7 +82,7 @@ export function roundReviewState(lines: TranscriptLine[]): RoundReviewState {
   };
 
   for (const [i, line] of lines.entries()) {
-    if (!isReviewerStart(line)) {
+    if (!isAgentStart(line, REVIEWER_AGENT)) {
       continue;
     }
 
