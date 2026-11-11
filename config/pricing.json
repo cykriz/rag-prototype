@@ -1,0 +1,12 @@
+{
+  "models": {
+    "qwen2.5:7b": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "qwen2.5:3b": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "gemma3:12b": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "llama3.1:8b": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "nomic-embed-text": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "mxbai-embed-large": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "fake-chat": { "inputPerMTok": 0, "outputPerMTok": 0 },
+    "fake-judge": { "inputPerMTok": 0, "outputPerMTok": 0 }
+  }
+}

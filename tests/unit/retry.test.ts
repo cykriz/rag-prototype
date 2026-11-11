@@ -1,7 +1,7 @@
 import { APIConnectionTimeoutError, APIError } from 'openai';
 import { describe, expect, it } from 'vitest';
 
-import { isRetryable, withRetry } from '../../src/llm/retry';
+import { attemptsOf, isRetryable, withRetry } from '../../src/llm/retry';
 
 const apiError = (status: number) => APIError.generate(status, undefined, `status ${status}`, new Headers());
 
@@ -53,6 +53,14 @@ describe('withRetry', () => {
     await expect(withRetry(fn, rec)).rejects.toMatchObject({ status: 500 });
     expect(calls()).toBe(4);
     expect(rec.delays).toEqual([500, 1000, 2000]);
+  });
+
+  it('records the attempt count on the rethrown error', async () => {
+    const exhausted = await withRetry(failingTimes(10, () => apiError(500)).fn, recorder()).catch((e) => e);
+    expect(attemptsOf(exhausted)).toBe(4);
+    const rejected = await withRetry(failingTimes(1, () => apiError(400)).fn, recorder()).catch((e) => e);
+    expect(attemptsOf(rejected)).toBe(1);
+    expect(attemptsOf(new Error('never retried'))).toBeUndefined();
   });
 });
 

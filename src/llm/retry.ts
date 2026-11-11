@@ -32,6 +32,13 @@ export function isRetryable(err: unknown): boolean {
   return false;
 }
 
+/** Attempt count of an error rethrown by withRetry; kept beside the error so its type stays unchanged. */
+const exhausted = new WeakMap<object, number>();
+
+export function attemptsOf(err: unknown): number | undefined {
+  return typeof err === 'object' && err !== null ? exhausted.get(err) : undefined;
+}
+
 export async function withRetry<T>(
   fn: () => Promise<T>,
   opts: RetryOptions = {},
@@ -48,6 +55,9 @@ export async function withRetry<T>(
       return { value: await fn(), attempts: attempt };
     } catch (err) {
       if (attempt >= maxAttempts || !isRetryable(err)) {
+        if (typeof err === 'object' && err !== null) {
+          exhausted.set(err, attempt);
+        }
         throw err;
       }
       await sleep(random() * baseMs * factor ** (attempt - 1));
