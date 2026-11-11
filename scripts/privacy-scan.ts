@@ -102,8 +102,12 @@ function entryToPattern(entry: string): RegExp {
   const source = entry
     .split('')
     .map((ch) => {
-      if (ch === '*') return '.*';
-      if (ch === '?') return '.';
+      if (ch === '*') {
+        return '.*';
+      }
+      if (ch === '?') {
+        return '.';
+      }
       return ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
     })
     .join('');
@@ -130,11 +134,21 @@ export function scanText(file: string, text: string, denylist: RegExp[]): Findin
 
   for (const [index, line] of text.split('\n').entries()) {
     const at = (kind: FindingKind) => findings.push({ file, line: index + 1, kind });
-    if (hasEmail(line)) at('email');
-    if (line.match(HOME_PATH) !== null) at('home-path');
-    if (hasIpv4(line)) at('ipv4');
-    if (TOKENS.some((re) => re.test(line))) at('token');
-    if (denylist.some((pattern) => pattern.test(line))) at('denylist');
+    if (hasEmail(line)) {
+      at('email');
+    }
+    if (line.match(HOME_PATH) !== null) {
+      at('home-path');
+    }
+    if (hasIpv4(line)) {
+      at('ipv4');
+    }
+    if (TOKENS.some((re) => re.test(line))) {
+      at('token');
+    }
+    if (denylist.some((pattern) => pattern.test(line))) {
+      at('denylist');
+    }
   }
 
   return findings;
@@ -182,7 +196,9 @@ function loadDenylist(root: string): RegExp[] {
   const path = join(root, DENYLIST_FILE);
 
   if (!existsSync(path)) {
-    console.error(`privacy-scan: no ${DENYLIST_FILE} — denylist check skipped (see ${DENYLIST_FILE}.example)`);
+    console.error(
+      `privacy-scan: no ${DENYLIST_FILE} — denylist check skipped (see ${DENYLIST_FILE}.example)`,
+    );
     return [];
   }
 
@@ -237,7 +253,9 @@ if (import.meta.main) {
     process.exit(main(process.argv.slice(2)));
   } catch (error) {
     // Fail closed. Print only the message: never file contents.
-    console.error(`privacy-scan: error — commit blocked: ${error instanceof Error ? error.message : 'unknown'}`);
+    console.error(
+      `privacy-scan: error — commit blocked: ${error instanceof Error ? error.message : 'unknown'}`,
+    );
     process.exit(2);
   }
 }

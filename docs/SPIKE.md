@@ -64,6 +64,9 @@ M9 answer (`found`, `answer`, `citations: int[]`).
 Chosen structured output path: **(b) `zodResponseFormat` + `chat.completions.parse`** for both models
 (generator `qwen2.5:7b` and judge `gemma3:12b`). The Zod 4 helper works as is, so the fallbacks (c) and (g)
 are not needed. They stay available as the documented repair path from `docs/PLAN.md` M1.
+Implementation (M2): `src/llm/openaiCompatible.ts` sends the (b) request (`zodResponseFormat`) via
+`chat.completions.create`; validation (`JSON.parse` + `safeParse`) and the repair loop live in
+`src/llm/structured.ts`, so every provider shares them.
 
 Notes:
 - Embeddings were requested with `encoding_format: 'float'`. The SDK default (base64) was not tested, so

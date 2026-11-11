@@ -9,6 +9,7 @@
     "test": "bun --bun vitest run && bun test ./.claude/hooks",
     "test:unit": "bun --bun vitest run",
     "test:hooks": "bun test ./.claude/hooks",
+    "ask:raw": "bun src/cli/askRaw.ts",
     "privacy:scan": "bun scripts/privacy-scan.ts --staged"
   },
   "dependencies": {

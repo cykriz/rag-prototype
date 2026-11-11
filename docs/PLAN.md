@@ -109,7 +109,7 @@ rag-prototype/
 │   │   ├── anthropic.ts          Adapter 2 (phase 3): @anthropic-ai/sdk, chat only
 │   │   ├── fake.ts               Deterministic fake providers for tests
 │   │   ├── registry.ts           Picks adapters from CHAT_PROVIDER and EMBED_PROVIDER
-│   │   ├── structured.ts         generateObject(schema): json_schema, fallback json_object, Zod, retry
+│   │   ├── structured.ts         generateObject: Zod validation and repair loop (request via zodResponseFormat in the adapter)
 │   │   ├── retry.ts              Exponential backoff with full jitter, retryable error classification
 │   │   ├── tokens.ts             Usage fields first, js-tiktoken estimate as fallback
 │   │   └── pricing.ts            Cost estimate from pricing.json
@@ -149,6 +149,7 @@ rag-prototype/
 │   │   └── runner.ts             Runs a config against the dataset, writes results JSON
 │   └── cli/
 │       ├── ingest.ts             bun run ingest --chunk md-512-64 --embed nomic-embed-text
+│       ├── askRaw.ts             bun run ask:raw "question" (M2: one raw chat call, no retrieval)
 │       ├── ask.ts                bun run ask "question"
 │       ├── eval.ts               bun run eval:retrieval / eval:answers --config experiments/x.json
 │       ├── experiment.ts         Runs an experiment matrix file

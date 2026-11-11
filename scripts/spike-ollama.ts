@@ -13,6 +13,8 @@ export interface CheckResult {
   detail: string;
 }
 
+// Frozen as the M1 record (docs/SPIKE.md): these constants intentionally do not read config/models.json,
+// which is the source of truth for the provider layer from M2 on.
 export const GENERATOR = 'qwen2.5:7b';
 export const JUDGE = 'gemma3:12b';
 export const CHAT_MODELS = [GENERATOR, JUDGE] as const;
@@ -95,12 +97,19 @@ async function run(
     const { pass, detail } = await fn();
     return { id, model, pass, detail: `${Math.round(performance.now() - start)} ms; ${detail}` };
   } catch (err) {
-    return { id, model, pass: false, detail: `${Math.round(performance.now() - start)} ms; error: ${errorText(err)}` };
+    return {
+      id,
+      model,
+      pass: false,
+      detail: `${Math.round(performance.now() - start)} ms; error: ${errorText(err)}`,
+    };
   }
 }
 
 function validateJson(content: string | null | undefined): { pass: boolean; detail: string } {
-  if (!content) return { pass: false, detail: 'empty content' };
+  if (!content) {
+    return { pass: false, detail: 'empty content' };
+  }
   let json: unknown;
   try {
     json = JSON.parse(content);
@@ -140,7 +149,9 @@ async function chatChecks(client: OpenAI, model: string): Promise<CheckResult[]>
         response_format: zodResponseFormat(Answer, 'answer'),
       });
       const parsed = res.choices[0]?.message.parsed;
-      if (parsed == null) return { pass: false, detail: 'message.parsed is null' };
+      if (parsed == null) {
+        return { pass: false, detail: 'message.parsed is null' };
+      }
       const check = Answer.safeParse(parsed);
       return check.success
         ? { pass: true, detail: oneLine(JSON.stringify(check.data), 100) }
@@ -183,7 +194,10 @@ async function chatChecks(client: OpenAI, model: string): Promise<CheckResult[]>
           model,
           ...SAMPLING,
           messages: [
-            { role: 'system', content: 'Use the search_docs tool to look up documentation before answering.' },
+            {
+              role: 'system',
+              content: 'Use the search_docs tool to look up documentation before answering.',
+            },
             { role: 'user', content: 'How do I read environment variables in Bun?' },
           ],
           tools: [
@@ -203,8 +217,12 @@ async function chatChecks(client: OpenAI, model: string): Promise<CheckResult[]>
           tool_choice: 'auto',
         });
         const call = res.choices[0]?.message.tool_calls?.[0];
-        if (call?.type !== 'function') return { pass: false, detail: 'no function tool call' };
-        if (call.function.name !== 'search_docs') return { pass: false, detail: `called ${call.function.name}` };
+        if (call?.type !== 'function') {
+          return { pass: false, detail: 'no function tool call' };
+        }
+        if (call.function.name !== 'search_docs') {
+          return { pass: false, detail: `called ${call.function.name}` };
+        }
         const args: unknown = JSON.parse(call.function.arguments);
         const ok = typeof args === 'object' && args !== null && 'query' in args;
         return { pass: ok, detail: `args ${oneLine(call.function.arguments, 100)}` };
@@ -224,7 +242,9 @@ async function chatChecks(client: OpenAI, model: string): Promise<CheckResult[]>
       const ok = typeof u?.prompt_tokens === 'number' && typeof u.completion_tokens === 'number';
       return {
         pass: ok,
-        detail: u ? `prompt_tokens=${u.prompt_tokens}, completion_tokens=${u.completion_tokens}` : 'usage missing',
+        detail: u
+          ? `prompt_tokens=${u.prompt_tokens}, completion_tokens=${u.completion_tokens}`
+          : 'usage missing',
       };
     }),
   );
@@ -250,7 +270,11 @@ async function embedChecks(client: OpenAI, model: string, dim: number): Promise<
     id: 'f',
     model,
     pass: typeof usage?.prompt_tokens === 'number',
-    detail: !called ? 'no response (see e)' : usage ? `prompt_tokens=${usage.prompt_tokens}` : 'usage missing',
+    detail: !called
+      ? 'no response (see e)'
+      : usage
+        ? `prompt_tokens=${usage.prompt_tokens}`
+        : 'usage missing',
   };
   return [e, f];
 }
@@ -264,7 +288,9 @@ async function main(): Promise<number> {
     const res = await fetch(`${root}/api/version`, { signal: AbortSignal.timeout(5_000) });
     version = ((await res.json()) as { version?: string }).version ?? 'unknown';
   } catch (err) {
-    console.error(`Ollama not reachable at ${root} (${errorText(err)}). Start it: brew services start ollama`);
+    console.error(
+      `Ollama not reachable at ${root} (${errorText(err)}). Start it: brew services start ollama`,
+    );
     return 2;
   }
 
@@ -285,7 +311,9 @@ async function main(): Promise<number> {
 
   console.log(`Ollama version: ${version}\n`);
   console.log('| Check | Model | Result | Detail |\n|---|---|---|---|');
-  for (const r of results) console.log(`| (${r.id}) | ${r.model} | ${r.pass ? 'pass' : 'fail'} | ${r.detail} |`);
+  for (const r of results) {
+    console.log(`| (${r.id}) | ${r.model} | ${r.pass ? 'pass' : 'fail'} | ${r.detail} |`);
+  }
   console.log('\nChosen structured output path:');
   for (const model of CHAT_MODELS) {
     const path = chosenPath(results, model);
