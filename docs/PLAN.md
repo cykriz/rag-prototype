@@ -5,7 +5,7 @@ Status: plan only. All package versions were looked up on 2026-11-10 (`npm view`
 Declared assumptions (apply throughout):
 - Assumption: development machine is an Apple Silicon MacBook Pro with 32 GB unified memory, Ollama installed natively via Homebrew.
 - Assumption: Bun docs in `oven-sh/bun` are covered by the repository's MIT license (`LICENSE.md`). M6 verifies this and records the result in the README.
-- Assumption: `openai@7.x` still exposes `chat.completions.create`, `embeddings.create` and the `openai/helpers/zod` helpers. M0 and M1 verify this before any adapter code is written.
+- Assumption: `openai@7.x` still exposes `chat.completions.create`, `embeddings.create` and the `openai/helpers/zod` helpers. M0 and M1 verify this before any adapter code is written. Verified in M1, see `docs/SPIKE.md`.
 
 ---
 
@@ -334,7 +334,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
     embed(texts: string[], kind: "document" | "query"): Promise<EmbedResult>;
   }
   ```
-  `openaiCompatible.ts` with `new OpenAI({ baseURL, apiKey: "ollama", maxRetries: 0 })` (SDK retries off so only our retry runs); `structured.ts` implementing the path chosen in M1; `retry.ts` (base 500 ms, factor 2, full jitter, max 4 attempts, retry on 429, 5xx, timeouts, `ECONNREFUSED`; never on 400); `registry.ts` reading `CHAT_PROVIDER`, `EMBED_PROVIDER`; `fake.ts`.
+  `openaiCompatible.ts` with `new OpenAI({ baseURL, apiKey: "ollama", maxRetries: 0 })` (SDK retries off so only our retry runs); `structured.ts` implementing the path chosen in M1 (`docs/SPIKE.md`, section M1); `retry.ts` (base 500 ms, factor 2, full jitter, max 4 attempts, retry on 429, 5xx, timeouts, `ECONNREFUSED`; never on 400); `registry.ts` reading `CHAT_PROVIDER`, `EMBED_PROVIDER`; `fake.ts`.
 - Acceptance: `bun run ask:raw "hello"` returns text from Ollama; switching `CHAT_PROVIDER=fake` needs no code change; nomic prefixes `search_document: ` and `search_query: ` are applied inside the adapter based on `kind`. Unit tests: retry with a fake that fails twice with 503 then succeeds (3 attempts, delays increasing); no retry on 400; `generateObject` repairs invalid JSON up to 2 times and then validates or reports `invalid_output`.
 - Acceptance command: `bun --bun vitest run tests/unit/retry.test.ts tests/unit/structured.test.ts && bun run ask:raw "hello"`
 

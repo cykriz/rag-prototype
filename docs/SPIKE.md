@@ -44,3 +44,30 @@ Decision: keep the default profile and run generation and judging as separate ba
 Consequence for later milestones: run answer generation first, then judging, as a separate batch, not
 interleaved per question (risk table in `docs/PLAN.md` §12). Otherwise every switch reloads a model.
 Gemma's 9.6 tok/s is acceptable for a batch judge.
+
+## M1: Ollama capability spike (2026-11-11)
+
+Environment: Ollama 0.40.15, `openai@7.55.0`, `zod@4.6.7`, Bun 1.4.4. Script: `bun scripts/spike-ollama.ts`
+(exit 0). Each check ran once at `temperature: 0`, `seed: 42`. The test schema has the same shape as the later
+M9 answer (`found`, `answer`, `citations: int[]`).
+
+| Check | qwen2.5:7b | gemma3:12b | Embeddings |
+|---|---|---|---|
+| (a) `response_format` json_schema, hand-written schema | pass | pass | n/a |
+| (b) `zodResponseFormat` + `chat.completions.parse` (Zod 4) | pass | pass | n/a |
+| (c) `z.toJSONSchema` as json_schema + own `safeParse` | pass | pass | n/a |
+| (d) `tools` with one function (`search_docs`) | pass, args `{"query": …}` | not checked (judge needs no tools) | n/a |
+| (e) `embeddings.create` dimension | n/a | n/a | pass: nomic-embed-text 768, mxbai-embed-large 1024 |
+| (f) `usage` present | pass (prompt and completion tokens) | pass | pass (`prompt_tokens`) |
+| (g) `json_object` + `safeParse` | pass | pass | n/a |
+
+Chosen structured output path: **(b) `zodResponseFormat` + `chat.completions.parse`** for both models
+(generator `qwen2.5:7b` and judge `gemma3:12b`). The Zod 4 helper works as is, so the fallbacks (c) and (g)
+are not needed. They stay available as the documented repair path from `docs/PLAN.md` M1.
+
+Notes:
+- Embeddings were requested with `encoding_format: 'float'`. The SDK default (base64) was not tested, so
+  the M2 adapter sets `float` explicitly.
+- Ollama returns `usage` on chat and embedding responses, so `tiktoken_estimate` (M3) is only a fallback.
+- The first call per model includes the model load time (about 6 to 13 s). Later structured calls took
+  about 1.8 s (qwen) and 3.3 s (gemma). This confirms the M0 decision to run generation and judging as separate batches.
