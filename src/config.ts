@@ -24,6 +24,7 @@ const Env = z.object({
   OLLAMA_BASE_URL: z.url().default('http://localhost:11434/v1'),
   MODEL_PROFILE: z.enum(Object.keys(models.profiles) as [string, ...string[]]).default('default'),
   EMBED_MODEL: z.enum(Object.keys(models.embeddings) as [string, ...string[]]).default('nomic-embed-text'),
+  DATABASE_URL: z.url().optional(),
 });
 
 export interface Config {
@@ -34,6 +35,8 @@ export interface Config {
   judgeModel: string;
   embedModel: string;
   embedding: EmbeddingModelConfig;
+  /** No default: database code fails fast when it is unset (src/db/client.ts). */
+  databaseUrl?: string;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
@@ -58,5 +61,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     judgeModel: profile.judge,
     embedModel: e.EMBED_MODEL,
     embedding,
+    databaseUrl: e.DATABASE_URL,
   };
 }

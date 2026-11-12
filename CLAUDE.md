@@ -14,8 +14,11 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
 - Install: `bun install`
 - Lint: `bun run lint`
 - Typecheck: `bun run typecheck`
-- Test: `bun run test` — Vitest (`bun --bun vitest run`) plus the Claude hook tests (`bun test ./.claude/hooks`,
-  they use `bun:test` and are excluded from Vitest)
+- Database: `docker compose up -d`, then `bun run db:migrate && bun run db:embeddings` (idempotent);
+  `DATABASE_URL` as in `.env.example`
+- Test: `bun run test` — Vitest projects `unit` and `integration` (`bun --bun vitest run`) plus the Claude hook
+  tests (`bun test ./.claude/hooks`, they use `bun:test` and are excluded from Vitest). Integration needs the
+  database and `DATABASE_URL`; it runs against `<db>_test`. DB-free: `bun run test:unit`
 - Install git hooks (once per clone): `git config core.hooksPath scripts/git-hooks`
 - Run lint + typecheck + test after every code change; fix all errors before moving on.
 

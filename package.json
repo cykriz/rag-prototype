@@ -7,9 +7,11 @@
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit",
     "test": "bun --bun vitest run && bun test ./.claude/hooks",
-    "test:unit": "bun --bun vitest run",
+    "test:unit": "bun --bun vitest run --project unit",
     "test:hooks": "bun test ./.claude/hooks",
     "ask:raw": "bun src/cli/askRaw.ts",
+    "db:migrate": "bun src/db/migrate.ts",
+    "db:embeddings": "bun src/db/embeddingTables.ts",
     "privacy:scan": "bun scripts/privacy-scan.ts --staged"
   },
   "dependencies": {

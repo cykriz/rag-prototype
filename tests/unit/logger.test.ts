@@ -1,3 +1,4 @@
+import type { Sql } from 'postgres';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
@@ -12,6 +13,8 @@ import {
   type LlmCallSink,
   LoggedChatProvider,
   LoggedEmbeddingProvider,
+  PostgresLlmCallSink,
+  toLlmCallRow,
 } from '../../src/obs/logger';
 
 class MemorySink implements LlmCallSink {
@@ -219,5 +222,62 @@ describe('registry with a sink', () => {
   it('fails before any call when a configured model has no price', () => {
     const config: Config = { ...loadConfig({}), chatModel: 'unpriced-model' };
     expect(() => createChatProvider(config, new MemorySink())).toThrow('No price for model "unpriced-model"');
+  });
+});
+
+describe('Postgres sink mapping', () => {
+  const record: LlmCallRecord = {
+    operation: 'generate',
+    provider: 'ollama',
+    model: 'qwen2.5:7b',
+    inputTokens: 12,
+    outputTokens: 34,
+    tokenSource: 'usage',
+    latencyMs: 56,
+    costUsd: 0.0007,
+    attempts: 2,
+    status: 'ok',
+  };
+
+  it('maps every record field to its llm_calls column and adds run and request id', () => {
+    expect(
+      toLlmCallRow(record, { runId: 'run-1', requestId: '00000000-0000-4000-8000-000000000001' }),
+    ).toEqual({
+      run_id: 'run-1',
+      request_id: '00000000-0000-4000-8000-000000000001',
+      operation: 'generate',
+      provider: 'ollama',
+      model: 'qwen2.5:7b',
+      input_tokens: 12,
+      output_tokens: 34,
+      token_source: 'usage',
+      latency_ms: 56,
+      cost_usd: 0.0007,
+      attempts: 2,
+      status: 'ok',
+    });
+  });
+
+  it('keeps an error record as is and defaults request_id to null', () => {
+    const error: LlmCallRecord = {
+      ...record,
+      outputTokens: null,
+      tokenSource: 'tiktoken_estimate',
+      costUsd: 0,
+      status: 'error',
+    };
+    expect(toLlmCallRow(error, { runId: 'run-1' })).toMatchObject({
+      request_id: null,
+      input_tokens: 12,
+      output_tokens: null,
+      token_source: 'tiktoken_estimate',
+      cost_usd: 0,
+      status: 'error',
+    });
+  });
+
+  it('rejects an empty runId', () => {
+    // The constructor validates before touching the connection.
+    expect(() => new PostgresLlmCallSink({} as Sql, { runId: ' ' })).toThrow('non-empty runId');
   });
 });

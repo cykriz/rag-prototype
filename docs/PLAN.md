@@ -88,7 +88,7 @@ rag-prototype/
 ├── vitest.config.ts              Baseline excludes .claude/**; unit and integration projects added in M4
 ├── .privacy-denylist.example     Template for the local, gitignored privacy denylist (baseline)
 ├── .claude/                      Plan review gate, plan-reviewer agent, review criteria, /review command, review-changes agent, code review checks and gate (baseline)
-├── docker-compose.yml            Postgres (pgvector/pgvector:pg17); optional ollama profile for Linux
+├── docker-compose.yml            Postgres (pgvector/pgvector:0.8.7-pg17); optional ollama profile for Linux
 ├── .env.example                  All variables with defaults, no secrets
 ├── config/
 │   ├── models.json               Model tags and embedding dims per profile (default, light)
@@ -345,12 +345,12 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 - Acceptance command: `bun --bun vitest run tests/unit/pricing.test.ts tests/unit/logger.test.ts`
 
 **M4. Docker Compose, migrations, embedding tables, Postgres log sink (2 h)**
-- Tasks: `docker-compose.yml` with `pgvector/pgvector:pg17` on port 5433, healthcheck `pg_isready`, optional `ollama` profile for Linux; `migrations/001_init.sql`; `src/db/migrate.ts`; template rendering in `embeddingTables.ts`; scripts `db:migrate`, `db:embeddings`; Postgres sink for `obs/logger.ts`; `vitest.config.ts` gets `unit` and `integration` projects. From here on, local `bun run test` needs `docker compose up -d`; integration tests fail fast with a clear message if `DATABASE_URL` is unset.
+- Tasks: `docker-compose.yml` with `pgvector/pgvector:0.8.7-pg17` on port 5433, healthcheck `pg_isready`, optional `ollama` profile for Linux; `migrations/001_init.sql`; `src/db/migrate.ts`; template rendering in `embeddingTables.ts`; scripts `db:migrate`, `db:embeddings`; Postgres sink for `obs/logger.ts`; `vitest.config.ts` gets `unit` and `integration` projects. From here on, local `bun run test` needs `docker compose up -d`; integration tests fail fast with a clear message if `DATABASE_URL` is unset.
 - Acceptance: running `bun run db:migrate && bun run db:embeddings` twice produces no error and no change; `SELECT extversion FROM pg_extension WHERE extname='vector'` returns at least 0.8; inserting a 1024 float vector into `emb_nomic_embed_text` fails; each provider call through the Postgres sink creates exactly one `llm_calls` row. Index check: seed one `documents` row and 2000 `chunks` rows (FK), then 2000 fake vectors from `fake.ts`, all with the same `chunk_config` (so the planner cannot prefer the `_cfg` btree); run `ANALYZE emb_nomic_embed_text, chunks`; inside one transaction apply the same `SET LOCAL hnsw.*` statements as `vector.ts` and run `EXPLAIN ANALYZE` on the exact SELECT with a literal vector; the output contains `emb_nomic_embed_text_hnsw`. `enable_seqscan` stays untouched.
 - Acceptance command: `bun --bun vitest run tests/integration/schema.test.ts tests/integration/llm-calls.test.ts`
 
 **M5. CI workflow (1 h)**
-- Tasks: `.github/workflows/ci.yml` per section 9 with `oven-sh/setup-bun`, `bun install --frozen-lockfile`, `bun run lint`, `bun run typecheck`, `bun run test` with a `pgvector/pgvector:pg17` service container and fake providers.
+- Tasks: `.github/workflows/ci.yml` per section 9 with `oven-sh/setup-bun`, `bun install --frozen-lockfile`, `bun run lint`, `bun run typecheck`, `bun run test` with a `pgvector/pgvector:0.8.7-pg17` service container and fake providers.
 - Acceptance: the same commands pass locally with the CI environment; no secrets referenced. After I push (pushing stays with me), the GitHub run is green, checked with `gh run watch --exit-status` or in the GitHub UI.
 - Acceptance command: `CHAT_PROVIDER=fake EMBED_PROVIDER=fake bun run lint && bun run typecheck && bun run test` against `docker compose`
 
@@ -471,7 +471,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 Recommendation: GCP. App container on Cloud Run (free tier request and compute quota), PostgreSQL with pgvector in a Docker container on an always free `e2-micro` VM, generation through the phase 3 Anthropic adapter, query embeddings through `nomic-embed-text` in an Ollama sidecar of the Cloud Run service on CPU. Justification: free tiers offer no GPU and roughly 1 GB RAM VMs, which cannot run 7b or 12b chat models, while a 768 dim embedding model on CPU and precomputed corpus embeddings are feasible. Assumption: Cloud Run free quota and sidecar support suffice for demo traffic; verify current free tier terms before starting.
 
 **M22a. Postgres VM (2 h)**
-- Tasks: `e2-micro` VM with the `pgvector/pgvector:pg17` container, firewall closed to the internet, restore of a `pg_dump` from local ingest, monthly budget alert at 1 EUR.
+- Tasks: `e2-micro` VM with the `pgvector/pgvector:0.8.7-pg17` container, firewall closed to the internet, restore of a `pg_dump` from local ingest, monthly budget alert at 1 EUR.
 - Acceptance: database reachable only from inside the VPC.
 - Acceptance command: `pg_isready -h <VM external IP>` fails from outside, and `psql -c 'select 1'` succeeds from inside the VPC
 
@@ -651,7 +651,7 @@ Latency numbers from local runs depend on model load state: the runner sends one
       runs-on: ubuntu-latest
       services:
         db:
-          image: pgvector/pgvector:pg17
+          image: pgvector/pgvector:0.8.7-pg17
           env: { POSTGRES_USER: rag, POSTGRES_PASSWORD: rag, POSTGRES_DB: rag_test }
           ports: ["5432:5432"]
           options: >-

@@ -1,0 +1,30 @@
+# Local environment (docs/PLAN.md M4). Start with `docker compose up -d`.
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Linux only: `docker compose --profile ollama up -d`. On macOS use the native Ollama app (GPU access).
+  ollama:
+    image: ollama/ollama:0.40.12
+    profiles: [ollama]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  pgdata:
+  ollama:

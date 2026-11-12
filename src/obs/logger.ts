@@ -1,4 +1,5 @@
 // LLM call logging (docs/PLAN.md M3): one record per provider call, written to a sink (Postgres sink in M4).
+import type { Sql } from 'postgres';
 import type { z } from 'zod';
 import { costUsd, type Price } from '../llm/pricing';
 import { attemptsOf } from '../llm/retry';
@@ -39,6 +40,63 @@ export interface LlmCallRecord {
 
 export interface LlmCallSink {
   write(record: LlmCallRecord): Promise<void>;
+}
+
+/** What a record lacks to become an llm_calls row; fixed per sink. */
+export interface LlmCallContext {
+  runId: string;
+  /** uuid of the RAG request (rag_requests.request_id); null for calls outside a request. */
+  requestId?: string | null;
+}
+
+/** One llm_calls row in column names; id and created_at come from column defaults. */
+export interface LlmCallRow {
+  run_id: string;
+  request_id: string | null;
+  operation: Operation;
+  provider: string;
+  model: string;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  token_source: TokenSource;
+  latency_ms: number;
+  cost_usd: number;
+  attempts: number;
+  status: CallStatus;
+}
+
+export function toLlmCallRow(record: LlmCallRecord, ctx: LlmCallContext): LlmCallRow {
+  return {
+    run_id: ctx.runId,
+    request_id: ctx.requestId ?? null,
+    operation: record.operation,
+    provider: record.provider,
+    model: record.model,
+    input_tokens: record.inputTokens,
+    output_tokens: record.outputTokens,
+    token_source: record.tokenSource,
+    latency_ms: record.latencyMs,
+    cost_usd: record.costUsd,
+    attempts: record.attempts,
+    status: record.status,
+  };
+}
+
+/** Writes one llm_calls row per record. Constructed per run (and per request, once requests exist). */
+export class PostgresLlmCallSink implements LlmCallSink {
+  constructor(
+    private readonly sql: Sql,
+    private readonly ctx: LlmCallContext,
+  ) {
+    if (ctx.runId.trim() === '') {
+      throw new Error('PostgresLlmCallSink needs a non-empty runId');
+    }
+  }
+
+  async write(record: LlmCallRecord): Promise<void> {
+    const row = toLlmCallRow(record, this.ctx);
+    await this.sql`INSERT INTO llm_calls ${this.sql(row)}`;
+  }
 }
 
 interface Outcome<R> {
