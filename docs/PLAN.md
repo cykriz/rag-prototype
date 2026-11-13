@@ -4,7 +4,7 @@ Status: plan only. All package versions were looked up on 2026-11-10 (`npm view`
 
 Declared assumptions (apply throughout):
 - Assumption: development machine is an Apple Silicon MacBook Pro with 32 GB unified memory, Ollama installed natively via Homebrew.
-- Assumption: Bun docs in `oven-sh/bun` are covered by the repository's MIT license (`LICENSE.md`). M6 verifies this and records the result in the README.
+- Assumption: Bun docs in `oven-sh/bun` are covered by the repository's MIT license (`LICENSE.md`). M6 verifies this and records the result in the README. Verified in M6 with a caveat (`LICENSE.md` says "Bun itself is MIT-licensed" without naming the docs), see README.
 - Assumption: `openai@7.x` still exposes `chat.completions.create`, `embeddings.create` and the `openai/helpers/zod` helpers. M0 and M1 verify this before any adapter code is written. Verified in M1, see `docs/SPIKE.md`.
 
 ---
@@ -121,6 +121,7 @@ rag-prototype/
 │   │   ├── migrate.ts            Applies migrations once, records them in schema_migrations
 │   │   └── embeddingTables.ts    Renders the template per model, validates dim against config
 │   ├── ingest/
+│   │   ├── fences.ts             Shared code fence and heading scanner for loader and chunker
 │   │   ├── loadMarkdown.ts       Reads .md/.mdx, strips frontmatter and JSX components, extracts title
 │   │   ├── chunk.ts              RecursiveCharacterTextSplitter (markdown) with token length function
 │   │   ├── hash.ts               sha256 via node:crypto
@@ -355,7 +356,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 - Acceptance command: `(export CHAT_PROVIDER=fake EMBED_PROVIDER=fake DATABASE_URL=postgres://rag:rag@localhost:5433/rag_test && bun run lint && bun run typecheck && bun run test)` against `docker compose`; precondition: `rag_test` exists (on a fresh volume, one `bun run test` with the `.env.example` URL creates it)
 
 **M6. Corpus fetch, Markdown loader, chunker (2 h)**
-- Tasks: `scripts/fetch-corpus.sh` (sparse clone of `docs/` at a pinned SHA recorded in `.env.example` as `CORPUS_SHA`; prints the sha256 of the file list as its last output line); add `corpus/` to `.gitignore`; verify license and record it in README; `loadMarkdown.ts` (frontmatter removal, MDX component stripping, title from first heading); `chunk.ts` using `RecursiveCharacterTextSplitter.fromLanguage("markdown", { chunkSize, chunkOverlap, lengthFunction })` with a token based length function, heading path tracked per chunk.
+- Tasks: `scripts/fetch-corpus.sh` (sparse clone of `docs/` at a pinned SHA recorded in `.env.example` as `CORPUS_SHA`; prints the sha256 of the file list as its last output line); add `corpus/` to `.gitignore`; verify license and record it in README; `loadMarkdown.ts` (frontmatter removal, MDX component stripping, title from frontmatter `title`, else first heading, since Bun docs keep the title only in frontmatter); `chunk.ts` using `RecursiveCharacterTextSplitter.fromLanguage("markdown", { chunkSize, chunkOverlap, lengthFunction })` with a token based length function, heading path tracked per chunk.
 - Acceptance: fetch is reproducible (same SHA gives same file list hash); no chunk exceeds `chunk_size` tokens; code fences are not split mid fence when they fit in one chunk. Unit tests use fixture Markdown with headings, a code fence and an MDX tag, asserting chunk count, max tokens, heading paths and stripped JSX.
 - Acceptance command: `bun --bun vitest run tests/unit/chunk.test.ts tests/unit/load-markdown.test.ts && [ "$(./scripts/fetch-corpus.sh | tail -n1)" = "$(./scripts/fetch-corpus.sh | tail -n1)" ]`
 

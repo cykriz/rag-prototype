@@ -1,0 +1,55 @@
+---
+title: "Widget Guide"
+description: "Synthetic fixture for the loader and chunker tests"
+---
+
+import { Note } from "/snippets/components.jsx";
+
+Widget is a fictional command line tool. This page exists only to exercise the Markdown loader and the chunker.
+
+{/* This comment must not reach the chunk text. */}
+
+## Install
+
+Install the widget with the package manager of your choice. The installer places a single binary on your path.
+
+```sh
+widget install --global
+```
+
+### From source
+
+Clone the repository, then build the binary with the release profile. Building from source takes a few minutes.
+
+```sh
+widget install --global
+```
+
+## Configure
+
+<Note>
+  Configuration lives in a plain text file next to your project. The widget reads it once at startup.
+</Note>
+
+```ts title="widget.config.ts"
+// Widget configuration
+## not a heading
+export default {
+  name: "demo",
+
+  retries: 3,
+  timeoutMs: 5000,
+};
+```
+
+<Accordion
+  title="Advanced options"
+>
+Set `<Widget />` options only when the defaults do not fit. Unknown keys raise an error at startup.
+</Accordion>
+
+<Badge label="beta" />
+
+## Troubleshoot
+
+If the widget exits early, run it again with verbose logging and read the last lines of the output.
