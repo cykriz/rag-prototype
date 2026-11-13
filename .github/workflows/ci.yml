@@ -1,0 +1,44 @@
+# CI: lint, typecheck and the full test suite with fake providers only.
+# No model endpoints and no secrets; actions are pinned by commit SHA (version in the trailing comment).
+name: CI
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Pinned release instead of ubuntu-latest; bump deliberately when GitHub deprecates the label.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      db:
+        image: pgvector/pgvector:0.8.7-pg17
+        env:
+          POSTGRES_USER: rag
+          POSTGRES_PASSWORD: rag
+          POSTGRES_DB: rag_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rag -d rag_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Integration tests use a database ending in _test as is (tests/integration/globalSetup.ts) and migrate
+      # on their own in beforeAll, so there is no separate db:migrate step.
+      DATABASE_URL: postgres://rag:rag@localhost:5432/rag_test
+      CHAT_PROVIDER: fake
+      EMBED_PROVIDER: fake
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test

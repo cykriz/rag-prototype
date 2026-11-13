@@ -352,7 +352,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 **M5. CI workflow (1 h)**
 - Tasks: `.github/workflows/ci.yml` per section 9 with `oven-sh/setup-bun`, `bun install --frozen-lockfile`, `bun run lint`, `bun run typecheck`, `bun run test` with a `pgvector/pgvector:0.8.7-pg17` service container and fake providers.
 - Acceptance: the same commands pass locally with the CI environment; no secrets referenced. After I push (pushing stays with me), the GitHub run is green, checked with `gh run watch --exit-status` or in the GitHub UI.
-- Acceptance command: `CHAT_PROVIDER=fake EMBED_PROVIDER=fake bun run lint && bun run typecheck && bun run test` against `docker compose`
+- Acceptance command: `(export CHAT_PROVIDER=fake EMBED_PROVIDER=fake DATABASE_URL=postgres://rag:rag@localhost:5433/rag_test && bun run lint && bun run typecheck && bun run test)` against `docker compose`; precondition: `rag_test` exists (on a fresh volume, one `bun run test` with the `.env.example` URL creates it)
 
 **M6. Corpus fetch, Markdown loader, chunker (2 h)**
 - Tasks: `scripts/fetch-corpus.sh` (sparse clone of `docs/` at a pinned SHA recorded in `.env.example` as `CORPUS_SHA`; prints the sha256 of the file list as its last output line); add `corpus/` to `.gitignore`; verify license and record it in README; `loadMarkdown.ts` (frontmatter removal, MDX component stripping, title from first heading); `chunk.ts` using `RecursiveCharacterTextSplitter.fromLanguage("markdown", { chunkSize, chunkOverlap, lengthFunction })` with a token based length function, heading path tracked per chunk.
@@ -644,31 +644,7 @@ Latency numbers from local runs depend on model load state: the runner sends one
 - `vitest.config.ts`: the baseline only excludes `.claude/**`; M4 adds projects `unit` and `integration`. From M4 on, local `bun run test` needs `docker compose up -d`; integration tests read `DATABASE_URL` and fail fast with a clear message if it is unset.
 - Mocking: model access is only reachable through `ChatProvider` and `EmbeddingProvider`, so tests inject fakes via `registry.ts` with `CHAT_PROVIDER=fake`. No HTTP mocking of the OpenAI SDK needed, except one adapter test that passes a stub `fetch` to the `OpenAI` client to verify request mapping.
 - Fake embeddings: sha256 of the text expanded to `dim` floats and L2 normalized, so identical text gives identical vectors and tests are deterministic.
-- CI (`.github/workflows/ci.yml`):
-  ```yaml
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      services:
-        db:
-          image: pgvector/pgvector:0.8.7-pg17
-          env: { POSTGRES_USER: rag, POSTGRES_PASSWORD: rag, POSTGRES_DB: rag_test }
-          ports: ["5432:5432"]
-          options: >-
-            --health-cmd "pg_isready -U rag" --health-interval 5s --health-retries 10
-      env:
-        DATABASE_URL: postgres://rag:rag@localhost:5432/rag_test
-        CHAT_PROVIDER: fake
-        EMBED_PROVIDER: fake
-      steps:
-        - uses: actions/checkout@v4
-        - uses: oven-sh/setup-bun@v2
-          with: { bun-version: 1.4.4 }
-        - run: bun install --frozen-lockfile
-        - run: bun run lint
-        - run: bun run typecheck
-        - run: bun run test
-  ```
+- CI: `.github/workflows/ci.yml` is the source of truth (versions and steps live only there). It uses fake providers only and references no secrets; actions, Bun and the runner are pinned exactly. The integration tests migrate on their own, so there is no `db:migrate` step.
 - Secrets: `ANTHROPIC_API_KEY` exists only in local `.env` (gitignored) from my personal account, never an employer key, never in GitHub secrets, never in CI. `config.ts` refuses to start with `CHAT_PROVIDER=anthropic` when `CI=true`. The secret and PII gate is `scripts/privacy-scan.ts`, run by `scripts/git-hooks/` on every commit; no separate secret scanner is used.
 
 ---
