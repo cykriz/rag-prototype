@@ -1,4 +1,13 @@
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
+
+// Bun skips its .env auto-loading for `bun --bun vitest`, so load the repo's .env here for every Vitest call,
+// whatever the cwd. Variables already set (shell, CI) win; without a .env (CI) nothing happens.
+const envFile = fileURLToPath(new URL('.env', import.meta.url));
+if (existsSync(envFile)) {
+  process.loadEnvFile(envFile);
+}
 
 export default defineConfig({
   test: {

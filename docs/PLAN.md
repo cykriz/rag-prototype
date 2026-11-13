@@ -640,7 +640,7 @@ Latency numbers from local runs depend on model load state: the runner sends one
 | Model check and spike | local only | M0 Ollama model check, `scripts/spike-ollama.ts` | real Ollama |
 | Evals and experiments | local only | `eval:*`, `experiment` | real Ollama (phase 3: Anthropic) |
 
-- Command: `bun run test` (baseline script: `bun --bun vitest run`, which forces the Bun runtime, plus `bun test ./.claude/hooks` for the hook tests). Lint is Biome via `bun run lint`.
+- Command: `bun run test` (baseline script: `bun --bun vitest run`, which forces the Bun runtime; `vitest.config.ts` loads `.env` itself because Bun skips it for `bun --bun vitest`; plus `bun test ./.claude/hooks` for the hook tests). Lint is Biome via `bun run lint`.
 - `vitest.config.ts`: the baseline only excludes `.claude/**`; M4 adds projects `unit` and `integration`. From M4 on, local `bun run test` needs `docker compose up -d`; integration tests read `DATABASE_URL` and fail fast with a clear message if it is unset.
 - Mocking: model access is only reachable through `ChatProvider` and `EmbeddingProvider`, so tests inject fakes via `registry.ts` with `CHAT_PROVIDER=fake`. No HTTP mocking of the OpenAI SDK needed, except one adapter test that passes a stub `fetch` to the `OpenAI` client to verify request mapping.
 - Fake embeddings: sha256 of the text expanded to `dim` floats and L2 normalized, so identical text gives identical vectors and tests are deterministic.
