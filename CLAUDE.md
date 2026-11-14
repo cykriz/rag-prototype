@@ -16,6 +16,8 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
 - Typecheck: `bun run typecheck`
 - Database: `docker compose up -d`, then `bun run db:migrate && bun run db:embeddings` (idempotent);
   `DATABASE_URL` as in `.env.example`
+- Ingest: `./scripts/fetch-corpus.sh`, then `bun run ingest [--chunk md-512-64] [--embed <model>] [--force] [--prune]`
+  (idempotent; needs `CORPUS_SHA` in `.env`)
 - Test: `bun run test` — Vitest projects `unit` and `integration` (`bun --bun vitest run`) plus the Claude hook
   tests (`bun test ./.claude/hooks`, they use `bun:test` and are excluded from Vitest). Integration needs the
   database and `DATABASE_URL`; it runs against `<db>_test`. DB-free: `bun run test:unit`

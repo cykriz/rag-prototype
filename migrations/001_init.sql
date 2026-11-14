@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS documents (
   id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   source_path     text NOT NULL UNIQUE,                 -- relative to corpus root
   title           text,
-  content_hash    char(64) NOT NULL,                    -- sha256 of normalized file content
+  content_hash    char(64) NOT NULL,                    -- sha256 of parsed title and body
   corpus_version  text NOT NULL,                        -- pinned git SHA of oven-sh/bun
   ingested_at     timestamptz NOT NULL DEFAULT now()
 );

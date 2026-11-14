@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS documents (
   id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   source_path     text NOT NULL UNIQUE,                 -- relative to corpus root
   title           text,
-  content_hash    char(64) NOT NULL,                    -- sha256 of normalized file content
+  content_hash    char(64) NOT NULL,                    -- sha256 of parsed title and body
   corpus_version  text NOT NULL,                        -- pinned git SHA of oven-sh/bun
   ingested_at     timestamptz NOT NULL DEFAULT now()
 );
@@ -300,7 +300,7 @@ Consequences of the configurable dimension (documented in README and ADR 0005):
 - Changing the embedding model means a new table and a full re-embedding; vectors of different models are never comparable, so mixing them in one column would be a bug, not a feature.
 - `embeddingTables.ts` checks at startup that `atttypmod` of `embedding` equals the configured dim and that the first returned embedding has that length; a mismatch aborts before any insert.
 - HNSW in pgvector indexes `vector` up to 2000 dimensions; larger models would need `halfvec`. Both planned models are below that limit.
-- Idempotent ingest: unchanged `documents.content_hash` means skip; changed hash means delete the document's chunks (cascade) and reinsert; embeddings for chunks whose `content_hash` already exists in the model table are copied instead of recomputed.
+- Idempotent ingest, per document, chunk config and embedding model (actions listed in the header of `src/ingest/ingest.ts`): an unchanged `documents.content_hash` means skip, unless this chunk config has no chunks yet (add them) or this model lacks vectors (backfill); a changed hash means delete the document's chunks of every config (cascade) and reinsert; `--force` re-chunks the current config only; `--prune` deletes documents whose file is gone. Embeddings for chunks whose `content_hash` already exists in the model table are copied instead of recomputed.
 
 ---
 

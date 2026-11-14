@@ -6,6 +6,8 @@ const EmbeddingModel = z.object({
   dim: z.number().int().positive(),
   documentPrefix: z.string(),
   queryPrefix: z.string(),
+  /** Trained context length; ingest warns when an embedding input exceeds it (Ollama truncates silently). */
+  contextTokens: z.number().int().positive(),
 });
 const Models = z.object({
   profiles: z.record(z.string(), z.object({ chat: z.string(), judge: z.string() })),
@@ -25,6 +27,9 @@ const Env = z.object({
   MODEL_PROFILE: z.enum(Object.keys(models.profiles) as [string, ...string[]]).default('default'),
   EMBED_MODEL: z.enum(Object.keys(models.embeddings) as [string, ...string[]]).default('nomic-embed-text'),
   DATABASE_URL: z.url().optional(),
+  // Not validated here and not compared with the checkout: scripts/fetch-corpus.sh validates the SHA it checks
+  // out (falling back to .env.example when unset), so .env must carry the same value for corpus_version to match.
+  CORPUS_SHA: z.string().optional(),
 });
 
 export interface Config {
@@ -37,6 +42,8 @@ export interface Config {
   embedding: EmbeddingModelConfig;
   /** No default: database code fails fast when it is unset (src/db/client.ts). */
   databaseUrl?: string;
+  /** Pinned oven-sh/bun commit of the corpus, stored as documents.corpus_version; the ingest CLI requires it. */
+  corpusSha?: string;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
@@ -62,5 +69,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     embedModel: e.EMBED_MODEL,
     embedding,
     databaseUrl: e.DATABASE_URL,
+    corpusSha: e.CORPUS_SHA,
   };
 }

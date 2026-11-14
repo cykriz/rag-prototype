@@ -7,8 +7,9 @@
     "nomic-embed-text": {
       "dim": 768,
       "documentPrefix": "search_document: ",
-      "queryPrefix": "search_query: "
+      "queryPrefix": "search_query: ",
+      "contextTokens": 2048
     },
-    "mxbai-embed-large": { "dim": 1024, "documentPrefix": "", "queryPrefix": "" }
+    "mxbai-embed-large": { "dim": 1024, "documentPrefix": "", "queryPrefix": "", "contextTokens": 512 }
   }
 }

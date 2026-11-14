@@ -2,7 +2,7 @@ import { APIConnectionError, APIError } from 'openai';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { describeError } from '../../src/cli/askRaw';
+import { describeError } from '../../src/cli/errors';
 import { loadConfig } from '../../src/config';
 import { FAKE_JUDGE_MODEL, FakeChatProvider, FakeEmbeddingProvider, fakeEmbedding } from '../../src/llm/fake';
 import {
@@ -20,8 +20,19 @@ describe('loadConfig', () => {
       chatModel: 'qwen2.5:7b',
       judgeModel: 'gemma3:12b',
       embedModel: 'nomic-embed-text',
-      embedding: { dim: 768, documentPrefix: 'search_document: ', queryPrefix: 'search_query: ' },
+      embedding: {
+        dim: 768,
+        documentPrefix: 'search_document: ',
+        queryPrefix: 'search_query: ',
+        contextTokens: 2048,
+      },
     });
+  });
+
+  it('reads CORPUS_SHA', () => {
+    const sha = '0123456789abcdef0123456789abcdef01234567';
+    expect(loadConfig({ CORPUS_SHA: sha }).corpusSha).toBe(sha);
+    expect(loadConfig({}).corpusSha).toBeUndefined();
   });
 
   it('resolves the light profile and another embedding model', () => {
@@ -88,7 +99,7 @@ describe('fake providers', () => {
 });
 
 describe('ask:raw error messages', () => {
-  const config = { baseURL: 'http://localhost:11434/v1', chatModel: 'qwen2.5:7b' };
+  const config = { baseURL: 'http://localhost:11434/v1', model: 'qwen2.5:7b' };
 
   it('hints at starting Ollama on connection errors', () => {
     expect(describeError(new APIConnectionError({ message: 'Connection error.' }), config)).toContain(

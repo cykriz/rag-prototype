@@ -1,0 +1,46 @@
+---
+title: "Configuration Reference"
+description: "Every option of the fictional widget configuration file"
+---
+
+import { Option } from "/snippets/options.jsx";
+
+The configuration file is a plain module that exports one object. Widget validates it at startup and stops with a clear message when a key is unknown.
+
+## name
+
+<Option type="string" required />
+
+The project name. Widget prints it in status output and uses it as the default output folder name.
+
+## retries
+
+<Option type="number" default="3" />
+
+How often a failing step is retried before the build stops. Retries wait a little longer each time, starting at half a second.
+
+## timeoutMs
+
+<Option type="number" default="5000" />
+
+The time in milliseconds a single step may take. A step that runs longer is cancelled and counts as failed, which may trigger a retry.
+
+## include
+
+<Option type="string[]" default='["src"]' />
+
+Folders whose files are inputs for the build. Paths are relative to the configuration file. Hidden files are ignored unless listed explicitly.
+
+## exclude
+
+<Option type="string[]" default="[]" />
+
+Glob patterns removed from the input set after `include` has been applied. Use it for generated files that should never be inputs.
+
+```ts title="widget.config.ts"
+export default {
+  name: "demo",
+  include: ["src", "assets"],
+  exclude: ["**/*.tmp"],
+};
+```

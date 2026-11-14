@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
 import { connect } from '../../src/db/client';
 import { ensureEmbeddingTables } from '../../src/db/embeddingTables';
 import { migrate } from '../../src/db/migrate';
+import { sha256 } from '../../src/ingest/hash';
 import { fakeEmbedding } from '../../src/llm/fake';
 
 let sql: Sql;
@@ -24,8 +24,6 @@ async function schemaSnapshot(): Promise<unknown> {
   const versions = await sql`SELECT version, applied_at FROM schema_migrations ORDER BY version`;
   return { columns: [...columns], indexes: [...indexes], versions: [...versions] };
 }
-
-const sha256 = (text: string) => createHash('sha256').update(text).digest('hex');
 
 beforeAll(async () => {
   sql = connect(inject('databaseUrl'));
