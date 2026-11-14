@@ -10,7 +10,7 @@ export interface RawCompletion {
   usage?: Usage;
 }
 
-function validate<T>(
+export function validate<T>(
   raw: string | null,
   schema: z.ZodType<T>,
 ): { ok: true; value: T } | { ok: false; error: string } {

@@ -99,6 +99,36 @@ export class PostgresLlmCallSink implements LlmCallSink {
   }
 }
 
+/** One rag_requests row (docs/PLAN.md §4/§8), written once per answered request. */
+export interface RagRequestRecord {
+  requestId: string;
+  runId: string;
+  /** Golden dataset question; null for ad hoc questions. */
+  questionId: string | null;
+  pipeline: string;
+  totalLatencyMs: number;
+  /** Chunk IDs in retrieval order. */
+  retrievedIds: number[];
+  /** null when the model output was unusable. */
+  found: boolean | null;
+}
+
+export interface RagRequestSink {
+  write(record: RagRequestRecord): Promise<void>;
+}
+
+/** Fail closed like the llm_calls sink: a write error fails the request. */
+export class PostgresRagRequestSink implements RagRequestSink {
+  constructor(private readonly sql: Sql) {}
+
+  async write(r: RagRequestRecord): Promise<void> {
+    await this.sql`
+      INSERT INTO rag_requests (request_id, run_id, question_id, pipeline, total_latency_ms, retrieved_ids, found)
+      VALUES (${r.requestId}, ${r.runId}, ${r.questionId}, ${r.pipeline}, ${r.totalLatencyMs},
+              ${r.retrievedIds}::bigint[], ${r.found})`;
+  }
+}
+
 interface Outcome<R> {
   model: string;
   attempts: number;

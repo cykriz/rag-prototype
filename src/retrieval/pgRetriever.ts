@@ -13,6 +13,11 @@ export interface ChunkMetadata {
   distance: number;
 }
 
+/** `source_path > heading_path`, or just `source_path` for a chunk without heading. */
+export function sourceLabel(meta: Pick<ChunkMetadata, 'source_path' | 'heading_path'>): string {
+  return meta.heading_path ? `${meta.source_path} > ${meta.heading_path}` : meta.source_path;
+}
+
 export interface PgRetrieverInput extends BaseRetrieverInput {
   sql: Sql;
   embedder: EmbeddingProvider;
