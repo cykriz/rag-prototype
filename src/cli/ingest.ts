@@ -5,13 +5,12 @@ import { parseArgs } from 'node:util';
 import { type Config, loadConfig } from '../config';
 import { connect, databaseUrl } from '../db/client';
 import { ensureEmbeddingTables } from '../db/embeddingTables';
-import { parseChunkConfigKey } from '../ingest/chunk';
+import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { ingest } from '../ingest/ingest';
 import { createEmbeddingProvider } from '../llm/registry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { describeError } from './errors';
 
-const DEFAULT_CHUNK_CONFIG = 'md-512-64';
 /** Where scripts/fetch-corpus.sh puts the Bun docs. */
 const DEFAULT_CORPUS_ROOT = 'corpus/bun-docs/docs';
 

@@ -11,6 +11,7 @@
     "test:hooks": "bun test ./.claude/hooks",
     "ask:raw": "bun src/cli/askRaw.ts",
     "ingest": "bun src/cli/ingest.ts",
+    "retrieve": "bun src/cli/retrieve.ts",
     "db:migrate": "bun src/db/migrate.ts",
     "db:embeddings": "bun src/db/embeddingTables.ts",
     "privacy:scan": "bun scripts/privacy-scan.ts --staged"

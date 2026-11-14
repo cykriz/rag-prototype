@@ -10,6 +10,8 @@ import { ensureEmbeddingTables } from '../../src/db/embeddingTables';
 import { migrate } from '../../src/db/migrate';
 import { sha256 } from '../../src/ingest/hash';
 import { fakeEmbedding } from '../../src/llm/fake';
+import { applyHnswSettings, vectorQuery } from '../../src/retrieval/vector';
+import { insertSyntheticChunks } from './helpers';
 
 let sql: Sql;
 
@@ -94,53 +96,24 @@ describe('HNSW index', () => {
   const ROWS = 2000;
 
   beforeAll(async () => {
-    await sql`INSERT INTO chunk_configs (key, chunk_size, chunk_overlap, splitter)
-              VALUES (${CHUNK_CONFIG}, 512, 64, 'markdown')`;
-    const [doc] = await sql<{ id: string }[]>`
-      INSERT INTO documents (source_path, title, content_hash, corpus_version)
-      VALUES ('docs/index-check.md', 'Index check', ${sha256('doc')}, 'test') RETURNING id`;
-    const texts = Array.from({ length: ROWS }, (_, i) => `synthetic chunk ${i}`);
-    const chunks = await sql<{ id: string; content: string }[]>`
-      INSERT INTO chunks ${sql(
-        texts.map((content, ordinal) => ({
-          document_id: doc!.id,
-          chunk_config: CHUNK_CONFIG,
-          ordinal,
-          content,
-          content_hash: sha256(content),
-          token_count: 3,
-        })),
-      )} RETURNING id, content`;
-    await sql`
-      INSERT INTO emb_nomic_embed_text ${sql(
-        chunks.map((c) => ({
-          chunk_id: c.id,
-          chunk_config: CHUNK_CONFIG,
-          content_hash: sha256(c.content),
-          embedding: pgvector.toSql(fakeEmbedding(c.content, 768)),
-        })),
-      )}`;
+    await insertSyntheticChunks(sql, {
+      config: CHUNK_CONFIG,
+      count: ROWS,
+      sourcePath: 'docs/index-check.md',
+    });
     await sql`ANALYZE emb_nomic_embed_text, chunks`;
   });
 
   it('serves the filtered vector query', async () => {
-    const literal = `'${pgvector.toSql(fakeEmbedding('how do I read env vars', 768))}'::vector`;
-    // Statements and SELECT copied from docs/PLAN.md §4. Once src/retrieval/vector.ts exists (M8), it exports
-    // them and this test imports them instead.
+    const query = {
+      vector: fakeEmbedding('how do I read env vars', 768),
+      k: 5,
+      chunkConfig: CHUNK_CONFIG,
+      model: 'nomic-embed-text',
+    };
     const plan = await sql.begin(async (tx) => {
-      await tx.unsafe('SET LOCAL hnsw.ef_search = 100');
-      await tx.unsafe('SET LOCAL hnsw.iterative_scan = relaxed_order');
-      return tx.unsafe(`EXPLAIN ANALYZE
-        SELECT * FROM (
-          SELECT c.id, c.content, c.heading_path, d.source_path,
-                 e.embedding <=> ${literal} AS distance
-          FROM emb_nomic_embed_text e
-          JOIN chunks c    ON c.id = e.chunk_id
-          JOIN documents d ON d.id = c.document_id
-          WHERE e.chunk_config = '${CHUNK_CONFIG}'
-          ORDER BY e.embedding <=> ${literal}
-          LIMIT 5
-        ) t ORDER BY distance`);
+      await applyHnswSettings(tx);
+      return tx`EXPLAIN ANALYZE ${vectorQuery(tx, query)}`;
     });
     const text = plan.map((r) => r['QUERY PLAN']).join('\n');
     expect(text).toContain('emb_nomic_embed_text_hnsw');

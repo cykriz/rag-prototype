@@ -4,6 +4,9 @@ import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { countTokens } from '../llm/tokens';
 import { findFences, findHeadings, type Heading } from './fences';
 
+/** Baseline chunk config (docs/PLAN.md); default of every CLI that takes --chunk. */
+export const DEFAULT_CHUNK_CONFIG = 'md-512-64';
+
 export interface ChunkConfig {
   key: string;
   chunkSize: number;
