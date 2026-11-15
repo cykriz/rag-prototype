@@ -13,6 +13,7 @@
     "ingest": "bun src/cli/ingest.ts",
     "retrieve": "bun src/cli/retrieve.ts",
     "ask": "bun src/cli/ask.ts",
+    "eval:validate": "bun src/cli/evalValidate.ts",
     "db:migrate": "bun src/db/migrate.ts",
     "db:embeddings": "bun src/db/embeddingTables.ts",
     "privacy:scan": "bun scripts/privacy-scan.ts --staged"

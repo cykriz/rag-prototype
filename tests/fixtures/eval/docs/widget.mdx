@@ -1,0 +1,23 @@
+---
+title: Widget configuration
+description: Frontmatter sentence that is never chunked.
+---
+
+import { Note } from "/snippets/note.jsx";
+
+# Widget configuration
+
+<Note title="Attribute text that is never chunked">
+The widget server listens on **port 8080** by default.
+</Note>
+
+Set `WIDGET_HOME` to change the data directory of the [widget server](https://example.com/widget).
+
+- Run `widget start` to launch the server.
+- Run `widget stop` to stop it.
+
+> Logs are written to   _the logs directory_.
+
+```sh
+widget start --host example.com
+```

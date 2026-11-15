@@ -1,8 +1,8 @@
 // Content hashes for idempotent ingest (docs/PLAN.md §3, §4): sha256 via node:crypto, hex encoded (char(64)).
 import { createHash } from 'node:crypto';
 
-export function sha256(text: string): string {
-  return createHash('sha256').update(text).digest('hex');
+export function sha256(data: string | Uint8Array): string {
+  return createHash('sha256').update(data).digest('hex');
 }
 
 /**

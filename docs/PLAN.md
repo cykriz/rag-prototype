@@ -142,7 +142,8 @@ rag-prototype/
 │   │   ├── graph.ts              Phase 2: LangGraph StateGraph (agent node, tools node, stop rule)
 │   │   └── tools.ts              search_docs tool definition and executor
 │   ├── eval/
-│   │   ├── dataset.ts            Zod schema for golden.jsonl, loader, dataset hash
+│   │   ├── dataset.ts            Zod schema for golden.jsonl, loader, span check, dataset hash
+│   │   ├── normalize.ts          Span normalization shared by the validator and relevance.ts
 │   │   ├── relevance.ts          Evidence span matching against chunks
 │   │   ├── metrics.ts            Recall@k, MRR, nDCG@k, keyword coverage, abstention metrics
 │   │   ├── judge.ts              LLM-as-a-judge with structured output
@@ -152,6 +153,7 @@ rag-prototype/
 │       ├── ingest.ts             bun run ingest --chunk md-512-64 --embed nomic-embed-text
 │       ├── askRaw.ts             bun run ask:raw "question" (M2: one raw chat call, no retrieval)
 │       ├── ask.ts                bun run ask "question"
+│       ├── evalValidate.ts       bun run eval:validate [--strict] (M10: golden dataset checks)
 │       ├── eval.ts               bun run eval:retrieval / eval:answers --config experiments/x.json
 │       ├── experiment.ts         Runs an experiment matrix file
 │       └── report.ts             Regenerates README results table between markers
@@ -376,9 +378,9 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 - Acceptance command: `bun --bun vitest run tests/unit/answer.test.ts && bun run ask "<question>"`
 
 **M10. Golden dataset (3 h, me, not an agent)**
-- Tasks: write 45 questions per section 6; `dataset.ts` with Zod schema and `bun run eval:validate`, which checks that every evidence span exists verbatim (after normalization) in the referenced source file. The validator and its unit test (broken span fixture) may be written by an agent; the questions may not.
+- Tasks: write 45 questions per section 6; `dataset.ts` with Zod schema and `bun run eval:validate`, which checks that every evidence span exists verbatim (after normalization) in the loaded body of the referenced source file (frontmatter and MDX syntax removed, as chunked by ingest). The validator and its unit test (broken span fixture) may be written by an agent; the questions may not.
 - Acceptance: validator passes; split is 15 dev and 30 test; dataset hash recorded.
-- Acceptance command: `bun run eval:validate`
+- Acceptance command: `bun run eval:validate --strict`
 
 **M11. Retrieval metrics and runner (2 h)**
 - Tasks: `relevance.ts`, `metrics.ts`, `runner.ts`, `cli/eval.ts eval:retrieval`.
@@ -489,7 +491,7 @@ Recommendation: GCP. App container on Cloud Run (free tier request and compute q
 - Read a docs section, close it, then write the question in my own words as a Bun user would ask it. Copy the evidence span (one sentence or line, at most 15 words) verbatim from the source afterwards.
 - Format (`eval/golden.jsonl`):
   ```json
-  {"id":"q007","split":"test","category":"direct_fact","question":"Which file does Bun load environment variables from without any extra flag?","answerable":true,"evidence":[{"source":"docs/runtime/env.md","span":"Bun reads the following files automatically"}],"keywords":[".env",".env.local"],"reference_answer":"Bun loads .env, .env.$NODE_ENV and .env.local automatically."}
+  {"id":"q007","split":"test","category":"direct_fact","question":"Which file does Bun load environment variables from without any extra flag?","answerable":true,"evidence":[{"source":"runtime/environment-variables.mdx","span":"Bun reads the following files automatically"}],"keywords":[".env",".env.local"],"reference_answer":"Bun loads .env, .env.$NODE_ENV and .env.local automatically."}
   ```
   (Content above illustrates the format only; real entries come from the pinned corpus.)
 - Categories and counts (45 total):

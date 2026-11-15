@@ -7,12 +7,10 @@ import { connect, databaseUrl } from '../db/client';
 import { ensureEmbeddingTables } from '../db/embeddingTables';
 import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { ingest } from '../ingest/ingest';
+import { DEFAULT_CORPUS_ROOT } from '../ingest/loadMarkdown';
 import { createEmbeddingProvider } from '../llm/registry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { describeError } from './errors';
-
-/** Where scripts/fetch-corpus.sh puts the Bun docs. */
-const DEFAULT_CORPUS_ROOT = 'corpus/bun-docs/docs';
 
 const USAGE =
   `Usage: bun run ingest [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--root ${DEFAULT_CORPUS_ROOT}] ` +

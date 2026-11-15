@@ -22,6 +22,8 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
   distances; needs an ingest of that config and model)
 - Ask: `bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>]` (answer with chunk citations
   or `NOT_FOUND`; writes `rag_requests` and `llm_calls` rows; needs the ingest and Ollama)
+- Validate golden dataset: `bun run eval:validate [--strict]` (schema, spans against the fetched corpus, §6 counts;
+  `--strict` makes count deviations errors)
 - Test: `bun run test` — Vitest projects `unit` and `integration` (`bun --bun vitest run`) plus the Claude hook
   tests (`bun test ./.claude/hooks`, they use `bun:test` and are excluded from Vitest). Integration needs the
   database and `DATABASE_URL`; it runs against `<db>_test`. DB-free: `bun run test:unit`

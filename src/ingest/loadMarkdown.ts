@@ -13,6 +13,14 @@ export interface LoadedDocument extends ParsedMarkdown {
   sourcePath: string;
 }
 
+/** Where scripts/fetch-corpus.sh puts the Bun docs; documents.source_path and evidence sources are relative to it. */
+export const DEFAULT_CORPUS_ROOT = 'corpus/bun-docs/docs';
+
+const FETCH_HINT = 'run ./scripts/fetch-corpus.sh';
+
+/** File names the corpus loader picks up (listMarkdownFiles); evidence sources must match it too. */
+export const MARKDOWN_FILE = /\.mdx?$/i;
+
 const FRONTMATTER = /^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/;
 const FM_TITLE = /^title:[ \t]*(.+?)[ \t]*$/m;
 const MDX_COMMENT = /\{\/\*[\s\S]*?\*\/\}/g;
@@ -85,7 +93,25 @@ export async function loadMarkdown(root: string, sourcePath: string): Promise<Lo
 export async function listMarkdownFiles(root: string): Promise<string[]> {
   const entries = await readdir(root, { recursive: true, withFileTypes: true });
   return entries
-    .filter((e) => e.isFile() && /\.mdx?$/i.test(e.name))
+    .filter((e) => e.isFile() && MARKDOWN_FILE.test(e.name))
     .map((e) => relative(root, join(e.parentPath, e.name)).split(sep).join('/'))
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/** listMarkdownFiles, but a missing or empty corpus throws with the fetch hint. */
+export async function listCorpus(root: string): Promise<string[]> {
+  let files: string[];
+  try {
+    files = await listMarkdownFiles(root);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT' || code === 'ENOTDIR') {
+      throw new Error(`Corpus directory ${root} not found; ${FETCH_HINT}`, { cause: err });
+    }
+    throw err;
+  }
+  if (files.length === 0) {
+    throw new Error(`No .md/.mdx files under ${root}; ${FETCH_HINT}`);
+  }
+  return files;
 }

@@ -16,10 +16,9 @@ import { countTokens } from '../llm/tokens';
 import type { EmbeddingProvider } from '../llm/types';
 import { type ChunkConfig, chunkMarkdown } from './chunk';
 import { chunkHash, documentHash, embedText } from './hash';
-import { listMarkdownFiles, loadMarkdown } from './loadMarkdown';
+import { listCorpus, loadMarkdown } from './loadMarkdown';
 
 export const EMBED_BATCH_SIZE = 32;
-const FETCH_HINT = 'run ./scripts/fetch-corpus.sh';
 /** Source paths listed in the context warning. */
 const WARN_EXAMPLES = 3;
 
@@ -104,23 +103,6 @@ function required<T>(value: T | undefined, what: string): T {
     throw new Error(`Ingest invariant broken: missing ${what}`);
   }
   return value;
-}
-
-async function listCorpus(root: string): Promise<string[]> {
-  let files: string[];
-  try {
-    files = await listMarkdownFiles(root);
-  } catch (err) {
-    const code = (err as NodeJS.ErrnoException).code;
-    if (code === 'ENOENT' || code === 'ENOTDIR') {
-      throw new Error(`Corpus directory ${root} not found; ${FETCH_HINT}`, { cause: err });
-    }
-    throw err;
-  }
-  if (files.length === 0) {
-    throw new Error(`No .md/.mdx files under ${root}; ${FETCH_HINT}`);
-  }
-  return files;
 }
 
 export async function ingest(opts: IngestOptions): Promise<IngestStats> {

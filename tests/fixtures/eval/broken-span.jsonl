@@ -1,0 +1,1 @@
+{"id":"q001","split":"dev","category":"direct_fact","question":"Synthetic question one?","answerable":true,"evidence":[{"source":"widget.mdx","span":"The widget server listens on port 9090 by default."}],"keywords":["9090"],"reference_answer":"Synthetic reference answer one."}
