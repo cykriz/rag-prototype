@@ -1,0 +1,12 @@
+{
+  "id": "baseline",
+  "base": {
+    "chunkConfig": "md-512-64",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "vary": {},
+  "evals": ["retrieval"]
+}

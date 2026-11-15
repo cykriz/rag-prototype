@@ -82,6 +82,13 @@ describe('normalize', () => {
     expect(body.includes(normalize('Run one Run two'))).toBe(true);
     expect(body.includes(normalize('Run one - Run two'))).toBe(false);
   });
+
+  it('with fromLineStart false keeps markers on the first line only, as mid-line text', () => {
+    expect(normalize('2. step\n- item\n# Title', { fromLineStart: false })).toBe('2. step item title');
+    expect(normalize('> - nested', { fromLineStart: false })).toBe('> - nested');
+    // A fence-like run on the first line is not a fence line; its backticks go as inline markup.
+    expect(normalize('```sh\nwidget start\n```', { fromLineStart: false })).toBe('sh widget start');
+  });
 });
 
 describe('parseDataset', () => {
