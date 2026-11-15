@@ -15,7 +15,13 @@ import type { Config, ProviderName } from '../config';
 import { connect } from '../db/client';
 import { DEFAULT_DATASET, type GoldenEntry, loadDataset, parseDataset, SPLITS } from '../eval/dataset';
 import { answerAll, buildAnswerResult, formatAnswerSummary, judgeAll } from '../eval/answers';
-import { type EvalType, loadExperiment, type RunConfig, singleConfig } from '../eval/experiment';
+import {
+  type EvalType,
+  loadExperiment,
+  type RunConfig,
+  singleConfig,
+  type VaryKey,
+} from '../eval/experiment';
 import { checkIngest, fetchRunKpis, pgVectorSearch } from '../eval/pgSource';
 import {
   buildResult,
@@ -112,17 +118,23 @@ function git(args: string[]): string {
 }
 
 /**
- * Uncommitted changes anywhere in the repo, except under `out`: earlier result files there are untracked until
- * committed and would mark every later run dirty.
+ * Uncommitted changes anywhere in the repo, except under `out`, in README.md and in experiments/: earlier result
+ * files are untracked until committed, `bun run report` rewrites README.md and a new experiment file is recorded in
+ * the result's config anyway; none of them changes a number, but each would mark every later run dirty.
  */
 function gitDirty(out: string): boolean {
   const rel = relative(process.cwd(), resolve(out));
   const inRepo = rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
-  return git(['status', '--porcelain', '--', ':/', ...(inRepo ? [`:(exclude)${rel}`] : [])]) !== '';
+  const excluded = [
+    ':(top,exclude)README.md',
+    ':(top,exclude)experiments',
+    ...(inRepo ? [`:(exclude)${rel}`] : []),
+  ];
+  return git(['status', '--porcelain', '--', ':/', ...excluded]) !== '';
 }
 
 /** Tag and digest from Ollama; throws when Ollama is down or the model is not pulled. */
-async function modelInfo(provider: ProviderName, baseURL: string, name: string): Promise<ModelInfo> {
+export async function modelInfo(provider: ProviderName, baseURL: string, name: string): Promise<ModelInfo> {
   if (provider === 'fake') {
     return { provider, name, tag: null, digest: null };
   }
@@ -131,7 +143,7 @@ async function modelInfo(provider: ProviderName, baseURL: string, name: string):
 }
 
 /** Golden entries, or an error message when the dataset is missing or fails the schema. */
-async function readEntries(path: string): Promise<{ entries: GoldenEntry[]; hash: string } | string> {
+export async function readEntries(path: string): Promise<{ entries: GoldenEntry[]; hash: string } | string> {
   const dataset = await loadDataset(path);
   if (!dataset?.text.trim()) {
     return `${path} missing or empty`;
@@ -144,13 +156,37 @@ async function readEntries(path: string): Promise<{ entries: GoldenEntry[]; hash
   return { entries, hash: dataset.hash };
 }
 
-interface RunContext {
+export interface RunContext {
   sql: Sql;
   args: EvalArgs;
   run: RunConfig;
   experimentId: string;
+  /** Matrix runs (bun run experiment): the varied key and its value; null for a single config. */
+  variedKey: VaryKey | null;
+  variant: string | null;
   config: Config;
   chunkConfig: string;
+}
+
+/**
+ * The database phase of a run, before any model call: the ingest of `chunkConfig` × embedding model exists and
+ * matches CORPUS_SHA and the evidence sources of `split`. Throws with the fix command.
+ */
+export async function checkRunReady(
+  sql: Sql,
+  opts: {
+    config: Config;
+    chunkConfig: string;
+    corpusSha: string;
+    entries: readonly GoldenEntry[];
+    split: string;
+  },
+): Promise<void> {
+  await requireEmbeddings(sql, opts.config.embedModel, opts.chunkConfig);
+  const sources = opts.entries
+    .filter((e) => e.split === opts.split)
+    .flatMap((e) => e.evidence.map((ev) => ev.source));
+  await checkIngest(sql, { chunkConfig: opts.chunkConfig, corpusSha: opts.corpusSha, sources });
 }
 
 /** What the shared prelude hands to the eval bodies. */
@@ -177,17 +213,19 @@ async function prepare(ctx: RunContext): Promise<Prepared | string> {
     return 'CORPUS_SHA is not set: copy it from .env.example into .env';
   }
   // Checked up front so a name collision does not throw away a finished run; `wx` below still guards the race.
-  const path = join(args.out, resultFileName(startedAt, experimentId, args.command));
+  const path = join(args.out, resultFileName(startedAt, experimentId, args.command, ctx.variant));
   if (existsSync(path)) {
     return `${path} already exists: start the run again in a second`;
   }
   // Database phase first: a missing ingest or corpus drift costs no model call.
   try {
-    await requireEmbeddings(sql, config.embedModel, chunkConfig);
-    const sources = data.entries
-      .filter((e) => e.split === run.split)
-      .flatMap((e) => e.evidence.map((ev) => ev.source));
-    await checkIngest(sql, { chunkConfig, corpusSha: config.corpusSha, sources });
+    await checkRunReady(sql, {
+      config,
+      chunkConfig,
+      corpusSha: config.corpusSha,
+      entries: data.entries,
+      split: run.split,
+    });
   } catch (err) {
     return isConnectionError(err) ? DB_DOWN : err instanceof Error ? err.message : String(err);
   }
@@ -212,6 +250,7 @@ function commonMeta(p: Prepared, runId: string) {
     datasetSha256: p.datasetSha256,
     corpusSha: p.corpusSha,
     config: p.run,
+    variedKey: p.variedKey,
   };
 }
 
@@ -272,16 +311,26 @@ async function warmUpJudge(config: Config): Promise<void> {
   }
 }
 
+export type ModelRole = 'embed' | 'chat' | 'judge';
+
+/** The models a run of `evalType` calls, with their provider; the judge runs on the chat provider. */
+export function requiredModels(config: Config, evalType: EvalType): [ModelRole, ProviderName, string][] {
+  const embed: [ModelRole, ProviderName, string] = ['embed', config.embedProvider, config.embedModel];
+  if (evalType === 'retrieval') {
+    return [embed];
+  }
+  return [
+    embed,
+    ['chat', config.chatProvider, config.chatModel],
+    ['judge', config.chatProvider, config.judgeModel],
+  ];
+}
+
 async function evaluateAnswers(p: Prepared): Promise<number> {
   const { sql, run, config, chunkConfig } = p;
   // Every model checked before any work: Ollama down or a model not pulled stops here.
-  const models: Partial<Record<'embed' | 'chat' | 'judge', ModelInfo>> = {};
-  const wanted = [
-    ['embed', config.embedProvider, config.embedModel],
-    ['chat', config.chatProvider, config.chatModel],
-    ['judge', config.chatProvider, config.judgeModel],
-  ] as const;
-  for (const [role, provider, name] of wanted) {
+  const models: Partial<Record<ModelRole, ModelInfo>> = {};
+  for (const [role, provider, name] of requiredModels(config, 'answers')) {
     try {
       models[role] = await modelInfo(provider, config.baseURL, name);
     } catch (err) {
@@ -289,7 +338,7 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
       return 1;
     }
   }
-  const { embed, chat, judge } = models as Record<'embed' | 'chat' | 'judge', ModelInfo>;
+  const { embed, chat, judge } = models as Record<ModelRole, ModelInfo>;
   const runId = `eval-answers-${randomUUID()}`;
   // A length-1 array always has index 0; `?? 0` only narrows for noUncheckedIndexedAccess.
   const seed = p.args.seed ?? crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
@@ -341,7 +390,8 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
   }
 }
 
-async function evaluate(ctx: RunContext): Promise<number> {
+/** One eval run of one config: prelude, then the body; prints its own errors and returns the exit code. */
+export async function evaluate(ctx: RunContext): Promise<number> {
   const prepared = await prepare(ctx);
   if (typeof prepared === 'string') {
     console.error(prepared);
@@ -377,7 +427,15 @@ export async function main(argv: string[]): Promise<number> {
   }
   const sql = connect(setup.url);
   try {
-    return await evaluate({ sql, args, run: runConfig, experimentId, ...setup });
+    return await evaluate({
+      sql,
+      args,
+      run: runConfig,
+      experimentId,
+      variedKey: null,
+      variant: null,
+      ...setup,
+    });
   } finally {
     await sql.end();
   }

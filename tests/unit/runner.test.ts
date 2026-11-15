@@ -113,6 +113,7 @@ describe('buildResult', () => {
     datasetSha256: 'b'.repeat(64),
     corpusSha: 'c'.repeat(40),
     config: CONFIG,
+    variedKey: null,
     embed: { provider: 'fake', name: 'nomic-embed-text', tag: null, digest: null },
   };
 
@@ -152,6 +153,7 @@ describe('buildResult', () => {
       'datasetSha256',
       'corpusSha',
       'config',
+      'variedKey',
       'models',
       'counts',
       'aggregate',
@@ -186,6 +188,17 @@ describe('resultFileName', () => {
   it('uses a UTC timestamp to the second without colons', () => {
     expect(resultFileName(new Date('2026-11-15T14:03:12.345Z'), 'baseline', 'retrieval')).toBe(
       '2026-11-15T14-03-12Z_baseline_retrieval.json',
+    );
+  });
+
+  it('puts a matrix variant before the eval type and replaces characters unsafe in file names', () => {
+    const at = new Date('2026-11-15T14:03:12.345Z');
+    expect(resultFileName(at, 'exp-k', 'answers', '3')).toBe('2026-11-15T14-03-12Z_exp-k_3_answers.json');
+    expect(resultFileName(at, 'exp-chunk-size', 'retrieval', 'md-256-32')).toBe(
+      '2026-11-15T14-03-12Z_exp-chunk-size_md-256-32_retrieval.json',
+    );
+    expect(resultFileName(at, 'exp-x', 'retrieval', 'model:7b/q4')).toBe(
+      '2026-11-15T14-03-12Z_exp-x_model-7b-q4_retrieval.json',
     );
   });
 });

@@ -291,6 +291,7 @@ const META = {
   datasetSha256: 'b'.repeat(64),
   corpusSha: 'c'.repeat(40),
   config: CONFIG,
+  variedKey: null,
   models: { embed: fake('nomic-embed-text'), chat: fake('chat-model'), judge: fake('judge-model') },
 };
 const KPIS = {
@@ -330,6 +331,7 @@ describe('buildAnswerResult', () => {
       'datasetSha256',
       'corpusSha',
       'config',
+      'variedKey',
       'models',
       'judge',
       'shuffleSeed',

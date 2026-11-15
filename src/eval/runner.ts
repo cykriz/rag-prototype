@@ -1,7 +1,7 @@
 // Retrieval eval runner (docs/PLAN.md M11): scores one config against the golden dataset and builds the result
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
 import { CATEGORIES, type Category, type GoldenEntry } from './dataset';
-import type { EvalType, RunConfig } from './experiment';
+import type { EvalType, RunConfig, VaryKey } from './experiment';
 import {
   type AggregateMetrics,
   aggregate,
@@ -158,6 +158,8 @@ export interface RunMeta {
   datasetSha256: string;
   corpusSha: string;
   config: RunConfig;
+  /** The config key the experiment varies (bun run experiment); null for a single-config run. */
+  variedKey: VaryKey | null;
 }
 
 export interface ResultMeta extends RunMeta {
@@ -184,6 +186,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       search: meta.config.search,
       split: meta.config.split,
     },
+    variedKey: meta.variedKey,
   };
 }
 
@@ -257,13 +260,22 @@ export function serializeResult(result: object): string {
   return `${JSON.stringify(result, null, 2)}\n`;
 }
 
-/** `2026-11-15T14-03-12Z_baseline_retrieval.json`: UTC to the second, no colons (invalid on some file systems). */
-export function resultFileName(startedAt: Date, experimentId: string, evalType: EvalType): string {
+/**
+ * `2026-11-15T14-03-12Z_baseline_retrieval.json`, or with a variant `…_exp-k_3_retrieval.json`: UTC to the second,
+ * no colons (invalid on some file systems); characters outside `[A-Za-z0-9.-]` in the variant become `-`.
+ */
+export function resultFileName(
+  startedAt: Date,
+  experimentId: string,
+  evalType: EvalType,
+  variant: string | null = null,
+): string {
   const stamp = startedAt
     .toISOString()
     .replace(/\.\d{3}Z$/, 'Z')
     .replaceAll(':', '-');
-  return `${stamp}_${experimentId}_${evalType}.json`;
+  const middle = variant === null ? '' : `_${variant.replace(/[^A-Za-z0-9.-]/g, '-')}`;
+  return `${stamp}_${experimentId}${middle}_${evalType}.json`;
 }
 
 const fmt = (x: number | null) => (x === null ? '     -' : x.toFixed(4));

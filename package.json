@@ -16,6 +16,8 @@
     "eval:validate": "bun src/cli/evalValidate.ts",
     "eval:retrieval": "bun src/cli/eval.ts retrieval",
     "eval:answers": "bun src/cli/eval.ts answers",
+    "experiment": "bun src/cli/experiment.ts",
+    "report": "bun src/cli/report.ts",
     "db:migrate": "bun src/db/migrate.ts",
     "db:embeddings": "bun src/db/embeddingTables.ts",
     "privacy:scan": "bun scripts/privacy-scan.ts --staged"

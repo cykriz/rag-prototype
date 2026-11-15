@@ -584,7 +584,7 @@ Fixed for all runs unless varied: test split, generator `qwen2.5:7b`, judge `gem
 | 10 (opt.) | exp-provider | generator | qwen2.5:7b, claude-haiku-5-5 | judge gemma3:12b | answers |
 | (opt.) | exp-fts-config | tsvector config | english, simple | hybrid | retrieval |
 
-One variable at a time (greedy). The greedy order is a limitation and is stated in the README.
+One variable at a time (greedy): `vary` holds at most one key, and that key is not also set in `base`. The greedy order is a limitation and is stated in the README.
 
 Experiment file (`experiments/exp-chunk-size.json`):
 ```json
@@ -596,7 +596,7 @@ Experiment file (`experiments/exp-chunk-size.json`):
 }
 ```
 
-Result file (`results/2026-11-20T10-00_exp-chunk-size_md-512-64.json`) contains: `experimentId`, `config`, `gitSha`, `datasetSha256`, `corpusSha`, model tags plus digests from `ollama show --modelfile` or `/api/tags`, `startedAt`, aggregate metrics, per question metrics, KPI block (section 8), `runId` linking to `llm_calls`.
+Result file (`results/2026-11-20T10-00-00Z_exp-chunk-size_md-512-64_retrieval.json`, i.e. `<UTC stamp>_<experiment>_<variant>_<evalType>.json`; without `vary` `<UTC stamp>_<experiment>_<evalType>.json`; `bun run report` reads the JSON, never the name) contains: `experimentId`, `config`, `variedKey`, `gitSha`, `datasetSha256`, `corpusSha`, model tags plus digests from `ollama show --modelfile` or `/api/tags`, `startedAt`, aggregate metrics, per question metrics, KPI block (section 8), `runId` linking to `llm_calls`.
 
 ---
 

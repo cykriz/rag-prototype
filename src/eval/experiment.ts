@@ -1,5 +1,5 @@
-// Experiment files (docs/PLAN.md §7): `base` settings plus `vary` lists of values for one variable. M11 runs files
-// with an empty `vary` (one config); the matrix runner (M13a) expands the others.
+// Experiment files (docs/PLAN.md §7): `base` settings plus `vary`, a list of values for at most one variable.
+// eval:* runs files with an empty `vary` (one config); bun run experiment (M13a) expands the others.
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { models } from '../config';
@@ -32,22 +32,71 @@ export const RunConfig = z.strictObject({
 });
 export type RunConfig = z.infer<typeof RunConfig>;
 
-export const ExperimentFile = z.strictObject({
-  id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
-  base: RunConfig.partial(),
-  vary: z
-    .strictObject({
-      chunkConfig: z.array(ChunkConfigKey).min(1),
-      embed: z.array(Embed).min(1),
-      k: z.array(K).min(1),
-      search: z.array(Search).min(1),
-      split: z.array(Split).min(1),
-    })
-    .partial()
-    .default({}),
-  evals: z.array(z.enum(EVAL_TYPES)).min(1),
-});
+export const VARY_KEYS = ['chunkConfig', 'embed', 'k', 'search', 'split'] as const;
+export type VaryKey = (typeof VARY_KEYS)[number];
+
+const unique = <T>(values: readonly T[]) => new Set(values).size === values.length;
+
+export const ExperimentFile = z
+  .strictObject({
+    id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
+    base: RunConfig.partial(),
+    vary: z
+      .strictObject({
+        chunkConfig: z.array(ChunkConfigKey).min(1).refine(unique, 'values must be unique'),
+        embed: z.array(Embed).min(1).refine(unique, 'values must be unique'),
+        k: z.array(K).min(1).refine(unique, 'values must be unique'),
+        search: z.array(Search).min(1).refine(unique, 'values must be unique'),
+        split: z.array(Split).min(1).refine(unique, 'values must be unique'),
+      })
+      .partial()
+      .default({}),
+    evals: z.array(z.enum(EVAL_TYPES)).min(1),
+  })
+  .superRefine((exp, ctx) => {
+    const keys = Object.keys(exp.vary) as VaryKey[];
+    // §7: one variable at a time (greedy); a cross product would need composite variant labels.
+    if (keys.length > 1) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['vary'],
+        message: `one variable per file (§7), got ${keys.join(', ')}`,
+      });
+    }
+    for (const key of keys) {
+      if (exp.base[key] !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['base', key],
+          message: 'is also varied: set it in base or vary',
+        });
+      }
+    }
+  });
 export type ExperimentFile = z.infer<typeof ExperimentFile>;
+
+/** One config of an experiment; `variedKey`/`label` are null for a file without `vary`. */
+export interface Variant {
+  run: RunConfig;
+  variedKey: VaryKey | null;
+  /** The varied value as text (`md-256-32`, `3`); null without `vary`. */
+  label: string | null;
+}
+
+/** One variant per `vary` value in file order, or the single base config; throws when `base` is incomplete. */
+export function expandExperiment(exp: ExperimentFile): Variant[] {
+  const entry = Object.entries(exp.vary)[0] as [VaryKey, readonly (string | number)[]] | undefined;
+  const values = entry ? entry[1] : [undefined];
+  return values.map((value) => {
+    const config = entry ? { ...exp.base, [entry[0]]: value } : exp.base;
+    const parsed = RunConfig.safeParse(config);
+    if (!parsed.success) {
+      const missing = parsed.error.issues.map((i) => `base.${i.path.join('.')}: ${i.message}`).join('; ');
+      throw new Error(`${exp.id}: ${missing}`);
+    }
+    return { run: parsed.data, variedKey: entry ? entry[0] : null, label: entry ? String(value) : null };
+  });
+}
 
 /** Parsed and validated experiment file; throws with every schema issue on one line. */
 export async function loadExperiment(path: string): Promise<ExperimentFile> {
@@ -65,18 +114,17 @@ export async function loadExperiment(path: string): Promise<ExperimentFile> {
   return parsed.data;
 }
 
-/** The one config of a file without `vary` (M11); throws when `vary` is set or `base` is incomplete. */
+/** The one config of a file without `vary` (eval:*); throws when `vary` is set or `base` is incomplete. */
 export function singleConfig(exp: ExperimentFile, evalType: EvalType): RunConfig {
   if (Object.keys(exp.vary).length > 0) {
-    throw new Error(`${exp.id}: "vary" is set; matrix runs come with bun run experiment (M13a)`);
+    throw new Error(`${exp.id}: "vary" is set; run the matrix with bun run experiment <file>`);
   }
   if (!exp.evals.includes(evalType)) {
     throw new Error(`${exp.id}: "evals" does not include "${evalType}"`);
   }
-  const parsed = RunConfig.safeParse(exp.base);
-  if (!parsed.success) {
-    const missing = parsed.error.issues.map((i) => `base.${i.path.join('.')}: ${i.message}`).join('; ');
-    throw new Error(`${exp.id}: ${missing}`);
+  const [variant] = expandExperiment(exp);
+  if (!variant) {
+    throw new Error(`${exp.id}: no config`);
   }
-  return parsed.data;
+  return variant.run;
 }

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "exp-chunk-size",
+  "evalType": "retrieval",
+  "runId": "fixture-exp-chunk-size-retrieval",
+  "startedAt": "2026-01-05T10:00:02.000Z",
+  "finishedAt": "2026-01-05T10:00:02.000Z",
+  "gitSha": "0000000000000000000000000000000000000000",
+  "gitDirty": false,
+  "datasetSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "corpusSha": "2222222222222222222222222222222222222222",
+  "config": {
+    "chunkConfig": "md-512-64",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "variedKey": "chunkConfig",
+  "aggregate": {
+    "all": {
+      "n": 10,
+      "recall": 0.8,
+      "mrr": 0.7000000000000001,
+      "ndcg": 0.75,
+      "keywordCoverage": 0.9
+    }
+  }
+}

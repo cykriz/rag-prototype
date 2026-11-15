@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "baseline",
+  "evalType": "answers",
+  "runId": "fixture-baseline-answers",
+  "startedAt": "2026-01-04T10:00:00.000Z",
+  "finishedAt": "2026-01-04T10:00:00.000Z",
+  "gitSha": "0000000000000000000000000000000000000000",
+  "gitDirty": true,
+  "datasetSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+  "corpusSha": "2222222222222222222222222222222222222222",
+  "config": {
+    "chunkConfig": "md-512-64",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "variedKey": null,
+  "counts": {
+    "questions": 10
+  },
+  "aggregate": {
+    "all": {
+      "nAnswerable": 8,
+      "nNegative": 2,
+      "scored": 7,
+      "accuracy": 1,
+      "completeness": 4,
+      "relevance": 4.5,
+      "abstentionAccuracy": 0.5,
+      "falseAbstentionRate": 0.125,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    }
+  },
+  "kpis": {
+    "latencyMs": {
+      "p50": 1234.4,
+      "p95": 2345.6
+    },
+    "calls": [
+      {
+        "operation": "generate",
+        "model": "generate-model",
+        "calls": 10,
+        "avgInputTokens": 1,
+        "avgOutputTokens": 1,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0
+      }
+    ]
+  }
+}
