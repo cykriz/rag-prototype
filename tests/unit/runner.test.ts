@@ -184,7 +184,7 @@ describe('buildResult', () => {
 
 describe('resultFileName', () => {
   it('uses a UTC timestamp to the second without colons', () => {
-    expect(resultFileName(new Date('2026-11-15T14:03:12.345Z'), 'baseline')).toBe(
+    expect(resultFileName(new Date('2026-11-15T14:03:12.345Z'), 'baseline', 'retrieval')).toBe(
       '2026-11-15T14-03-12Z_baseline_retrieval.json',
     );
   });

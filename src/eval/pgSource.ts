@@ -3,6 +3,7 @@
 import type { Sql } from 'postgres';
 import type { EmbeddingProvider } from '../llm/types';
 import { vectorSearch } from '../retrieval/vector';
+import type { RunKpis } from './answers';
 import type { RetrievedHit, SearchFn } from './runner';
 
 /** Same batch size as ingest. */
@@ -77,4 +78,50 @@ export function pgVectorSearch(
     }
     return results;
   };
+}
+
+interface KpiRow {
+  operation: string;
+  model: string;
+  calls: number;
+  avg_in: number | null;
+  avg_out: number | null;
+  estimated: number;
+  retry_rate: number;
+  invalid_rate: number;
+  cost_usd: number;
+}
+
+/**
+ * §8 KPIs of one run for the result file: end-to-end latency percentiles from rag_requests (percentile_cont, as the
+ * §8 KPI query) and one llm_calls row per operation and model.
+ */
+export async function fetchRunKpis(sql: Sql, runId: string): Promise<RunKpis> {
+  const [latency] = await sql<{ p50: number | null; p95: number | null }[]>`
+    SELECT percentile_cont(0.5)  WITHIN GROUP (ORDER BY total_latency_ms) AS p50,
+           percentile_cont(0.95) WITHIN GROUP (ORDER BY total_latency_ms) AS p95
+    FROM rag_requests WHERE run_id = ${runId}`;
+  const rows = await sql<KpiRow[]>`
+    SELECT operation, model,
+           count(*)::int                                          AS calls,
+           avg(input_tokens)::float8                              AS avg_in,
+           avg(output_tokens)::float8                             AS avg_out,
+           avg((token_source = 'tiktoken_estimate')::int)::float8 AS estimated,
+           avg((attempts > 1)::int)::float8                       AS retry_rate,
+           avg((status = 'invalid_output')::int)::float8          AS invalid_rate,
+           coalesce(sum(cost_usd), 0)::float8                     AS cost_usd
+    FROM llm_calls WHERE run_id = ${runId}
+    GROUP BY operation, model ORDER BY operation, model`;
+  const calls = rows.map((r) => ({
+    operation: r.operation,
+    model: r.model,
+    calls: r.calls,
+    avgInputTokens: r.avg_in,
+    avgOutputTokens: r.avg_out,
+    estimatedTokenShare: r.estimated,
+    retryRate: r.retry_rate,
+    invalidOutputRate: r.invalid_rate,
+    costUsd: r.cost_usd,
+  }));
+  return { latencyMs: { p50: latency?.p50 ?? null, p95: latency?.p95 ?? null }, calls };
 }

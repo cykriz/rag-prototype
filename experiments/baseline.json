@@ -8,5 +8,5 @@
     "split": "test"
   },
   "vary": {},
-  "evals": ["retrieval"]
+  "evals": ["retrieval", "answers"]
 }

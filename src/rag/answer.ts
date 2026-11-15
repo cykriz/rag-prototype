@@ -8,7 +8,7 @@ import { validate } from '../llm/structured';
 import type { ChatProvider, ObjectResult } from '../llm/types';
 import { PostgresLlmCallSink, PostgresRagRequestSink, type RagRequestSink } from '../obs/logger';
 import { type ChunkMetadata, PgRetriever } from '../retrieval/pgRetriever';
-import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, NOT_FOUND } from './prompts';
+import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, formatContext, NOT_FOUND } from './prompts';
 import { Answer, answerSchemaFor, isAbstention } from './schemas';
 
 export interface AnswerDeps {
@@ -19,6 +19,8 @@ export interface AnswerDeps {
   requestId: string;
   runId: string;
   pipeline: string;
+  /** Golden dataset question ID for eval runs (rag_requests.question_id); absent for ad hoc questions. */
+  questionId?: string;
   requestSink: RagRequestSink;
 }
 
@@ -37,6 +39,8 @@ export interface AnswerResult {
   /** Cited IDs outside the context, removed from the final answer. */
   droppedCitations: number[];
   retrievedIds: number[];
+  /** The context text the model saw (formatContext of the retrieved chunks); '' when nothing was retrieved. */
+  context: string;
   /** Status of the generate call: invalid_output when the last repair round still failed validation. */
   status: 'ok' | 'invalid_output';
   repairs: number;
@@ -68,6 +72,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
   }
   const retrievedIds = docs.map((d) => d.metadata.chunk_id);
   const byId = new Map(docs.map((d) => [d.metadata.chunk_id, d.metadata]));
+  const context = formatContext(docs);
 
   let model: Answer | null;
   let status: AnswerResult['status'] = 'ok';
@@ -77,7 +82,11 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
     model = { found: false, answer: NOT_FOUND, citations: [] };
   } else {
     const res: ObjectResult<Answer> = await deps.chat.generateObject(
-      { messages: buildAnswerMessages(question, docs), temperature: ANSWER_TEMPERATURE, seed: ANSWER_SEED },
+      {
+        messages: buildAnswerMessages(question, context),
+        temperature: ANSWER_TEMPERATURE,
+        seed: ANSWER_SEED,
+      },
       answerSchemaFor(retrievedIds),
     );
     repairs = res.repairs;
@@ -110,13 +119,13 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
   await deps.requestSink.write({
     requestId: deps.requestId,
     runId: deps.runId,
-    questionId: null,
+    questionId: deps.questionId ?? null,
     pipeline: deps.pipeline,
     totalLatencyMs: latencyMs,
     retrievedIds,
     found: result.found,
   });
-  return { requestId: deps.requestId, ...result, retrievedIds, status, repairs, latencyMs };
+  return { requestId: deps.requestId, ...result, retrievedIds, context, status, repairs, latencyMs };
 }
 
 /**
@@ -126,7 +135,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
 export function buildAnswerDeps(
   sql: Sql,
   config: Config,
-  opts: { chunkConfig: string; k: number; runId: string; pipeline: string },
+  opts: { chunkConfig: string; k: number; runId: string; pipeline: string; questionId?: string },
 ): AnswerDeps {
   const requestId = randomUUID();
   const sink = new PostgresLlmCallSink(sql, { runId: opts.runId, requestId });
@@ -137,6 +146,7 @@ export function buildAnswerDeps(
     requestId,
     runId: opts.runId,
     pipeline: opts.pipeline,
+    ...(opts.questionId !== undefined && { questionId: opts.questionId }),
     requestSink: new PostgresRagRequestSink(sql),
   };
 }

@@ -1,7 +1,7 @@
 // Retrieval eval runner (docs/PLAN.md M11): scores one config against the golden dataset and builds the result
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
 import { CATEGORIES, type Category, type GoldenEntry } from './dataset';
-import type { RunConfig } from './experiment';
+import type { EvalType, RunConfig } from './experiment';
 import {
   type AggregateMetrics,
   aggregate,
@@ -26,6 +26,9 @@ export interface RetrievedHit {
 export type SearchFn = (questions: string[]) => Promise<RetrievedHit[][]>;
 
 export type Origin = 'human' | 'llm';
+
+/** Entries without `origin` are human-written (§6). */
+export const originOf = (entry: GoldenEntry): Origin => entry.origin ?? 'human';
 
 export interface QuestionResult {
   id: string;
@@ -64,7 +67,7 @@ export function scoreQuestion(entry: GoldenEntry, hits: readonly RetrievedHit[],
   return {
     id: entry.id,
     category: entry.category,
-    origin: entry.origin ?? 'human',
+    origin: originOf(entry),
     recall: recallAtK(covers, entry.evidence.length),
     reciprocalRank: reciprocalRank(covers),
     ndcg: ndcgAtK(covers, entry.evidence.length, k),
@@ -121,15 +124,22 @@ export function aggregateRun(questions: readonly QuestionResult[]): RetrievalAgg
       byCategory[category] = aggregate(questions.filter((q) => q.category === category));
     }
   }
+  return { ...byOrigin(questions, aggregate), byCategory };
+}
+
+/** `fn` over all rows, the human-written and the origin "llm" ones (§6 reports them separately). */
+export function byOrigin<R extends { origin: Origin }, A>(
+  rows: readonly R[],
+  fn: (rows: readonly R[]) => A,
+): { all: A; human: A; llm: A } {
   return {
-    all: aggregate(questions),
-    human: aggregate(questions.filter((q) => q.origin === 'human')),
-    llm: aggregate(questions.filter((q) => q.origin === 'llm')),
-    byCategory,
+    all: fn(rows),
+    human: fn(rows.filter((r) => r.origin === 'human')),
+    llm: fn(rows.filter((r) => r.origin === 'llm')),
   };
 }
 
-export interface EmbedModelInfo {
+export interface ModelInfo {
   provider: string;
   name: string;
   /** Ollama tag (`name:latest`); null for the fake provider. */
@@ -137,7 +147,8 @@ export interface EmbedModelInfo {
   digest: string | null;
 }
 
-export interface ResultMeta {
+/** What every result file records about its run (§7). */
+export interface RunMeta {
   experimentId: string;
   runId: string;
   startedAt: Date;
@@ -147,11 +158,44 @@ export interface ResultMeta {
   datasetSha256: string;
   corpusSha: string;
   config: RunConfig;
-  embed: EmbedModelInfo;
 }
 
-const round = (x: number, digits = 4) => Number(x.toFixed(digits));
-const roundOrNull = (x: number | null) => (x === null ? null : round(x));
+export interface ResultMeta extends RunMeta {
+  embed: ModelInfo;
+}
+
+/** The keys every result file starts with, in this order; shared by the retrieval and answers results. */
+export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
+  return {
+    schemaVersion: RESULT_SCHEMA_VERSION,
+    experimentId: meta.experimentId,
+    evalType,
+    runId: meta.runId,
+    startedAt: meta.startedAt.toISOString(),
+    finishedAt: meta.finishedAt.toISOString(),
+    gitSha: meta.gitSha,
+    gitDirty: meta.gitDirty,
+    datasetSha256: meta.datasetSha256,
+    corpusSha: meta.corpusSha,
+    config: {
+      chunkConfig: meta.config.chunkConfig,
+      embed: meta.config.embed,
+      k: meta.config.k,
+      search: meta.config.search,
+      split: meta.config.split,
+    },
+  };
+}
+
+export const modelEntry = (m: ModelInfo) => ({
+  provider: m.provider,
+  name: m.name,
+  tag: m.tag,
+  digest: m.digest,
+});
+
+export const round = (x: number, digits = 4) => Number(x.toFixed(digits));
+export const roundOrNull = (x: number | null) => (x === null ? null : round(x));
 
 function roundAggregate(a: AggregateMetrics): AggregateMetrics {
   return {
@@ -174,31 +218,8 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
     byCategory[category] = roundAggregate(a);
   }
   return {
-    schemaVersion: RESULT_SCHEMA_VERSION,
-    experimentId: meta.experimentId,
-    evalType: 'retrieval' as const,
-    runId: meta.runId,
-    startedAt: meta.startedAt.toISOString(),
-    finishedAt: meta.finishedAt.toISOString(),
-    gitSha: meta.gitSha,
-    gitDirty: meta.gitDirty,
-    datasetSha256: meta.datasetSha256,
-    corpusSha: meta.corpusSha,
-    config: {
-      chunkConfig: meta.config.chunkConfig,
-      embed: meta.config.embed,
-      k: meta.config.k,
-      search: meta.config.search,
-      split: meta.config.split,
-    },
-    models: {
-      embed: {
-        provider: meta.embed.provider,
-        name: meta.embed.name,
-        tag: meta.embed.tag,
-        digest: meta.embed.digest,
-      },
-    },
+    ...resultHeader(meta, 'retrieval'),
+    models: { embed: modelEntry(meta.embed) },
     counts: {
       questions: run.counts.questions,
       evaluated: run.counts.evaluated,
@@ -232,17 +253,17 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
 export type RetrievalResult = ReturnType<typeof buildResult>;
 
 /** 2-space JSON with a trailing newline. */
-export function serializeResult(result: RetrievalResult): string {
+export function serializeResult(result: object): string {
   return `${JSON.stringify(result, null, 2)}\n`;
 }
 
 /** `2026-11-15T14-03-12Z_baseline_retrieval.json`: UTC to the second, no colons (invalid on some file systems). */
-export function resultFileName(startedAt: Date, experimentId: string): string {
+export function resultFileName(startedAt: Date, experimentId: string, evalType: EvalType): string {
   const stamp = startedAt
     .toISOString()
     .replace(/\.\d{3}Z$/, 'Z')
     .replaceAll(':', '-');
-  return `${stamp}_${experimentId}_retrieval.json`;
+  return `${stamp}_${experimentId}_${evalType}.json`;
 }
 
 const fmt = (x: number | null) => (x === null ? '     -' : x.toFixed(4));

@@ -7,7 +7,7 @@ import { loadConfig } from '../../src/config';
 import { FakeChatProvider } from '../../src/llm/fake';
 import type { RagRequestRecord, RagRequestSink } from '../../src/obs/logger';
 import { type AnswerDeps, answer, RetrievalError } from '../../src/rag/answer';
-import { buildAnswerMessages, NOT_FOUND } from '../../src/rag/prompts';
+import { buildAnswerMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
 import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 
 const doc = (chunk_id: number, source_path: string, heading_path: string, pageContent: string) =>
@@ -52,7 +52,7 @@ function setup(script: string[], docs = DOCS) {
 
 describe('buildAnswerMessages', () => {
   it('renders the system rules and the context format', () => {
-    expect(buildAnswerMessages('How do I read env vars?', DOCS)).toMatchSnapshot();
+    expect(buildAnswerMessages('How do I read env vars?', formatContext(DOCS))).toMatchSnapshot();
   });
 });
 
@@ -83,6 +83,14 @@ describe('answer', () => {
       },
     ]);
     expect(res.latencyMs).toBeGreaterThanOrEqual(0);
+    // The judge (M12) gets exactly the context the model saw.
+    expect(res.context).toBe(formatContext(DOCS));
+  });
+
+  it('writes the golden question ID into the request row', async () => {
+    const { deps, requestSink } = setup([reply(true, 'Use Bun.env.', [11])]);
+    await answer('q', { ...deps, questionId: 'q007' });
+    expect(requestSink.records[0]?.questionId).toBe('q007');
   });
 
   it('drops citations outside the context and reports invalid_output after the repairs', async () => {
@@ -156,7 +164,13 @@ describe('answer', () => {
   it('abstains without a model call when nothing was retrieved', async () => {
     const { deps, chat, requestSink } = setup([], []);
     const res = await answer('q', deps);
-    expect(res).toMatchObject({ found: false, answer: NOT_FOUND, retrievedIds: [], status: 'ok' });
+    expect(res).toMatchObject({
+      found: false,
+      answer: NOT_FOUND,
+      retrievedIds: [],
+      context: '',
+      status: 'ok',
+    });
     expect(chat.calls).toHaveLength(0);
     expect(requestSink.records[0]?.retrievedIds).toEqual([]);
   });
@@ -196,6 +210,7 @@ describe('ask CLI output', () => {
       citations: [{ chunkId: 12, sourcePath: 'runtime/env.md', headingPath: '' }],
       droppedCitations: [999],
       retrievedIds: [11, 12],
+      context: '',
       status: 'invalid_output',
       repairs: 2,
       latencyMs: 5,

@@ -9,6 +9,7 @@ import { SPLITS } from './dataset';
 
 export const SEARCH_MODES = ['vector'] as const;
 export const EVAL_TYPES = ['retrieval', 'answers'] as const;
+export type EvalType = (typeof EVAL_TYPES)[number];
 
 const ChunkConfigKey = z.string().superRefine((key, ctx) => {
   try {
@@ -65,7 +66,7 @@ export async function loadExperiment(path: string): Promise<ExperimentFile> {
 }
 
 /** The one config of a file without `vary` (M11); throws when `vary` is set or `base` is incomplete. */
-export function singleConfig(exp: ExperimentFile, evalType: (typeof EVAL_TYPES)[number]): RunConfig {
+export function singleConfig(exp: ExperimentFile, evalType: EvalType): RunConfig {
   if (Object.keys(exp.vary).length > 0) {
     throw new Error(`${exp.id}: "vary" is set; matrix runs come with bun run experiment (M13a)`);
   }

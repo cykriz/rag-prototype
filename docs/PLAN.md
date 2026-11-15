@@ -514,12 +514,14 @@ Let E_q be the evidence spans of q, R_q^k the top k retrieved chunks, rank(i) th
 - **MRR@k** = (1/|Q|) · Σ_q 1/rank_q, where rank_q is the position of the first relevant chunk in R_q^k, and the term is 0 if none.
 - **nDCG@k**: rel_i = 1 if chunk i covers at least one span not covered by chunks 1..i−1, else 0. DCG@k = Σ_{i=1..k} rel_i / log2(i+1). IDCG@k = Σ_{i=1..min(k,|E_q|)} 1 / log2(i+1). nDCG@k = DCG@k / IDCG@k.
 - **Keyword coverage@k** = |{w ∈ K_q : w occurs case insensitively in concat(R_q^k)}| / |K_q|.
-- **Judge scores**: accuracy, completeness, relevance on a 1 to 5 scale, mean per dimension over answerable questions.
+- **Judge scores**: accuracy, completeness, relevance on a 1 to 5 scale, mean per dimension over answerable questions answered with `found=true` and a valid judge reply (M12). Abstentions and negatives are not judged; the abstention metrics carry them. Judge replies that fail validation after the repairs are counted (`judgeInvalid`), not scored.
 - **Abstention accuracy** = share of negative questions answered with `found=false`.
 - **False abstention rate** = share of answerable questions answered with `found=false`.
 - **Citation validity** = share of `found=true` answers whose citations are non empty and all inside the provided context.
+- **Unusable answers** (`found=null`, invalid output even after repairs) never count as an abstention: they fail abstention accuracy on negatives, stay out of the false abstention rate and citation validity, and are reported as `invalidAnswerRate` over all questions.
 
 ### Judge prompt draft (`src/eval/prompts.ts`)
+(As implemented in M12, the prompt drops "written by a human": 20 of the 45 reference answers carry `origin: "llm"`.)
 ```
 System:
 You are a strict evaluator of answers about the Bun JavaScript runtime documentation.
@@ -559,7 +561,7 @@ export const JudgeResult = z.object({
 - Pretraining contamination: Bun is likely in the models' training data. A closed book baseline (no context) is run once; answers are only counted as grounded if citations are valid.
 - Judge model `gemma3:12b` differs in family from generator `qwen2.5:7b` to reduce self preference. Temperature 0, fixed seed where supported.
 - Judge never sees which pipeline produced an answer; answers are shuffled per run.
-- Self consistency: 10 percent of answers judged twice; report the share of identical scores.
+- Self consistency: 10 percent of answers judged twice; report the share of identical scores. In M12 the judge order is shuffled with a seeded PRNG (`shuffleSeed` in the result, replay with `--seed`), the sample is the first ceil(n/10) answers of that order, judged again after the whole first pass, and "identical" means all three dimensions equal (per dimension shares are reported too).
 - Human calibration: I score 20 test answers myself with the same rubric before reading judge scores and report agreement (share of scores within 1 point).
 
 ---

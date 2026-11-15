@@ -55,14 +55,26 @@ describe('parseEvalArgs', () => {
       split: 'dev',
       dataset: 'eval/golden.jsonl',
       out: 'results',
+      seed: undefined,
     });
     expect(parseEvalArgs(['retrieval', '--help'])).toBeUndefined();
+  });
+
+  it('parses the answers command with a seed', () => {
+    expect(parseEvalArgs(['answers', '--config', 'x.json', '--seed', '4294967295'])).toMatchObject({
+      command: 'answers',
+      seed: 4294967295,
+    });
+    expect(parseEvalArgs(['answers', '--config', 'x.json'])?.seed).toBeUndefined();
   });
 
   it('throws on usage errors', () => {
     expect(() => parseEvalArgs(['retrieval'])).toThrow(/--config/);
     expect(() => parseEvalArgs(['retrieval', '--config', 'x.json', '--split', 'all'])).toThrow(/--split/);
-    expect(() => parseEvalArgs(['answers', '--config', 'x.json'])).toThrow(/Unknown eval command/);
+    expect(() => parseEvalArgs(['report', '--config', 'x.json'])).toThrow(/Unknown eval command/);
+    expect(() => parseEvalArgs(['retrieval', '--config', 'x.json', '--seed', '1'])).toThrow(/answers/);
+    expect(() => parseEvalArgs(['answers', '--config', 'x.json', '--seed', '-1'])).toThrow(/--seed/);
+    expect(() => parseEvalArgs(['answers', '--config', 'x.json', '--seed', '4294967296'])).toThrow(/--seed/);
     expect(() => parseEvalArgs(['retrieval', '--config', 'x.json', '--bogus'])).toThrow();
   });
 });

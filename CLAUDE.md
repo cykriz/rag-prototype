@@ -22,6 +22,9 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
   distances; needs an ingest of that config and model)
 - Ask: `bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>]` (answer with chunk citations
   or `NOT_FOUND`; writes `rag_requests` and `llm_calls` rows; needs the ingest and Ollama)
+- Evals: `bun run eval:retrieval --config experiments/baseline.json [--split dev]` and
+  `bun run eval:answers --config experiments/baseline.json [--split dev] [--seed <n>]` (answers + LLM judge; needs the
+  ingest and Ollama with chat and judge model); both write `results/<timestamp>_<experiment>_<type>.json`
 - Validate golden dataset: `bun run eval:validate [--strict]` (schema, spans against the fetched corpus, §6 counts;
   `--strict` makes count deviations errors)
 - Test: `bun run test` — Vitest projects `unit` and `integration` (`bun --bun vitest run`) plus the Claude hook

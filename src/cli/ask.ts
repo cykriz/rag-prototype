@@ -1,6 +1,7 @@
 // bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>]
 // Retrieves, answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 import { randomUUID } from 'node:crypto';
+import type { Sql } from 'postgres';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
 import { sourceLabel } from '../retrieval/pgRetriever';
@@ -48,6 +49,12 @@ export function describeAnswerError(err: unknown, config: Config, dbDown: boolea
   });
 }
 
+/** describeAnswerError after probing the database with the unwrapped error; shared by ask and eval:answers. */
+export async function answerErrorMessage(err: unknown, config: Config, sql: Sql): Promise<string> {
+  const dbDown = await isDatabaseDown(err instanceof RetrievalError ? err.cause : err, sql);
+  return describeAnswerError(err, config, dbDown);
+}
+
 function main(argv: string[]): Promise<number> {
   return runQuestionCli(argv, USAGE, async ({ args, config, chunkConfig, sql }) => {
     let res: AnswerResult;
@@ -60,8 +67,7 @@ function main(argv: string[]): Promise<number> {
       });
       res = await answer(args.question, deps);
     } catch (err) {
-      const dbDown = await isDatabaseDown(err instanceof RetrievalError ? err.cause : err, sql);
-      console.error(describeAnswerError(err, config, dbDown));
+      console.error(await answerErrorMessage(err, config, sql));
       return 1;
     }
     if (res.found === null) {

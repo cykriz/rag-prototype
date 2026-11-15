@@ -52,13 +52,14 @@ afterAll(async () => {
  * buildAnswerDeps with a scripted chat on a sink carrying the same run and request ID; k covers every fixture
  * chunk, so any fixture chunk ID is inside the context.
  */
-function scriptedDeps(runId: string, script: string[]) {
+function scriptedDeps(runId: string, script: string[], questionId?: string) {
   expect(chunkIds.length).toBeLessThanOrEqual(MAX_K);
   const deps = buildAnswerDeps(sql, CONFIG, {
     chunkConfig: CHUNK_CONFIG.key,
     k: chunkIds.length,
     runId,
     pipeline: 'baseline',
+    ...(questionId !== undefined && { questionId }),
   });
   deps.chat = new LoggedChatProvider(new FakeChatProvider(script), {
     sink: new PostgresLlmCallSink(sql, { runId, requestId: deps.requestId }),
@@ -116,5 +117,17 @@ describe('answer with rag_requests logging', () => {
     ]);
     const [req] = await sql`SELECT found FROM rag_requests WHERE run_id = ${runId}`;
     expect(req?.found).toBe(true);
+  });
+
+  it('stores the golden question ID passed through buildAnswerDeps', async () => {
+    const runId = `test-answer-${crypto.randomUUID()}`;
+    const deps = scriptedDeps(
+      runId,
+      [JSON.stringify({ found: false, answer: 'NOT_FOUND', citations: [] })],
+      'q007',
+    );
+    await answer('how do plugins work', deps);
+    const [req] = await sql`SELECT question_id FROM rag_requests WHERE run_id = ${runId}`;
+    expect(req?.question_id).toBe('q007');
   });
 });

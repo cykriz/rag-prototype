@@ -74,10 +74,14 @@ export interface AggregateMetrics {
   keywordCoverage: number | null;
 }
 
-/** Means over questions; null metrics for an empty group (e.g. no llm entries in a split). */
+/** Mean of `pick` over `rows`; null for no rows (e.g. no llm entries in a split). */
+export function meanOrNull<T>(rows: readonly T[], pick: (r: T) => number): number | null {
+  return rows.length === 0 ? null : rows.reduce((sum, r) => sum + pick(r), 0) / rows.length;
+}
+
+/** Means over questions; null metrics for an empty group. */
 export function aggregate(rows: readonly QuestionMetrics[]): AggregateMetrics {
-  const mean = (pick: (r: QuestionMetrics) => number) =>
-    rows.length === 0 ? null : rows.reduce((sum, r) => sum + pick(r), 0) / rows.length;
+  const mean = (pick: (r: QuestionMetrics) => number) => meanOrNull(rows, pick);
   return {
     n: rows.length,
     recall: mean((r) => r.recall),

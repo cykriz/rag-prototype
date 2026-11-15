@@ -25,9 +25,10 @@ export function formatContext(docs: Document<ChunkMetadata>[]): string {
     .join('\n\n');
 }
 
-export function buildAnswerMessages(question: string, docs: Document<ChunkMetadata>[]): Message[] {
+/** `context` is the output of formatContext, built once per request so answer() can return it too. */
+export function buildAnswerMessages(question: string, context: string): Message[] {
   return [
     { role: 'system', content: ANSWER_SYSTEM_PROMPT },
-    { role: 'user', content: `Context:\n\n${formatContext(docs)}\n\nQuestion: ${question}` },
+    { role: 'user', content: `Context:\n\n${context}\n\nQuestion: ${question}` },
   ];
 }
