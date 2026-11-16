@@ -1,0 +1,813 @@
+{
+  "schemaVersion": 4,
+  "experimentId": "exp-expand",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-d28f71b3-c860-411d-b9d7-8723181ed6a6",
+  "startedAt": "2026-11-16T12:30:24.214Z",
+  "finishedAt": "2026-11-16T12:30:49.163Z",
+  "gitSha": "b0d97cde924dd27de2c286c41d2cb500c9d57cae",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "dev",
+    "rewrite": "off",
+    "expand": "on"
+  },
+  "variedKey": "expand",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    }
+  },
+  "counts": {
+    "questions": 15,
+    "evaluated": 13,
+    "excludedNegative": 2,
+    "rewriteFallbacks": null,
+    "expandFallbacks": 0
+  },
+  "aggregate": {
+    "all": {
+      "n": 13,
+      "recall": 0.5769,
+      "mrr": 0.4295,
+      "ndcg": 0.4576,
+      "keywordCoverage": 0.8462
+    },
+    "human": {
+      "n": 9,
+      "recall": 0.5556,
+      "mrr": 0.3426,
+      "ndcg": 0.3957,
+      "keywordCoverage": 0.8889
+    },
+    "llm": {
+      "n": 4,
+      "recall": 0.625,
+      "mrr": 0.625,
+      "ndcg": 0.5967,
+      "keywordCoverage": 0.75
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 5,
+        "recall": 0.6,
+        "mrr": 0.5,
+        "ndcg": 0.5262,
+        "keywordCoverage": 1
+      },
+      "how_to": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.1944,
+        "ndcg": 0.3102,
+        "keywordCoverage": 0.8333
+      },
+      "multi_document": {
+        "n": 3,
+        "recall": 0.1667,
+        "mrr": 0.1667,
+        "ndcg": 0.129,
+        "keywordCoverage": 0.5
+      },
+      "vocabulary_mismatch": {
+        "n": 2,
+        "recall": 1,
+        "mrr": 1,
+        "ndcg": 1,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What languages does Bun's transpiler support natively?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11877,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 10124,
+          "sourcePath": "bundler/css.mdx",
+          "score": 0.032002,
+          "covers": []
+        },
+        {
+          "chunkId": 12091,
+          "sourcePath": "runtime/transpiler.mdx",
+          "score": 0.032002,
+          "covers": []
+        },
+        {
+          "chunkId": 10133,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.03125,
+          "covers": []
+        },
+        {
+          "chunkId": 11927,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "score": 0.030536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q004",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What flags are available for embedding values during the build process in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10236,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10416,
+          "sourcePath": "guides/runtime/build-time-constants.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 12224,
+          "sourcePath": "test/runtime-behavior.mdx",
+          "score": 0.03055,
+          "covers": []
+        },
+        {
+          "chunkId": 10134,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.029877,
+          "covers": []
+        },
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.02904,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q007",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What port does the web debugger use for WebSocket connections in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11868,
+          "sourcePath": "runtime/debugger.mdx",
+          "score": 0.032522,
+          "covers": []
+        },
+        {
+          "chunkId": 10437,
+          "sourcePath": "guides/runtime/web-debugger.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11867,
+          "sourcePath": "runtime/debugger.mdx",
+          "score": 0.032002,
+          "covers": []
+        },
+        {
+          "chunkId": 11933,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "score": 0.03101,
+          "covers": []
+        },
+        {
+          "chunkId": 11927,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "score": 0.030331,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q010",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to mock system time in Bun tests"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10457,
+          "sourcePath": "guides/test/mock-clock.mdx",
+          "score": 0.032522,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.031778,
+          "covers": []
+        },
+        {
+          "chunkId": 12176,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.030835,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.03055,
+          "covers": []
+        },
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.029274,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q013",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default output format of the bundler when using --bytecode without --format?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10179,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 10173,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.031498,
+          "covers": []
+        },
+        {
+          "chunkId": 10133,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.031025,
+          "covers": []
+        },
+        {
+          "chunkId": 10176,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.030536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q016",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to configure sourcemaps in Bun's dev server",
+          "bun dev server sourcemap settings"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10349,
+          "sourcePath": "guides/ecosystem/tanstack-start.mdx",
+          "score": 0.045965,
+          "covers": []
+        },
+        {
+          "chunkId": 11870,
+          "sourcePath": "runtime/debugger.mdx",
+          "score": 0.044367,
+          "covers": []
+        },
+        {
+          "chunkId": 10342,
+          "sourcePath": "guides/ecosystem/tanstack-start.mdx",
+          "score": 0.043997,
+          "covers": []
+        },
+        {
+          "chunkId": 10344,
+          "sourcePath": "guides/ecosystem/tanstack-start.mdx",
+          "score": 0.041448,
+          "covers": []
+        },
+        {
+          "chunkId": 10167,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.041093,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q019",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to access environment variables in Bun",
+          "bun documentation environment variables"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.047674,
+          "covers": []
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.04741,
+          "covers": []
+        },
+        {
+          "chunkId": 10430,
+          "sourcePath": "guides/runtime/read-env.mdx",
+          "score": 0.046304,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10204,
+          "sourcePath": "bundler/standalone-html.mdx",
+          "score": 0.043956,
+          "covers": []
+        },
+        {
+          "chunkId": 11873,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.042965,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q022",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.25,
+      "ndcg": 0.4307,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 4,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I use bun build to create a single executable file from a TypeScript program?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.031281,
+          "covers": []
+        },
+        {
+          "chunkId": 10249,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.031258,
+          "covers": []
+        },
+        {
+          "chunkId": 10253,
+          "sourcePath": "compiler/index.mdx",
+          "score": 0.030331,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10248,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.029762,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q026",
+      "category": "multi_document",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to configure Bun to use a new SQLite database for each test run",
+          "Bun testing setup with multiple SQLite databases"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12027,
+          "sourcePath": "runtime/sql.mdx",
+          "score": 0.048652,
+          "covers": []
+        },
+        {
+          "chunkId": 12062,
+          "sourcePath": "runtime/sqlite.mdx",
+          "score": 0.047448,
+          "covers": []
+        },
+        {
+          "chunkId": 12042,
+          "sourcePath": "runtime/sql.mdx",
+          "score": 0.047403,
+          "covers": []
+        },
+        {
+          "chunkId": 12065,
+          "sourcePath": "runtime/sqlite.mdx",
+          "score": 0.045475,
+          "covers": []
+        },
+        {
+          "chunkId": 12036,
+          "sourcePath": "runtime/sql.mdx",
+          "score": 0.043844,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q029",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to build a single binary for Linux on Mac using Bun?",
+          "What is the process for creating a startup-optimized binary with Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11938,
+          "sourcePath": "runtime/index.mdx",
+          "score": 0.046484,
+          "covers": []
+        },
+        {
+          "chunkId": 11759,
+          "sourcePath": "project/contributing.mdx",
+          "score": 0.046025,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.045536,
+          "covers": []
+        },
+        {
+          "chunkId": 10506,
+          "sourcePath": "installation.mdx",
+          "score": 0.043511,
+          "covers": []
+        },
+        {
+          "chunkId": 10323,
+          "sourcePath": "guides/ecosystem/neon-serverless-postgres.mdx",
+          "score": 0.041887,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q032",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.3869,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to set a global package version in Bun workspace",
+          "Bun workspace configuration for shared dependencies"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11720,
+          "sourcePath": "pm/workspaces.mdx",
+          "score": 0.048916,
+          "covers": []
+        },
+        {
+          "chunkId": 11719,
+          "sourcePath": "pm/workspaces.mdx",
+          "score": 0.045715,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 11690,
+          "sourcePath": "pm/cli/update.mdx",
+          "score": 0.045072,
+          "covers": []
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.043973,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.04221,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q034",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "Where does Bun store cached packages?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11694,
+          "sourcePath": "pm/global-cache.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11682,
+          "sourcePath": "pm/cli/pm.mdx",
+          "score": 0.032002,
+          "covers": []
+        },
+        {
+          "chunkId": 11660,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.030769,
+          "covers": []
+        },
+        {
+          "chunkId": 11661,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.03055,
+          "covers": []
+        },
+        {
+          "chunkId": 11778,
+          "sourcePath": "runtime/auto-install.mdx",
+          "score": 0.030214,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q037",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to bundle a script with Bun for deployment",
+          "bun build documentation",
+          "bun bundle options"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.056292,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.046251,
+          "covers": []
+        },
+        {
+          "chunkId": 12086,
+          "sourcePath": "runtime/templating/init.mdx",
+          "score": 0.045568,
+          "covers": []
+        },
+        {
+          "chunkId": 11759,
+          "sourcePath": "project/contributing.mdx",
+          "score": 0.044358,
+          "covers": []
+        },
+        {
+          "chunkId": 10324,
+          "sourcePath": "guides/ecosystem/nextjs.mdx",
+          "score": 0.042577,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}

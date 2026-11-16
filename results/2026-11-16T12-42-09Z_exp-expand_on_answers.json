@@ -1,0 +1,794 @@
+{
+  "schemaVersion": 4,
+  "experimentId": "exp-expand",
+  "evalType": "answers",
+  "runId": "eval-answers-ebd2316b-3f97-434f-9ab0-f918c3d9473e",
+  "startedAt": "2026-11-16T12:42:09.793Z",
+  "finishedAt": "2026-11-16T12:53:30.919Z",
+  "gitSha": "b0d97cde924dd27de2c286c41d2cb500c9d57cae",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "dev",
+    "rewrite": "off",
+    "expand": "on"
+  },
+  "variedKey": "expand",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    },
+    "judge": {
+      "provider": "ollama",
+      "name": "gemma3:12b",
+      "tag": "gemma3:12b",
+      "digest": "b92b218582c521ba287f38f1d6057dcd3c6cbff036f13cac97b5d861f5e58ec3"
+    }
+  },
+  "judge": {
+    "temperature": 0,
+    "seed": 42
+  },
+  "shuffleSeed": 3623154837,
+  "counts": {
+    "questions": 15,
+    "answerable": 13,
+    "negative": 2,
+    "judged": 13,
+    "judgeInvalid": 0,
+    "invalidAnswers": 0,
+    "rewriteFallbacks": null,
+    "expandFallbacks": 0
+  },
+  "aggregate": {
+    "all": {
+      "nAnswerable": 13,
+      "nNegative": 2,
+      "scored": 13,
+      "accuracy": 4.4615,
+      "completeness": 4.1538,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "human": {
+      "nAnswerable": 9,
+      "nNegative": 0,
+      "scored": 9,
+      "accuracy": 4.7778,
+      "completeness": 4.5556,
+      "relevance": 5,
+      "abstentionAccuracy": null,
+      "falseAbstentionRate": 0,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "llm": {
+      "nAnswerable": 4,
+      "nNegative": 2,
+      "scored": 4,
+      "accuracy": 3.75,
+      "completeness": 3.25,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    }
+  },
+  "selfConsistency": {
+    "sampled": 2,
+    "repeatInvalid": 0,
+    "pairs": 2,
+    "identicalShare": 1,
+    "perDimension": {
+      "accuracy": 1,
+      "completeness": 1,
+      "relevance": 1
+    }
+  },
+  "kpis": {
+    "latencyMs": {
+      "p50": 16994,
+      "p95": 21175.3
+    },
+    "calls": [
+      {
+        "operation": "embed",
+        "model": "nomic-embed-text",
+        "calls": 15,
+        "avgInputTokens": 49.8,
+        "avgOutputTokens": 0,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 40,
+        "latencyP95Ms": 51.3
+      },
+      {
+        "operation": "expand",
+        "model": "qwen2.5:7b",
+        "calls": 15,
+        "avgInputTokens": 218.7333,
+        "avgOutputTokens": 22.4,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 1690,
+        "latencyP95Ms": 2190
+      },
+      {
+        "operation": "generate",
+        "model": "qwen2.5:7b",
+        "calls": 15,
+        "avgInputTokens": 3123.5333,
+        "avgOutputTokens": 50.6667,
+        "estimatedTokenShare": 0,
+        "retryRate": 0.0667,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 15324,
+        "latencyP95Ms": 19667.3
+      },
+      {
+        "operation": "judge",
+        "model": "gemma3:12b",
+        "calls": 15,
+        "avgInputTokens": 3430.5333,
+        "avgOutputTokens": 102.6667,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 26402,
+        "latencyP95Ms": 37930.6
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "4a4d0e71-ce02-44a0-ae24-d543c2446e90",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 11284,
+      "answer": "Bun's transpiler natively supports TypeScript and JSX/TSX.",
+      "citations": [
+        12091
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11877,
+        10124,
+        12091,
+        10133,
+        11927
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What languages does Bun's transpiler support natively?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER states that Bun's transpiler natively implements JavaScript, TypeScript, and JSX support. The provided CONTEXT mentions TypeScript and JSX in the context of the transpiler's loader options and transformation examples. The assistant's answer correctly identifies TypeScript and JSX, but omits JavaScript. Therefore, the answer is not complete.",
+        "accuracy": 3,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q004",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "b7d2e0ea-0317-48ae-9217-1d9ef495f182",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13449,
+      "answer": "--define",
+      "citations": [
+        10236,
+        10416
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10236,
+        10416,
+        12224,
+        10134,
+        10234
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What flags are available for embedding values during the build process in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the flag needed to insert build-time values into an executable. The REFERENCE ANSWER states that it is the `--define` flag. The CONTEXT provides multiple examples of using the `--define` flag with `bun build` and the Bun JavaScript API to inject build-time constants into executables. Therefore, the assistant's answer is accurate and complete.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the flag needed to insert build-time values into an executable. The REFERENCE ANSWER states that it is the `--define` flag. The CONTEXT provides multiple examples of using the `--define` flag with `bun build` and the Bun JavaScript API to inject build-time constants into executables. Therefore, the assistant's answer is accurate and complete.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q007",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "73dc4a1c-c2fd-4a51-8f5f-b954a33c9ad9",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 18869,
+      "answer": "6499",
+      "citations": [
+        11868,
+        10437
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11868,
+        10437,
+        11867,
+        11933,
+        11927
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What port does the web debugger use for WebSocket connections in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the port used by the websocket server when debugging with the web debugger. The provided context states that when using the `--inspect` flag, the WebSocket server starts on port `6499`. The context also mentions that this port can be changed using the `--inspect=<port>` flag.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q010",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "adcb3034-b4e6-423a-b55f-675bb71b7826",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13058,
+      "answer": "Use the `setSystemTime` function from `bun:test` to set the system time in a test.",
+      "citations": [
+        10457,
+        12176
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10457,
+        10466,
+        12176,
+        10571,
+        10450
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to mock system time in Bun tests"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies `setSystemTime` as the function to use for setting the system time in tests. The response is concise and directly answers the question, aligning with the provided context. It doesn't include extraneous information.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q013",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "3ac819ca-2186-40cf-a0eb-21da713e86ea",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 20166,
+      "answer": "The default output format of the bundler when using --bytecode and not specifying --format is CommonJS.",
+      "citations": [
+        10179
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10179,
+        10158,
+        10173,
+        10133,
+        10176
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default output format of the bundler when using --bytecode without --format?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context explicitly states: \"Without an explicit `format`, defaults to CommonJS.\" This directly answers the question. The assistant's answer is concise and accurate.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q016",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "b2893830-68ae-4f00-bdde-f2c3851fe920",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 18721,
+      "answer": "You can change the sourcemaps by modifying the `sourcemap` option in the `Bun.build` configuration. For example, to use linked sourcemaps, you would set `sourcemap: 'linked'` in your `build.ts` file or use the command line flag `--sourcemap=linked` when running `bun build`. This will create separate `.js.map` files alongside each bundled JavaScript file.",
+      "citations": [
+        10167
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10349,
+        11870,
+        10342,
+        10344,
+        10167
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to configure sourcemaps in Bun's dev server",
+          "bun dev server sourcemap settings"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies that the `sourcemap` option in `Bun.build` controls sourcemap generation. It also accurately describes the 'linked' sourcemap type and how to use it both in code and via the command line. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q019",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "cd995b3d-669c-4235-ad89-c31b3ca74d64",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 14058,
+      "answer": "You can access the current environment variables using `process.env` or `Bun.env`.",
+      "citations": [
+        10431,
+        10430,
+        11872
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11872,
+        10431,
+        10430,
+        10204,
+        11873
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to access environment variables in Bun",
+          "bun documentation environment variables"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly addresses the question and provides the correct information based on the provided context. It accurately states that `process.env` and `Bun.env` can be used to access environment variables. The answer is concise and complete, covering the key points from the reference answer and the context.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q022",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "d19687e5-9c96-4324-b86d-c729ae4fd970",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 16994,
+      "answer": "You can generate one executable file in machine code for a TypeScript program using the `bun build --compile --aot` command or by setting `aot: true` in the `Bun.build()` options.",
+      "citations": [
+        10237,
+        10249
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10234,
+        10237,
+        10249,
+        10253,
+        10248
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I use bun build to create a single executable file from a TypeScript program?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer correctly identifies both the command-line and API options for generating a machine code executable. The assistant answer accurately summarizes this information. It is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q026",
+      "category": "multi_document",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "13b89a80-5f6f-41b4-9919-41ae67012f97",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 17774,
+      "answer": "You can use the ':memory:' database URL to create an in-memory SQLite database for each test.",
+      "citations": [
+        12027
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12027,
+        12062,
+        12042,
+        12065,
+        12036
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to configure Bun to use a new SQLite database for each test run",
+          "Bun testing setup with multiple SQLite databases"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER states to use `new Database(\":memory:\")` in a beforeEach to use a new SQLite DB for every test. The CONTEXT provides examples of SQLite connection strings, including `:memory:`. The ASSISTANT ANSWER correctly identifies `:memory:` as a way to use a new SQLite DB for every test.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q029",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "81a1c38d-81d5-4faa-92a0-576010dacdb1",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 21085,
+      "answer": "Use the following command: `bun build --compile --minify --sourcemap ./path/to/my/app.ts --outfile myapp`",
+      "citations": [
+        10237
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11938,
+        11759,
+        10237,
+        10506,
+        10323
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to build a single binary for Linux on Mac using Bun?",
+          "What is the process for creating a startup-optimized binary with Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to build a startup-optimized single binary for Linux x64 on a Mac. The reference answer provides the exact command `bun build --compile --bytecode --target=bun-linux-x64 ./index.ts --outfile myapp`. The assistant answer omits the `--bytecode` and `--target` flags, and includes `--minify` and `--sourcemap` which are not mentioned in the reference answer. Therefore, the assistant answer is not entirely accurate or complete.",
+        "accuracy": 2,
+        "completeness": 2,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to build a startup-optimized single binary for Linux x64 on a Mac. The reference answer provides the exact command `bun build --compile --bytecode --target=bun-linux-x64 ./index.ts --outfile myapp`. The assistant answer omits the `--bytecode` and `--target` flags, and includes `--minify` and `--sourcemap` which are not mentioned in the reference answer. Therefore, the assistant answer is not entirely accurate or complete.",
+        "accuracy": 2,
+        "completeness": 2,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q032",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "801c982e-0851-4375-82ad-2eff2bc18bf3",
+      "found": true,
+      "status": "ok",
+      "repairs": 1,
+      "latencyMs": 21386,
+      "answer": "You can define one React version once in the root `package.json` and use the `workspace:*` syntax to reference it in your workspace packages.",
+      "citations": [
+        11720,
+        11690
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11720,
+        11719,
+        11690,
+        10390,
+        11701
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to set a global package version in Bun workspace",
+          "Bun workspace configuration for shared dependencies"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer states that you should list packages under workspaces in the root package.json, add the version to a catalog there, and use 'catalog:' as the version in each package. The assistant answer only mentions using the `workspace:*` syntax, which is a key component of the reference answer but misses the crucial step of defining the version in the root package.json and using a catalog. Therefore, the assistant's answer is incomplete.",
+        "accuracy": 3,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q034",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "88601acd-9c1b-4eab-9522-13233c36270b",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 20936,
+      "answer": "~/.bun/install/cache",
+      "citations": [
+        11694
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11694,
+        11682,
+        11660,
+        11661,
+        11778
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "Where does Bun store cached packages?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks about where Bun stores package archives. The REFERENCE ANSWER directly states the location is `~/.bun/install/cache` or the path set by `BUN_INSTALL_CACHE_DIR`. The CONTEXT supports this by explicitly mentioning that Bun stores packages in a global cache at `~/.bun/install/cache`. The assistant's answer is concise and accurate.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q037",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "d123f589-c350-4283-8f5d-9124f6e58918",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 16477,
+      "answer": "You can use the `--compile` flag to generate a standalone binary from a TypeScript or JavaScript file.",
+      "citations": [
+        10234
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10234,
+        10158,
+        12086,
+        11759,
+        10324
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to bundle a script with Bun for deployment",
+          "bun build documentation",
+          "bun bundle options"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER explicitly states to use `bun build --compile` to create a single runnable file. The CONTEXT provides documentation and examples supporting this method. The ASSISTANT ANSWER accurately reflects this information, though it is brief.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q039",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "5e60b23b-015f-42c6-a4c1-80ffcbd20685",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7599,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11927,
+        11764,
+        11791,
+        11982,
+        10316
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "Does Bun include WebRTC support out of the box?",
+          "Can I use WebRTC with Bun for peer connections?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q042",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "d346d61f-4d74-45c0-98fb-be4f782e5b5b",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10712,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11791,
+        12004,
+        10293,
+        11759,
+        11927
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "bun documentation dynamo db client"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    }
+  ]
+}

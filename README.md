@@ -16,6 +16,8 @@ Phase 2 starts with the search mode (`exp-search-mode`) at that config: vector s
 
 Next comes query rewriting (`exp-rewrite`), at that config with vector search. Before retrieval, the chat model turns the question into one search query, using temperature 0 and seed 42. The prompt lets it make vague wording concrete and add Bun terms. It must keep identifiers exactly as written, must not answer the question and must not name APIs the question does not imply. The rewritten query is used for both the embedding and the full text query, while the answer prompt keeps the original question. If the output is still invalid after two repairs, retrieval falls back to the original question; no run needed this. The answers decide, because the rewrite costs a model call on every request. Retrieval breaks a tie only, and a full tie goes to off. On dev, off wins: accuracy 4.69 against 4.17, well outside 1/13. Retrieval agrees, with Recall@5 0.69 against 0.58. The rewrites read well but flatten specific terms, so three dev questions lost their evidence and one gained it. On test, rewriting is ahead (accuracy 4.91 against 4.77, Recall@5 0.76 against 0.72), the same small dev split problem again, so the pipeline stays without rewriting. The rewrite call itself takes about 0.9 s at the median. The end-to-end p50 grows by 1.4 s on test (8264 against 6870 ms) and by 1.0 s on dev. Result files now carry `schemaVersion` 3. Each question records the query that retrieval used and whether it fell back. Answers files also report the latency percentiles of each call type.
 
+Then query expansion (`exp-expand`), at the same config with rewriting off. The chat model writes up to three extra search queries for the question, using temperature 0 and seed 42. It may rephrase, use Bun terms and split a question that asks several things, but must keep identifiers exactly as written and must not answer. Retrieval searches the question and every expansion separately, fuses the lists with reciprocal rank fusion (depth max(k, 50) per list) and keeps the top k. Expansions that repeat the question or each other are dropped. If the output is still invalid after two repairs, retrieval uses the question alone; no run needed this. The same rule as for rewriting decides: answers first, retrieval only on a tie, a full tie goes to off. On dev, off wins: accuracy 4.69 against 4.46, well outside 1/13. Retrieval agrees, with Recall@5 0.69 against 0.58. The expansions mostly reword the question, and the fused lists push evidence out of the top 5: four dev questions lost evidence and one gained it. On test, expansion is ahead again (accuracy 4.92 against 4.77, Recall@5 0.76 against 0.72), so the pipeline stays without expansion, as it did for rewriting. The expand call takes 1.1 to 1.7 s at the median. On dev the end-to-end p50 grows by 2.7 s (16994 against 14266 ms); on test it is 1.2 s lower with expansion (8979 against 10184 ms), which is load noise on the laptop rather than a saving. Result files now carry `schemaVersion` 4. Each question records the expansions that were searched, how many duplicates were dropped and whether the stage fell back.
+
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
 <!-- results:start -->
@@ -74,6 +76,15 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 6870 | 10806 | 2746 | 0.00 |
 | on | 0.76 | 0.72 | 0.69 | 0.94 | 4.91 | 4.55 | 5.00 | 1.00 | 8264 | 12853 | 2986 | 0.00 |
 
+### exp-expand: expand
+
+Fixed: md-1024-128, nomic-embed-text, k=5, vector.
+
+| expand | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 10184 | 18987 | 2746 | 0.00 |
+| on | 0.76 | 0.63 | 0.63 | 0.94 | 4.92 | 4.58 | 5.00 | 1.00 | 8979 | 11740 | 3026 | 0.00 |
+
 ### KPIs
 
 | Config | In tok/q | Out tok/q | Est. token share | Retry rate | Invalid output rate | False abst. |
@@ -82,6 +93,8 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | exp-k-answers (md-1024-128, nomic-embed-text, k=5, vector) | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
 | exp-rewrite: rewrite=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
 | exp-rewrite: rewrite=on | 2922 | 64 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-expand: expand=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-expand: expand=on | 2955 | 71 | 0.00 | 0.00 | 0.00 | 0.04 |
 
 Test split only, latest run per config from a clean checkout. Metrics are the `all` group of each result file (human and llm reference answers are reported separately there); `–` = not run or not recorded. Tokens/q, Cost/100 q and the KPI rates count the answer pipeline without the judge. Dataset `89f4a8a4`, corpus `b6f9cfa0`.
 <!-- results:end -->

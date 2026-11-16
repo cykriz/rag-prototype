@@ -1,0 +1,1487 @@
+{
+  "schemaVersion": 4,
+  "experimentId": "exp-expand",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-c7eb5860-7f90-4ef5-8413-5f79d1153aeb",
+  "startedAt": "2026-11-16T12:53:45.207Z",
+  "finishedAt": "2026-11-16T12:54:31.816Z",
+  "gitSha": "b0d97cde924dd27de2c286c41d2cb500c9d57cae",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "off",
+    "expand": "on"
+  },
+  "variedKey": "expand",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    }
+  },
+  "counts": {
+    "questions": 30,
+    "evaluated": 25,
+    "excludedNegative": 5,
+    "rewriteFallbacks": null,
+    "expandFallbacks": 0
+  },
+  "aggregate": {
+    "all": {
+      "n": 25,
+      "recall": 0.76,
+      "mrr": 0.626,
+      "ndcg": 0.6333,
+      "keywordCoverage": 0.94
+    },
+    "human": {
+      "n": 16,
+      "recall": 0.8125,
+      "mrr": 0.6219,
+      "ndcg": 0.6694,
+      "keywordCoverage": 0.9063
+    },
+    "llm": {
+      "n": 9,
+      "recall": 0.6667,
+      "mrr": 0.6333,
+      "ndcg": 0.569,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 10,
+        "recall": 0.7,
+        "mrr": 0.6,
+        "ndcg": 0.6262,
+        "keywordCoverage": 0.85
+      },
+      "how_to": {
+        "n": 7,
+        "recall": 1,
+        "mrr": 0.7071,
+        "ndcg": 0.7784,
+        "keywordCoverage": 1
+      },
+      "multi_document": {
+        "n": 5,
+        "recall": 0.4,
+        "mrr": 0.6,
+        "ndcg": 0.4207,
+        "keywordCoverage": 1
+      },
+      "vocabulary_mismatch": {
+        "n": 3,
+        "recall": 1,
+        "mrr": 0.5667,
+        "ndcg": 0.6726,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default value for minification in development and production environments?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 10190,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.031498,
+          "covers": []
+        },
+        {
+          "chunkId": 10194,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.031258,
+          "covers": []
+        },
+        {
+          "chunkId": 10873,
+          "sourcePath": "lint/rules/import/prefer-default-export.mdx",
+          "score": 0.030536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "When are macros executed in Bun?",
+          "What is the execution context for macros in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10186,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.04918,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11938,
+          "sourcePath": "runtime/index.mdx",
+          "score": 0.040843,
+          "covers": []
+        },
+        {
+          "chunkId": 10187,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.039198,
+          "covers": []
+        },
+        {
+          "chunkId": 10401,
+          "sourcePath": "guides/process/nanoseconds.mdx",
+          "score": 0.038612,
+          "covers": []
+        },
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.038473,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What exit codes does bun fmt return?",
+          "How does bun fmt --check handle formatting issues?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12150,
+          "sourcePath": "snippets/cli/format.mdx",
+          "score": 0.04604,
+          "covers": []
+        },
+        {
+          "chunkId": 10582,
+          "sourcePath": "lint/rules/bun/format.mdx",
+          "score": 0.044764,
+          "covers": []
+        },
+        {
+          "chunkId": 10354,
+          "sourcePath": "guides/format/migrate-from-oxfmt.mdx",
+          "score": 0.044599,
+          "covers": []
+        },
+        {
+          "chunkId": 10581,
+          "sourcePath": "lint/rules/bun/fast-check-no-unseeded-random.mdx",
+          "score": 0.044511,
+          "covers": []
+        },
+        {
+          "chunkId": 11804,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.040332,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default registry used by bun install?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.031258,
+          "covers": []
+        },
+        {
+          "chunkId": 11661,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.030835,
+          "covers": []
+        },
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.030282,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.027365,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What methods are available in Bun for reading the contents of a ReadableStream into an array of chunks?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10443,
+          "sourcePath": "guides/streams/to-array.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10444,
+          "sourcePath": "guides/streams/to-arraybuffer.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.031258,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.03125,
+          "covers": []
+        },
+        {
+          "chunkId": 12076,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.030366,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to read a stream in Bun",
+          "bun documentation read stream"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.047883,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10412,
+          "sourcePath": "guides/read-file/stream.mdx",
+          "score": 0.045607,
+          "covers": []
+        },
+        {
+          "chunkId": 12076,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.045295,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.045109,
+          "covers": []
+        },
+        {
+          "chunkId": 10447,
+          "sourcePath": "guides/streams/to-json.mdx",
+          "score": 0.043604,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "Can mocked functions in Bun tests accept arguments?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12196,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 10458,
+          "sourcePath": "guides/test/mock-functions.mdx",
+          "score": 0.032258,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10570,
+          "sourcePath": "lint/rules/bun-test/require-mock-type-parameters.mdx",
+          "score": 0.030798,
+          "covers": []
+        },
+        {
+          "chunkId": 12197,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.030777,
+          "covers": []
+        },
+        {
+          "chunkId": 10982,
+          "sourcePath": "lint/rules/jest/prefer-jest-mocked.mdx",
+          "score": 0.029958,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How do you skip tests in Bun's testing framework?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10524,
+          "sourcePath": "lint/rules/bun-test/no-disabled-tests.mdx",
+          "score": 0.031754,
+          "covers": []
+        },
+        {
+          "chunkId": 11579,
+          "sourcePath": "lint/rules/vitest/no-disabled-tests.mdx",
+          "score": 0.030835,
+          "covers": []
+        },
+        {
+          "chunkId": 10568,
+          "sourcePath": "lint/rules/bun-test/prefer-todo.mdx",
+          "score": 0.030798,
+          "covers": []
+        },
+        {
+          "chunkId": 10952,
+          "sourcePath": "lint/rules/jest/no-disabled-tests.mdx",
+          "score": 0.030478,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default hostname for the Bun HTTP server?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11768,
+          "sourcePath": "quickstart.mdx",
+          "score": 0.032522,
+          "covers": []
+        },
+        {
+          "chunkId": 11796,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.032522,
+          "covers": []
+        },
+        {
+          "chunkId": 10349,
+          "sourcePath": "guides/ecosystem/tanstack-start.mdx",
+          "score": 0.028814,
+          "covers": []
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.028783,
+          "covers": []
+        },
+        {
+          "chunkId": 11967,
+          "sourcePath": "runtime/networking/fetch.mdx",
+          "score": 0.028531,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the default region for S3 in Bun's documentation?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12008,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 12009,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.032258,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12004,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.031746,
+          "covers": []
+        },
+        {
+          "chunkId": 12014,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.03125,
+          "covers": []
+        },
+        {
+          "chunkId": 12005,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.030536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to use bun bundle for fullstack applications",
+          "bun bundle usage examples for fullstack projects"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10143,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.04918,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10144,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.047875,
+          "covers": []
+        },
+        {
+          "chunkId": 10145,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.047183,
+          "covers": []
+        },
+        {
+          "chunkId": 10141,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.044771,
+          "covers": []
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.044143,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to configure bun test to exit after the first failure"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.031498,
+          "covers": []
+        },
+        {
+          "chunkId": 10575,
+          "sourcePath": "lint/rules/bun-test/valid-expect-in-promise.mdx",
+          "score": 0.03055,
+          "covers": []
+        },
+        {
+          "chunkId": 10459,
+          "sourcePath": "guides/test/rerun-each.mdx",
+          "score": 0.030159,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.25,
+      "ndcg": 0.4307,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 4,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to use the watch mode in Bun?",
+          "What is the command to build with watch mode in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10469,
+          "sourcePath": "guides/test/watch-mode.mdx",
+          "score": 0.04918,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.048387,
+          "covers": []
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.047131,
+          "covers": []
+        },
+        {
+          "chunkId": 10160,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.047123,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11822,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.046161,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I enable minification when using the bundler in Bun?",
+          "What is the command to minify code with Bun's bundler?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.04918,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10139,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.048131,
+          "covers": []
+        },
+        {
+          "chunkId": 10173,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.047139,
+          "covers": []
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.047131,
+          "covers": []
+        },
+        {
+          "chunkId": 10124,
+          "sourcePath": "bundler/css.mdx",
+          "score": 0.045256,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I generate a lock file compatible with Yarn using Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10391,
+          "sourcePath": "guides/install/yarnlock.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11664,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 10385,
+          "sourcePath": "guides/install/git-diff-bun-lockfile.mdx",
+          "score": 0.031498,
+          "covers": []
+        },
+        {
+          "chunkId": 11665,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.031258,
+          "covers": []
+        },
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.03101,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What should I do when ESLint disagrees with the configuration in Bun?",
+          "How can I override ESLint rules in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10392,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.047875,
+          "covers": []
+        },
+        {
+          "chunkId": 10394,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.047712,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10393,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.04741,
+          "covers": []
+        },
+        {
+          "chunkId": 10580,
+          "sourcePath": "lint/rules/bun/consistent-directive-prefix.mdx",
+          "score": 0.046511,
+          "covers": []
+        },
+        {
+          "chunkId": 10507,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.045016,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.2,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 5,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I pipe input to a subprocess in Bun?",
+          "How do I redirect input to a subprocess using Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10400,
+          "sourcePath": "guides/process/ipc.mdx",
+          "score": 0.045956,
+          "covers": []
+        },
+        {
+          "chunkId": 10406,
+          "sourcePath": "guides/process/stdin.mdx",
+          "score": 0.043912,
+          "covers": []
+        },
+        {
+          "chunkId": 10404,
+          "sourcePath": "guides/process/spawn-stdout.mdx",
+          "score": 0.043425,
+          "covers": []
+        },
+        {
+          "chunkId": 10405,
+          "sourcePath": "guides/process/spawn.mdx",
+          "score": 0.04199,
+          "covers": []
+        },
+        {
+          "chunkId": 11827,
+          "sourcePath": "runtime/child-process.mdx",
+          "score": 0.041392,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the behavior of bun install in a monorepo managed by pnpm?",
+          "How does bun handle lockfiles during the initial installation?",
+          "What node_modules layout does bun use with pnpm?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11662,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.060829,
+          "covers": []
+        },
+        {
+          "chunkId": 11661,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.056859,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.056611,
+          "covers": []
+        },
+        {
+          "chunkId": 10382,
+          "sourcePath": "guides/install/from-npm-install-to-bun-install.mdx",
+          "score": 0.056159,
+          "covers": []
+        },
+        {
+          "chunkId": 11660,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.054434,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "bun test --workers JUnit XML",
+          "bun test --help | grep JUnit",
+          "bun test --workers documentation"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12186,
+          "sourcePath": "test/index.mdx",
+          "score": 0.062136,
+          "covers": []
+        },
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.05804,
+          "covers": []
+        },
+        {
+          "chunkId": 12220,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.057578,
+          "covers": []
+        },
+        {
+          "chunkId": 10460,
+          "sourcePath": "guides/test/run-tests.mdx",
+          "score": 0.055473,
+          "covers": []
+        },
+        {
+          "chunkId": 10455,
+          "sourcePath": "guides/test/migrate-from-jest.mdx",
+          "score": 0.05522,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.8772,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What does Bun do when a registry token in bunfig.toml points to an unset environment variable?",
+          "How does .npmrc interact with registry settings in bunfig.toml?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.048395,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.048131,
+          "covers": []
+        },
+        {
+          "chunkId": 10388,
+          "sourcePath": "guides/install/registry-scope.mdx",
+          "score": 0.046883,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.045935,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11657,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.045208,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "What is the --hot flag for in the Bun.serve command?",
+          "Does the --hot flag cause Bun.serve to restart the process on file changes?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.048916,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.048652,
+          "covers": []
+        },
+        {
+          "chunkId": 11791,
+          "sourcePath": "runtime/bun-apis.mdx",
+          "score": 0.04526,
+          "covers": []
+        },
+        {
+          "chunkId": 10153,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.044949,
+          "covers": []
+        },
+        {
+          "chunkId": 10151,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.044803,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "Does Bun automatically load .env files at runtime?",
+          "How do you disable automatic .env file loading in Bun?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.04866,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10590,
+          "sourcePath": "lint/rules/bun/no-env-at-module-scope.mdx",
+          "score": 0.047643,
+          "covers": []
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.046883,
+          "covers": []
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.043039,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.041807,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to use bun watch to automatically run scripts on file changes"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.032266,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.03125,
+          "covers": []
+        },
+        {
+          "chunkId": 10469,
+          "sourcePath": "guides/test/watch-mode.mdx",
+          "score": 0.026655,
+          "covers": []
+        },
+        {
+          "chunkId": 11082,
+          "sourcePath": "lint/rules/nextjs/no-sync-scripts.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11198,
+          "sourcePath": "lint/rules/react/jsx-no-duplicate-props.mdx",
+          "score": 0.016129,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How can I securely store and load environment variables in Bun?",
+          "What are the best practices for managing secrets in Bun applications?"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12016,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.046898,
+          "covers": []
+        },
+        {
+          "chunkId": 12015,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.046544,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12017,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.042018,
+          "covers": []
+        },
+        {
+          "chunkId": 11646,
+          "sourcePath": "pm/cli/audit.mdx",
+          "score": 0.041505,
+          "covers": []
+        },
+        {
+          "chunkId": 10386,
+          "sourcePath": "guides/install/jfrog-artifactory.mdx",
+          "score": 0.036299,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.2,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 5,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": {
+        "queries": [
+          "How to manage dependencies in a monorepo with Bun",
+          "Controlling dependency resolution in Bun"
+        ],
+        "dropped": 0,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.047643,
+          "covers": []
+        },
+        {
+          "chunkId": 11659,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.044394,
+          "covers": []
+        },
+        {
+          "chunkId": 11654,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.043069,
+          "covers": []
+        },
+        {
+          "chunkId": 10389,
+          "sourcePath": "guides/install/trusted.mdx",
+          "score": 0.042465,
+          "covers": []
+        },
+        {
+          "chunkId": 11699,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.041028,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
