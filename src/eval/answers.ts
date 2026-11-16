@@ -20,11 +20,13 @@ import { JUDGE_SEED, JUDGE_TEMPERATURE } from './prompts';
 import type { ChatProvider } from '../llm/types';
 import {
   byOrigin,
+  describeRunConfig,
   type ModelInfo,
   modelEntry,
   originOf,
   type RunMeta,
   resultHeader,
+  rewriteFallbacks,
   round,
   roundOrNull,
 } from './runner';
@@ -118,6 +120,9 @@ interface CallKpis {
   /** Share of calls with status invalid_output. */
   invalidOutputRate: number;
   costUsd: number;
+  /** percentile_cont over llm_calls.latency_ms of the group (M15: rewrite cost per request). */
+  latencyP50Ms: number | null;
+  latencyP95Ms: number | null;
 }
 
 export interface AnswerResultMeta extends RunMeta {
@@ -191,6 +196,10 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       judged: qs.filter((q) => q.judge !== null).length,
       judgeInvalid: qs.filter((q) => q.judge?.status === 'invalid_output').length,
       invalidAnswers: qs.filter((q) => q.result.found === null).length,
+      rewriteFallbacks: rewriteFallbacks(
+        qs.map((q) => q.result),
+        meta.config.rewrite,
+      ),
     },
     aggregate: { all: roundMetrics(agg.all), human: roundMetrics(agg.human), llm: roundMetrics(agg.llm) },
     selfConsistency: {
@@ -216,6 +225,8 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
         retryRate: round(c.retryRate),
         invalidOutputRate: round(c.invalidOutputRate),
         costUsd: round(c.costUsd, 6),
+        latencyP50Ms: roundOrNull(c.latencyP50Ms),
+        latencyP95Ms: roundOrNull(c.latencyP95Ms),
       })),
     },
     questions: qs.map((q) => ({
@@ -232,6 +243,7 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       citations: q.result.citations.map((c) => c.chunkId),
       droppedCitations: q.result.droppedCitations,
       retrievedIds: q.result.retrievedIds,
+      rewrite: q.result.rewrite,
       citationValid: q.citationValid,
       judge: verdict(q.judge),
       judgeRepeat: verdict(q.judgeRepeat),
@@ -247,8 +259,7 @@ const COLUMNS = ['n', 'neg', 'scored', 'Acc', 'Comp', 'Rel', 'Abst', 'FAbst', 'C
 export function formatAnswerSummary(result: AnswerEvalResult): string {
   const { config, counts, models, aggregate: agg, selfConsistency: sc, kpis } = result;
   const lines = [
-    `${result.experimentId} (${config.chunkConfig} / ${config.embed}, k=${config.k}, ${config.search}, ` +
-      `${config.split} split; chat ${models.chat.name}, judge ${models.judge.name}): ` +
+    `${result.experimentId} (${describeRunConfig(config)}; chat ${models.chat.name}, judge ${models.judge.name}): ` +
       `${counts.questions} questions, ${counts.judged} judged, ${counts.judgeInvalid} judge outputs invalid, ` +
       `${counts.invalidAnswers} answers invalid; shuffle seed ${result.shuffleSeed}`,
     `${'group'.padEnd(6)}${COLUMNS.map((c) => c.padStart(7)).join('')}`,
@@ -277,5 +288,12 @@ export function formatAnswerSummary(result: AnswerEvalResult): string {
       `rel ${fmt(sc.perDimension.relevance)})`,
     `latency p50 ${kpis.latencyMs.p50 ?? '-'} ms, p95 ${kpis.latencyMs.p95 ?? '-'} ms`,
   );
+  const rewrite = kpis.calls.find((c) => c.operation === 'rewrite');
+  if (counts.rewriteFallbacks !== null) {
+    lines.push(
+      `rewrite: fallback ${counts.rewriteFallbacks}/${counts.questions}, ` +
+        `call p50 ${rewrite?.latencyP50Ms ?? '-'} ms, p95 ${rewrite?.latencyP95Ms ?? '-'} ms`,
+    );
+  }
   return lines.join('\n');
 }

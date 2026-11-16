@@ -139,9 +139,9 @@ async function preflight(
     }
   }
   const models = new Map<string, [ProviderName, string, string]>();
-  for (const { config } of setups) {
+  for (const { config, variant } of setups) {
     for (const evalType of evalTypes) {
-      for (const [, provider, name] of requiredModels(config, evalType)) {
+      for (const [, provider, name] of requiredModels(config, evalType, variant.run)) {
         models.set(`${provider}/${name}`, [provider, config.baseURL, name]);
       }
     }

@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { models } from '../config';
 import { parseChunkConfigKey } from '../ingest/chunk';
+import { DEFAULT_REWRITE, REWRITE_MODES } from '../rag/pipeline';
 import { SEARCH_MODES } from '../retrieval/search';
 import { MAX_K } from '../retrieval/vector';
 import { SPLITS } from './dataset';
@@ -22,17 +23,22 @@ const Embed = z.enum(Object.keys(models.embeddings) as [string, ...string[]]);
 const K = z.number().int().min(1).max(MAX_K);
 const Search = z.enum(SEARCH_MODES);
 const Split = z.enum(SPLITS);
+const Rewrite = z.enum(REWRITE_MODES);
 
-export const RunConfig = z.strictObject({
+const RUN_FIELDS = {
   chunkConfig: ChunkConfigKey,
   embed: Embed,
   k: K,
   search: Search,
   split: Split,
-});
+  rewrite: Rewrite,
+};
+
+/** `rewrite` (M15) defaults to off, so result files written before it still parse, read as off. */
+export const RunConfig = z.strictObject({ ...RUN_FIELDS, rewrite: Rewrite.default(DEFAULT_REWRITE) });
 export type RunConfig = z.infer<typeof RunConfig>;
 
-export const VARY_KEYS = ['chunkConfig', 'embed', 'k', 'search', 'split'] as const;
+export const VARY_KEYS = ['chunkConfig', 'embed', 'k', 'search', 'split', 'rewrite'] as const;
 export type VaryKey = (typeof VARY_KEYS)[number];
 
 const unique = <T>(values: readonly T[]) => new Set(values).size === values.length;
@@ -40,7 +46,9 @@ const unique = <T>(values: readonly T[]) => new Set(values).size === values.leng
 export const ExperimentFile = z
   .strictObject({
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
-    base: RunConfig.partial(),
+    // Without the rewrite default: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
+    // trip the base-vs-vary check below. expandExperiment applies the default.
+    base: z.strictObject(RUN_FIELDS).partial(),
     vary: z
       .strictObject({
         chunkConfig: z.array(ChunkConfigKey).min(1).refine(unique, 'values must be unique'),
@@ -48,6 +56,7 @@ export const ExperimentFile = z
         k: z.array(K).min(1).refine(unique, 'values must be unique'),
         search: z.array(Search).min(1).refine(unique, 'values must be unique'),
         split: z.array(Split).min(1).refine(unique, 'values must be unique'),
+        rewrite: z.array(Rewrite).min(1).refine(unique, 'values must be unique'),
       })
       .partial()
       .default({}),

@@ -33,9 +33,6 @@ export interface SearchQuery {
 /** fts runs on the query text alone and makes no embedding call. */
 export const needsEmbedding = (mode: SearchMode): boolean => mode !== 'fts';
 
-/** rag_requests.pipeline of the plain answer pipeline: `baseline` for vector (as before M14), else the mode name. */
-export const pipelineName = (mode: SearchMode): string => (mode === 'vector' ? 'baseline' : mode);
-
 function requireVector(mode: SearchMode, q: SearchQuery): number[] {
   if (!q.vector) {
     throw new Error(`search mode ${mode} needs a query vector`);

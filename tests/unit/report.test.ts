@@ -98,6 +98,54 @@ describe('renderBlock', () => {
   });
 });
 
+describe('rewrite (M15)', () => {
+  it('reads result files without config.rewrite as off', async () => {
+    const all = await loadResults(FIXTURES);
+    expect(all.length).toBeGreaterThan(0);
+    expect(all.every((r) => r.data.config.rewrite === 'off')).toBe(true);
+  });
+
+  it('renders a rewrite matrix with off/on rows and labels a single config with rewrite=on', async () => {
+    const all = await loadResults(FIXTURES);
+    const base = all.find((r) => r.file.includes('baseline_retrieval') && !r.data.gitDirty);
+    if (!base) {
+      throw new Error('fixture missing');
+    }
+    const variant = (rewrite: 'off' | 'on', startedAt: string) => ({
+      file: `${startedAt}_exp-rewrite_${rewrite}_retrieval.json`,
+      data: {
+        ...base.data,
+        experimentId: 'exp-rewrite',
+        startedAt,
+        variedKey: 'rewrite' as const,
+        config: { ...base.data.config, rewrite },
+      },
+    });
+    const single = {
+      file: 'z_single.json',
+      data: {
+        ...base.data,
+        experimentId: 'single-rewrite',
+        startedAt: '2026-02-01T10:00:02.000Z',
+        config: { ...base.data.config, rewrite: 'on' as const },
+      },
+    };
+    const block = renderBlock(
+      selectResults([
+        variant('on', '2026-02-01T10:00:01.000Z'),
+        variant('off', '2026-02-01T10:00:00.000Z'),
+        single,
+      ]),
+    );
+    const { chunkConfig, embed, k, search } = base.data.config;
+    expect(block).toContain(
+      `### exp-rewrite: rewrite\n\nFixed: ${chunkConfig}, ${embed}, k=${k}, ${search}.`,
+    );
+    expect(block).toMatch(/\| rewrite \| Recall@k [^\n]*\n[^\n]*\n\| off \|[^\n]*\n\| on \|/);
+    expect(block).toContain(`single-rewrite (${chunkConfig}, ${embed}, k=${k}, ${search}, rewrite=on)`);
+  });
+});
+
 describe('replaceBlock', () => {
   it('replaces only the text between the markers', () => {
     const readme = `# Title\n\n${START}\nold\n${END}\n\nTail\n`;

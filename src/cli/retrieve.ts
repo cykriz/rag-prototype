@@ -1,13 +1,15 @@
-// bun run retrieve "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
-// Prints the top k chunks with score, chunk ID and source (docs/PLAN.md M8, M14).
+// bun run retrieve "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid] [--rewrite]
+// Prints the top k chunks with score, chunk ID and source (docs/PLAN.md M8, M14); with --rewrite it searches with the
+// rewritten query (M15) and prints that query on stderr.
 import { randomUUID } from 'node:crypto';
 import type { Document } from '@langchain/core/documents';
-import { createEmbeddingProvider } from '../llm/registry';
+import { createChatProvider, createEmbeddingProvider } from '../llm/registry';
 import { PostgresLlmCallSink } from '../obs/logger';
+import { rewriteQuery } from '../rag/rewrite';
 import { type ChunkMetadata, PgRetriever, sourceLabel } from '../retrieval/pgRetriever';
 import type { SearchMode } from '../retrieval/search';
 import { QUESTION_FLAGS, runQuestionCli } from './common';
-import { DB_DOWN, describeError, isDatabaseDown } from './errors';
+import { retrievalErrorMessage } from './errors';
 
 const PREVIEW_CHARS = 120;
 
@@ -44,27 +46,28 @@ export function formatHits(
 
 function main(argv: string[]): Promise<number> {
   return runQuestionCli(argv, USAGE, async ({ args, config, chunkConfig, sql }) => {
+    const { search, rewrite } = args.pipeline;
     try {
-      const embedder = createEmbeddingProvider(
-        config,
-        new PostgresLlmCallSink(sql, { runId: `retrieve-${randomUUID()}` }),
-      );
-      const retriever = new PgRetriever({ sql, embedder, chunkConfig, k: args.k, search: args.search });
-      const docs = await retriever.invoke(args.question);
+      const sink = new PostgresLlmCallSink(sql, { runId: `retrieve-${randomUUID()}` });
+      let query = args.question;
+      if (rewrite === 'on') {
+        const trace = await rewriteQuery(createChatProvider(config, sink), args.question);
+        query = trace.query;
+        console.error(
+          trace.fallback
+            ? `rewrite: invalid output after ${trace.repairs} repairs, searching with the question`
+            : `rewrite: ${query}`,
+        );
+      }
+      const embedder = createEmbeddingProvider(config, sink);
+      const retriever = new PgRetriever({ sql, embedder, chunkConfig, k: args.k, search });
+      const docs = await retriever.invoke(query);
       console.log(
-        formatHits(
-          args.question,
-          { chunkConfig, model: config.embedModel, k: args.k, search: args.search },
-          docs,
-        ),
+        formatHits(args.question, { chunkConfig, model: config.embedModel, k: args.k, search }, docs),
       );
       return 0;
     } catch (err) {
-      console.error(
-        (await isDatabaseDown(err, sql))
-          ? DB_DOWN
-          : describeError(err, { baseURL: config.baseURL, model: config.embedModel }),
-      );
+      console.error(await retrievalErrorMessage(err, config, sql));
       return 1;
     }
   });

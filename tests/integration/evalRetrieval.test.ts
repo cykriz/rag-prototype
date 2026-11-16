@@ -134,8 +134,15 @@ describe('fetchRunKpis', () => {
     });
     await sql`INSERT INTO llm_calls ${sql([
       row('generate', 'chat-model'),
-      row('generate', 'chat-model', { input_tokens: 200, attempts: 2, status: 'invalid_output' }),
+      row('generate', 'chat-model', {
+        input_tokens: 200,
+        attempts: 2,
+        status: 'invalid_output',
+        latency_ms: 25,
+      }),
       row('judge', 'judge-model', { token_source: 'tiktoken_estimate', cost_usd: 0.25 }),
+      row('rewrite', 'chat-model', { latency_ms: 40 }),
+      row('rewrite', 'chat-model', { latency_ms: 60, status: 'invalid_output' }),
       { ...row('judge', 'judge-model'), run_id: 'another-run' },
     ])}`;
     await sql`INSERT INTO rag_requests ${sql(
@@ -160,6 +167,9 @@ describe('fetchRunKpis', () => {
         retryRate: 0.5,
         invalidOutputRate: 0.5,
         costUsd: 0,
+        // percentile_cont over 5 and 25 ms.
+        latencyP50Ms: 15,
+        latencyP95Ms: 24,
       },
       {
         operation: 'judge',
@@ -171,6 +181,22 @@ describe('fetchRunKpis', () => {
         retryRate: 0,
         invalidOutputRate: 0,
         costUsd: 0.25,
+        latencyP50Ms: 5,
+        latencyP95Ms: 5,
+      },
+      {
+        // M15: the rewrite rows carry the added call latency and, as invalidOutputRate, the fallback rate.
+        operation: 'rewrite',
+        model: 'chat-model',
+        calls: 2,
+        avgInputTokens: 100,
+        avgOutputTokens: 10,
+        estimatedTokenShare: 0,
+        retryRate: 0,
+        invalidOutputRate: 0.5,
+        costUsd: 0,
+        latencyP50Ms: 50,
+        latencyP95Ms: 59,
       },
     ]);
   });

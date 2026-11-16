@@ -1,0 +1,12 @@
+{
+  "id": "exp-rewrite",
+  "base": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "vary": { "rewrite": ["off", "on"] },
+  "evals": ["retrieval", "answers"]
+}

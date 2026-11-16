@@ -1,4 +1,4 @@
-// Zod schemas for structured model output (docs/PLAN.md M9; Rewrite, Expansion, Rerank follow in phase 2).
+// Zod schemas for structured model output (docs/PLAN.md M9, M15; Expansion and Rerank follow in phase 2).
 import { z } from 'zod';
 import { NOT_FOUND } from './prompts';
 
@@ -42,3 +42,15 @@ export function answerSchemaFor(contextIds: readonly number[]) {
     }
   });
 }
+
+/** Longest accepted rewrite; the golden questions are one sentence, so more is a runaway output. */
+export const MAX_REWRITE_CHARS = 500;
+
+/**
+ * Query rewrite (M15). Trimmed, non-empty and capped, so empty, whitespace-only and runaway outputs go through the
+ * repair loop and end as invalid_output, which falls back to the original question.
+ */
+export const RewriteOutput = z.object({
+  rewritten: z.string().trim().min(1).max(MAX_REWRITE_CHARS),
+});
+export type RewriteOutput = z.infer<typeof RewriteOutput>;

@@ -53,6 +53,7 @@ const CONFIG: RunConfig = {
   k: 5,
   search: 'vector',
   split: 'test',
+  rewrite: 'off',
 };
 
 async function run(split: RunConfig['split'] = 'test') {
@@ -87,6 +88,59 @@ describe('runRetrievalEval', () => {
     expect(q1?.retrieved.map((r) => r.covers)).toEqual([[], [0]]);
     // Right text, wrong source: not relevant; recall 0 is a result, not an error.
     expect(q3).toMatchObject({ id: 'q003', origin: 'llm', recall: 0, ndcg: 0, firstRelevantRank: null });
+  });
+
+  it('searches with the rewritten queries and records them per question', async () => {
+    const asked: string[][] = [];
+    const rewritten: string[] = [];
+    const result = await runRetrievalEval({
+      entries: ENTRIES,
+      split: 'test',
+      k: 5,
+      search: async (qs) => {
+        asked.push(qs);
+        return qs.map(() => []);
+      },
+      rewrite: async (q) => {
+        rewritten.push(q);
+        return q === 'question q001'
+          ? { query: 'rewritten q001', fallback: false, repairs: 0 }
+          : { query: q, fallback: true, repairs: 2 };
+      },
+    });
+    expect(rewritten).toEqual(['question q001', 'question q003']);
+    expect(asked).toEqual([['rewritten q001', 'question q003']]);
+    expect(result.questions.map((q) => q.rewrite)).toEqual([
+      { query: 'rewritten q001', fallback: false },
+      { query: 'question q003', fallback: true },
+    ]);
+    const out = buildResult(
+      {
+        experimentId: 'exp-rewrite',
+        runId: 'r',
+        startedAt: new Date(0),
+        finishedAt: new Date(0),
+        gitSha: 'a'.repeat(40),
+        gitDirty: false,
+        datasetSha256: 'b'.repeat(64),
+        corpusSha: 'c'.repeat(40),
+        config: { ...CONFIG, rewrite: 'on' },
+        variedKey: 'rewrite',
+        embed: { provider: 'fake', name: 'nomic-embed-text', tag: null, digest: null },
+        chat: { provider: 'fake', name: 'fake-chat', tag: null, digest: null },
+      },
+      result,
+    );
+    expect(out.counts.rewriteFallbacks).toBe(1);
+    expect(out.config.rewrite).toBe('on');
+    expect(Object.keys(out.models)).toEqual(['embed', 'chat']);
+    expect(formatSummary(out).split('\n')[0]).toContain('vector, rewrite, test split');
+    expect(formatSummary(out).split('\n')[0]).toContain('rewrite fallback 1/2');
+  });
+
+  it('records no rewrite without the stage', async () => {
+    const { result } = await run();
+    expect(result.questions.every((q) => q.rewrite === null)).toBe(true);
   });
 
   it('does not call search for an empty split', async () => {
@@ -169,9 +223,12 @@ describe('buildResult', () => {
       'keywordCoverage',
       'firstRelevantRank',
       'spansCovered',
+      'rewrite',
       'retrieved',
     ]);
     expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);
+    expect(out.counts.rewriteFallbacks).toBeNull();
+    expect(out.config.rewrite).toBe('off');
     expect(serializeResult(out).endsWith('}\n')).toBe(true);
   });
 

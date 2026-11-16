@@ -36,11 +36,11 @@ import { createChatProvider, createEmbeddingProvider } from '../llm/registry';
 import { isConnectionError } from '../llm/retry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { answer, buildAnswerDeps } from '../rag/answer';
-import { pipelineName } from '../retrieval/search';
+import { rewriterFor } from '../rag/rewrite';
 import { requireEmbeddings } from '../retrieval/vector';
 import { answerErrorMessage } from './ask';
 import { resolveRetrievalConfig } from './common';
-import { DB_DOWN, describeError, isDatabaseDown } from './errors';
+import { DB_DOWN, describeError, isDatabaseDown, retrievalErrorMessage } from './errors';
 
 const DEFAULT_OUT = 'results';
 const USAGE =
@@ -263,24 +263,29 @@ async function writeResult(p: Prepared, result: object, summary: string): Promis
 async function evaluateRetrieval(p: Prepared): Promise<number> {
   const { sql, run, config, chunkConfig } = p;
   const runId = `eval-retrieval-${randomUUID()}`;
+  const models = await checkModels(config, 'retrieval', run);
+  if (!models) {
+    return 1;
+  }
+  const { embed, chat } = models;
   try {
-    const embed = await modelInfo(config.embedProvider, config.baseURL, config.embedModel);
-    const embedder = createEmbeddingProvider(config, new PostgresLlmCallSink(sql, { runId }));
+    const sink = new PostgresLlmCallSink(sql, { runId });
+    const embedder = createEmbeddingProvider(config, sink);
+    if (run.rewrite === 'on') {
+      await warmUpChat(config);
+    }
     const result = await runRetrievalEval({
       entries: p.entries,
       split: run.split,
       k: run.k,
       search: pgSearch(sql, embedder, { mode: run.search, chunkConfig, k: run.k }),
+      ...(run.rewrite === 'on' && { rewrite: rewriterFor(createChatProvider(config, sink)) }),
     });
-    const output = buildResult({ ...commonMeta(p, runId), embed }, result);
+    const output = buildResult({ ...commonMeta(p, runId), embed, ...(chat && { chat }) }, result);
     await writeResult(p, output, formatSummary(output));
     return 0;
   } catch (err) {
-    console.error(
-      (await isDatabaseDown(err, sql))
-        ? DB_DOWN
-        : describeError(err, { baseURL: config.baseURL, model: config.embedModel }),
-    );
+    console.error(await retrievalErrorMessage(err, config, sql));
     return 1;
   }
 }
@@ -293,6 +298,11 @@ async function warmUpAnswering(config: Config): Promise<void> {
   if (config.embedProvider !== 'fake') {
     await createEmbeddingProvider(config).embed(['warm-up'], 'query');
   }
+  await warmUpChat(config);
+}
+
+/** The chat-model half of the warm-up; also run before a retrieval eval with rewrite on. */
+async function warmUpChat(config: Config): Promise<void> {
   if (config.chatProvider !== 'fake') {
     await createChatProvider(config).generate({
       messages: [{ role: 'user', content: 'Reply with OK.' }],
@@ -312,32 +322,57 @@ async function warmUpJudge(config: Config): Promise<void> {
 
 export type ModelRole = 'embed' | 'chat' | 'judge';
 
-/** The models a run of `evalType` calls, with their provider; the judge runs on the chat provider. */
-export function requiredModels(config: Config, evalType: EvalType): [ModelRole, ProviderName, string][] {
+/**
+ * The models a run of `evalType` calls, with their provider; the judge runs on the chat provider. A retrieval run
+ * with rewrite on calls the chat model too.
+ */
+export function requiredModels(
+  config: Config,
+  evalType: EvalType,
+  run: Pick<RunConfig, 'rewrite'>,
+): [ModelRole, ProviderName, string][] {
   const embed: [ModelRole, ProviderName, string] = ['embed', config.embedProvider, config.embedModel];
+  const chat: [ModelRole, ProviderName, string] = ['chat', config.chatProvider, config.chatModel];
   if (evalType === 'retrieval') {
-    return [embed];
+    return run.rewrite === 'on' ? [embed, chat] : [embed];
   }
-  return [
-    embed,
-    ['chat', config.chatProvider, config.chatModel],
-    ['judge', config.chatProvider, config.judgeModel],
-  ];
+  return [embed, chat, ['judge', config.chatProvider, config.judgeModel]];
+}
+
+/** The checked models of a run: the embedding model always, chat and judge when the run calls them. */
+type RunModels = { embed: ModelInfo } & Partial<Record<Exclude<ModelRole, 'embed'>, ModelInfo>>;
+
+/**
+ * Every model of the run checked before any work: Ollama down or a model not pulled prints the error naming that
+ * model and returns null.
+ */
+async function checkModels(config: Config, evalType: EvalType, run: RunConfig): Promise<RunModels | null> {
+  const found: Partial<Record<ModelRole, ModelInfo>> = {};
+  for (const [role, provider, name] of requiredModels(config, evalType, run)) {
+    try {
+      found[role] = await modelInfo(provider, config.baseURL, name);
+    } catch (err) {
+      console.error(describeError(err, { baseURL: config.baseURL, model: name }));
+      return null;
+    }
+  }
+  const { embed, ...rest } = found;
+  if (!embed) {
+    throw new Error('requiredModels lists no embedding model');
+  }
+  return { embed, ...rest };
 }
 
 async function evaluateAnswers(p: Prepared): Promise<number> {
   const { sql, run, config, chunkConfig } = p;
-  // Every model checked before any work: Ollama down or a model not pulled stops here.
-  const models: Partial<Record<ModelRole, ModelInfo>> = {};
-  for (const [role, provider, name] of requiredModels(config, 'answers')) {
-    try {
-      models[role] = await modelInfo(provider, config.baseURL, name);
-    } catch (err) {
-      console.error(describeError(err, { baseURL: config.baseURL, model: name }));
-      return 1;
-    }
+  const models = await checkModels(config, 'answers', run);
+  if (!models) {
+    return 1;
   }
-  const { embed, chat, judge } = models as Record<ModelRole, ModelInfo>;
+  const { embed, chat, judge } = models;
+  if (!chat || !judge) {
+    throw new Error('requiredModels lists no chat or judge model for an answers run');
+  }
   const runId = `eval-answers-${randomUUID()}`;
   // A length-1 array always has index 0; `?? 0` only narrows for noUncheckedIndexedAccess.
   const seed = p.args.seed ?? crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
@@ -355,8 +390,7 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
             chunkConfig,
             k: run.k,
             runId,
-            search: run.search,
-            pipeline: pipelineName(run.search),
+            pipeline: { search: run.search, rewrite: run.rewrite },
             questionId: entry.id,
           }),
         ),

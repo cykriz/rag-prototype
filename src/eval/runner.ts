@@ -1,5 +1,6 @@
 // Retrieval eval runner (docs/PLAN.md M11): scores one config against the golden dataset and builds the result
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
+import { type RewriteRecord, type Rewriter, rewriteRecord } from '../rag/rewrite';
 import { CATEGORIES, type Category, type GoldenEntry } from './dataset';
 import type { EvalType, RunConfig, VaryKey } from './experiment';
 import {
@@ -15,9 +16,11 @@ import { coverage } from './relevance';
 
 /**
  * Stamped on every result file (resultHeader). 2 (M14): retrieval files carry `retrieved[].score` (higher is better)
- * instead of `distance`; the answers layout is unchanged.
+ * instead of `distance`; the answers layout is unchanged. 3 (M15): `config.rewrite`, `questions[].rewrite`
+ * (`{ query, fallback }` or null), `counts.rewriteFallbacks` (null with rewrite off), and answers files carry
+ * `latencyP50Ms`/`latencyP95Ms` per `kpis.calls` row.
  */
-export const RESULT_SCHEMA_VERSION = 2;
+export const RESULT_SCHEMA_VERSION = 3;
 
 export interface RetrievedHit {
   chunkId: number;
@@ -46,6 +49,8 @@ export interface QuestionResult {
   firstRelevantRank: number | null;
   /** Per evidence span, in dataset order: covered by any top k chunk. */
   spansCovered: boolean[];
+  /** The query retrieval used; null without the rewrite stage. */
+  rewrite: RewriteRecord | null;
   retrieved: { chunkId: number; sourcePath: string; score: number; covers: number[] }[];
 }
 
@@ -65,7 +70,12 @@ export interface RetrievalRun {
 }
 
 /** Metrics of one answerable entry from its top k hits. A span no chunk covers lowers recall; it is no error. */
-export function scoreQuestion(entry: GoldenEntry, hits: readonly RetrievedHit[], k: number): QuestionResult {
+export function scoreQuestion(
+  entry: GoldenEntry,
+  hits: readonly RetrievedHit[],
+  k: number,
+  rewrite: RewriteRecord | null = null,
+): QuestionResult {
   const top = hits.slice(0, k);
   const covers = coverage(top, entry.evidence);
   const covered = new Set(covers.flat());
@@ -82,6 +92,7 @@ export function scoreQuestion(entry: GoldenEntry, hits: readonly RetrievedHit[],
     ),
     firstRelevantRank: firstRelevantRank(covers),
     spansCovered: entry.evidence.map((_, i) => covered.has(i)),
+    rewrite,
     retrieved: top.map((h, i) => ({
       chunkId: h.chunkId,
       sourcePath: h.sourcePath,
@@ -96,10 +107,18 @@ export async function runRetrievalEval(opts: {
   split: RunConfig['split'];
   k: number;
   search: SearchFn;
+  /** Rewrites each question into the search query first (M15), one call per question in id order. */
+  rewrite?: Rewriter;
 }): Promise<RetrievalRun> {
   const inSplit = opts.entries.filter((e) => e.split === opts.split);
   const scored = inSplit.filter((e) => e.answerable).sort((a, b) => a.id.localeCompare(b.id));
-  const hits = scored.length === 0 ? [] : await opts.search(scored.map((e) => e.question));
+  const rewrites: (RewriteRecord | null)[] = [];
+  for (const e of scored) {
+    const t = opts.rewrite ? await opts.rewrite(e.question) : null;
+    rewrites.push(rewriteRecord(t));
+  }
+  const queries = scored.map((e, i) => rewrites[i]?.query ?? e.question);
+  const hits = scored.length === 0 ? [] : await opts.search(queries);
   if (hits.length !== scored.length) {
     throw new Error(`search returned ${hits.length} hit lists for ${scored.length} questions`);
   }
@@ -109,7 +128,7 @@ export async function runRetrievalEval(opts: {
       evaluated: scored.length,
       excludedNegative: inSplit.length - scored.length,
     },
-    questions: scored.map((e, i) => scoreQuestion(e, hits[i] ?? [], opts.k)),
+    questions: scored.map((e, i) => scoreQuestion(e, hits[i] ?? [], opts.k, rewrites[i] ?? null)),
   };
 }
 
@@ -169,6 +188,16 @@ export interface RunMeta {
 
 export interface ResultMeta extends RunMeta {
   embed: ModelInfo;
+  /** The rewrite model; only with rewrite on. */
+  chat?: ModelInfo;
+}
+
+/** Questions whose rewrite fell back to the question; null when the run had no rewrite stage. */
+export function rewriteFallbacks(
+  rows: readonly { rewrite: RewriteRecord | null }[],
+  rewrite: RunConfig['rewrite'],
+): number | null {
+  return rewrite === 'on' ? rows.filter((r) => r.rewrite?.fallback === true).length : null;
 }
 
 /** The keys every result file starts with, in this order; shared by the retrieval and answers results. */
@@ -190,6 +219,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       k: meta.config.k,
       search: meta.config.search,
       split: meta.config.split,
+      rewrite: meta.config.rewrite,
     },
     variedKey: meta.variedKey,
   };
@@ -227,11 +257,12 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
   }
   return {
     ...resultHeader(meta, 'retrieval'),
-    models: { embed: modelEntry(meta.embed) },
+    models: { embed: modelEntry(meta.embed), ...(meta.chat && { chat: modelEntry(meta.chat) }) },
     counts: {
       questions: run.counts.questions,
       evaluated: run.counts.evaluated,
       excludedNegative: run.counts.excludedNegative,
+      rewriteFallbacks: rewriteFallbacks(run.questions, meta.config.rewrite),
     },
     aggregate: {
       all: roundAggregate(agg.all),
@@ -249,6 +280,7 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
       keywordCoverage: round(q.keywordCoverage),
       firstRelevantRank: q.firstRelevantRank,
       spansCovered: q.spansCovered,
+      rewrite: q.rewrite,
       retrieved: q.retrieved.map((r) => ({
         chunkId: r.chunkId,
         sourcePath: r.sourcePath,
@@ -283,6 +315,18 @@ export function resultFileName(
   return `${stamp}_${experimentId}${middle}_${evalType}.json`;
 }
 
+/** `md-512-64 / nomic-embed-text, k=5, vector, rewrite, test split` for the console summaries; stages only when on. */
+export function describeRunConfig(config: RunConfig): string {
+  const stages = config.rewrite === 'on' ? ['rewrite'] : [];
+  return [
+    `${config.chunkConfig} / ${config.embed}`,
+    `k=${config.k}`,
+    config.search,
+    ...stages,
+    `${config.split} split`,
+  ].join(', ');
+}
+
 const fmt = (x: number | null) => (x === null ? '     -' : x.toFixed(4));
 
 /** Header line plus one row per origin group. */
@@ -290,8 +334,11 @@ export function formatSummary(result: RetrievalResult): string {
   const { config, counts, aggregate: agg } = result;
   const k = config.k;
   const lines = [
-    `${result.experimentId} (${config.chunkConfig} / ${config.embed}, k=${k}, ${config.search}, ${config.split} split): ` +
-      `${counts.evaluated} questions scored, ${counts.excludedNegative} negative excluded`,
+    `${result.experimentId} (${describeRunConfig(config)}): ` +
+      `${counts.evaluated} questions scored, ${counts.excludedNegative} negative excluded` +
+      (counts.rewriteFallbacks === null
+        ? ''
+        : `, rewrite fallback ${counts.rewriteFallbacks}/${counts.evaluated}`),
     `${'group'.padEnd(6)}${'n'.padStart(4)}  ${[`Recall@${k}`, `MRR@${k}`, `nDCG@${k}`, `KW@${k}`]
       .map((h) => h.padStart(9))
       .join('')}`,

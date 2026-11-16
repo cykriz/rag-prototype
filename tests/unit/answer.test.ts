@@ -8,6 +8,7 @@ import { FakeChatProvider } from '../../src/llm/fake';
 import type { RagRequestRecord, RagRequestSink } from '../../src/obs/logger';
 import { type AnswerDeps, answer, RetrievalError } from '../../src/rag/answer';
 import { buildAnswerMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
+import { RewriteError, rewriterFor } from '../../src/rag/rewrite';
 import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 
 const doc = (chunk_id: number, source_path: string, heading_path: string, pageContent: string) =>
@@ -184,6 +185,57 @@ describe('answer', () => {
     expect((err as RetrievalError).cause).toBe(boom);
     expect(requestSink.records).toHaveLength(0);
   });
+
+  it('retrieves with the rewritten query and answers the original question', async () => {
+    const { deps, chat, requestSink } = setup([
+      JSON.stringify({ rewritten: 'Bun.env process.env environment variables' }),
+      reply(true, 'Use Bun.env.', [11]),
+    ]);
+    const asked: string[] = [];
+    deps.retriever = {
+      invoke: async (q: string) => {
+        asked.push(q);
+        return DOCS;
+      },
+    };
+    deps.rewrite = rewriterFor(chat);
+    const res = await answer('How do I read env vars?', deps);
+    expect(asked).toEqual(['Bun.env process.env environment variables']);
+    expect(chat.calls[1]).toEqual(buildAnswerMessages('How do I read env vars?', formatContext(DOCS)));
+    expect(res.rewrite).toEqual({ query: 'Bun.env process.env environment variables', fallback: false });
+    expect(res.found).toBe(true);
+    expect(requestSink.records[0]?.totalLatencyMs).toBe(res.latencyMs);
+  });
+
+  it('retrieves with the question when the rewrite falls back', async () => {
+    const { deps, chat } = setup(['{bad', '{bad', '{bad', reply(true, 'Use Bun.env.', [11])]);
+    const asked: string[] = [];
+    deps.retriever = {
+      invoke: async (q: string) => {
+        asked.push(q);
+        return DOCS;
+      },
+    };
+    deps.rewrite = rewriterFor(chat);
+    const res = await answer('How do I read env vars?', deps);
+    expect(asked).toEqual(['How do I read env vars?']);
+    expect(res.rewrite).toEqual({ query: 'How do I read env vars?', fallback: true });
+  });
+
+  it('records no rewrite without the stage', async () => {
+    const { deps } = setup([reply(true, 'Use Bun.env.', [11])]);
+    expect((await answer('q', deps)).rewrite).toBeNull();
+  });
+
+  it('propagates a rewrite provider error as RewriteError and writes no request row', async () => {
+    const boom = new Error('chat down');
+    const { deps, chat, requestSink } = setup([]);
+    deps.rewrite = rewriterFor(new FakeChatProvider([boom]));
+    const err = await answer('q', deps).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(RewriteError);
+    expect(chat.calls).toHaveLength(0);
+    expect(requestSink.records).toHaveLength(0);
+  });
 });
 
 describe('ask CLI output', () => {
@@ -195,6 +247,9 @@ describe('ask CLI output', () => {
       `ollama pull ${config.embedModel}`,
     );
     expect(describeAnswerError(notFound, config, false)).toContain(`ollama pull ${config.chatModel}`);
+    expect(describeAnswerError(new RewriteError(notFound), config, false)).toContain(
+      `ollama pull ${config.chatModel}`,
+    );
   });
 
   it('reports Ollama down for a wrapped connection error', () => {
@@ -206,6 +261,7 @@ describe('ask CLI output', () => {
     const { out, warnings } = formatAnswer({
       requestId: 'r1',
       found: true,
+      rewrite: null,
       answer: 'Use Bun.env.',
       citations: [{ chunkId: 12, sourcePath: 'runtime/env.md', headingPath: '' }],
       droppedCitations: [999],

@@ -21,8 +21,13 @@ export interface ToolDef {
   parameters: Record<string, unknown>;
 }
 
+/** llm_calls.operation of a chat-model call; judge calls go through ChatProvider.judge instead. */
+export type ChatOperation = 'generate' | 'rewrite' | 'expand' | 'rerank';
+
 export interface GenerateRequest {
   messages: Message[];
+  /** Logged operation (LoggedChatProvider); default 'generate'. Never sent to the model API. */
+  operation?: ChatOperation;
   tools?: ToolDef[];
   temperature?: number;
   seed?: number;

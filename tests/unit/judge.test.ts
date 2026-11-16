@@ -89,6 +89,7 @@ const negative = (id: string, over: Partial<GoldenEntry> = {}) =>
 const result = (found: boolean | null, over: Partial<AnswerResult> = {}): AnswerResult => ({
   requestId: `req-${String(found)}`,
   found,
+  rewrite: null,
   answer: found === true ? 'an answer' : found === false ? NOT_FOUND : null,
   citations: found === true ? [{ chunkId: 1, sourcePath: 'guides/widget.md', headingPath: '' }] : [],
   droppedCitations: [],
@@ -279,6 +280,7 @@ const CONFIG: RunConfig = {
   k: 5,
   search: 'vector',
   split: 'dev',
+  rewrite: 'off',
 };
 const fake = (name: string) => ({ provider: 'fake', name, tag: null, digest: null });
 const META = {
@@ -307,6 +309,8 @@ const KPIS = {
       retryRate: 1 / 3,
       invalidOutputRate: 0,
       costUsd: 0,
+      latencyP50Ms: 812.5,
+      latencyP95Ms: 1234.56789,
     },
   ],
 };
@@ -348,6 +352,7 @@ describe('buildAnswerResult', () => {
       judged: 2,
       judgeInvalid: 0,
       invalidAnswers: 1,
+      rewriteFallbacks: null,
     });
     expect(out.aggregate.all).toMatchObject({ citationValidity: 0.6667, invalidAnswerRate: 0.1667 });
     expect(out.aggregate.human).toEqual({
@@ -370,6 +375,7 @@ describe('buildAnswerResult', () => {
     });
     expect(out.selfConsistency).toMatchObject({ sampled: 1, pairs: 1 });
     expect(out.kpis.latencyMs).toEqual({ p50: 350, p95: 587.1235 });
+    expect(out.kpis.calls[0]).toMatchObject({ latencyP50Ms: 812.5, latencyP95Ms: 1234.5679 });
     expect(out.kpis.calls[0]).toMatchObject({ avgInputTokens: 123.4568, retryRate: 0.3333 });
     expect(out.judge).toEqual({ temperature: 0, seed: 42 });
     expect(Object.keys(out.questions[0] ?? {})).toEqual([
@@ -386,6 +392,7 @@ describe('buildAnswerResult', () => {
       'citations',
       'droppedCitations',
       'retrievedIds',
+      'rewrite',
       'citationValid',
       'judge',
       'judgeRepeat',

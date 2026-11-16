@@ -57,9 +57,8 @@ function scriptedDeps(runId: string, script: string[], questionId?: string) {
   const deps = buildAnswerDeps(sql, CONFIG, {
     chunkConfig: CHUNK_CONFIG.key,
     k: chunkIds.length,
-    search: 'vector',
     runId,
-    pipeline: 'baseline',
+    pipeline: { search: 'vector', rewrite: 'off' },
     ...(questionId !== undefined && { questionId }),
   });
   deps.chat = new LoggedChatProvider(new FakeChatProvider(script), {

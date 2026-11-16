@@ -98,11 +98,13 @@ interface KpiRow {
   retry_rate: number;
   invalid_rate: number;
   cost_usd: number;
+  latency_p50: number | null;
+  latency_p95: number | null;
 }
 
 /**
  * §8 KPIs of one run for the result file: end-to-end latency percentiles from rag_requests (percentile_cont, as the
- * §8 KPI query) and one llm_calls row per operation and model.
+ * §8 KPI query) and one llm_calls row per operation and model, with its call latency percentiles.
  */
 export async function fetchRunKpis(sql: Sql, runId: string): Promise<RunKpis> {
   const [latency] = await sql<{ p50: number | null; p95: number | null }[]>`
@@ -117,7 +119,9 @@ export async function fetchRunKpis(sql: Sql, runId: string): Promise<RunKpis> {
            avg((token_source = 'tiktoken_estimate')::int)::float8 AS estimated,
            avg((attempts > 1)::int)::float8                       AS retry_rate,
            avg((status = 'invalid_output')::int)::float8          AS invalid_rate,
-           coalesce(sum(cost_usd), 0)::float8                     AS cost_usd
+           coalesce(sum(cost_usd), 0)::float8                     AS cost_usd,
+           percentile_cont(0.5)  WITHIN GROUP (ORDER BY latency_ms) AS latency_p50,
+           percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS latency_p95
     FROM llm_calls WHERE run_id = ${runId}
     GROUP BY operation, model ORDER BY operation, model`;
   const calls = rows.map((r) => ({
@@ -130,6 +134,8 @@ export async function fetchRunKpis(sql: Sql, runId: string): Promise<RunKpis> {
     retryRate: r.retry_rate,
     invalidOutputRate: r.invalid_rate,
     costUsd: r.cost_usd,
+    latencyP50Ms: r.latency_p50,
+    latencyP95Ms: r.latency_p95,
   }));
   return { latencyMs: { p50: latency?.p50 ?? null, p95: latency?.p95 ?? null }, calls };
 }

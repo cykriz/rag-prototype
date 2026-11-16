@@ -11,6 +11,7 @@ import {
   type TokenSource,
 } from '../llm/tokens';
 import type {
+  ChatOperation,
   ChatProvider,
   EmbeddingProvider,
   EmbedResult,
@@ -20,8 +21,11 @@ import type {
   Usage,
 } from '../llm/types';
 
-/** Mirrors the CHECK list of llm_calls.operation (docs/PLAN.md §4); M3 produces embed, generate and judge. */
-export type Operation = 'embed' | 'generate' | 'judge' | 'rewrite' | 'expand' | 'rerank' | 'agent_step';
+/**
+ * Mirrors the CHECK list of llm_calls.operation (docs/PLAN.md §4). The chat-model operations come from ChatOperation,
+ * so a request can only carry an operation the table accepts.
+ */
+export type Operation = ChatOperation | 'embed' | 'judge' | 'agent_step';
 export type CallStatus = 'ok' | 'error' | 'invalid_output';
 
 /** One llm_calls row without id, run_id, request_id and created_at. */
@@ -229,15 +233,18 @@ export class LoggedChatProvider implements ChatProvider {
   }
 
   generate(req: GenerateRequest): Promise<GenerateResult> {
-    return logged(this.target('generate', this.opts.chatModel, this.opts.chatPrice, req), async () => {
-      const res = await this.inner.generate(req);
-      return {
-        ...res,
-        status: 'ok',
-        estimateOutput: () => countOutputTokens(res.text, res.toolCalls),
-        result: res,
-      };
-    });
+    return logged(
+      this.target(req.operation ?? 'generate', this.opts.chatModel, this.opts.chatPrice, req),
+      async () => {
+        const res = await this.inner.generate(req);
+        return {
+          ...res,
+          status: 'ok',
+          estimateOutput: () => countOutputTokens(res.text, res.toolCalls),
+          result: res,
+        };
+      },
+    );
   }
 
   private object<T>(target: CallTarget, run: () => Promise<ObjectResult<T>>): Promise<ObjectResult<T>> {
@@ -253,7 +260,7 @@ export class LoggedChatProvider implements ChatProvider {
   }
 
   generateObject<T>(req: GenerateRequest, schema: z.ZodType<T>): Promise<ObjectResult<T>> {
-    const target = this.target('generate', this.opts.chatModel, this.opts.chatPrice, req);
+    const target = this.target(req.operation ?? 'generate', this.opts.chatModel, this.opts.chatPrice, req);
     return this.object(target, () => this.inner.generateObject(req, schema));
   }
 

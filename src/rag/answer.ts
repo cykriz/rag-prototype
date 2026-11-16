@@ -8,14 +8,17 @@ import { validate } from '../llm/structured';
 import type { ChatProvider, ObjectResult } from '../llm/types';
 import { PostgresLlmCallSink, PostgresRagRequestSink, type RagRequestSink } from '../obs/logger';
 import { type ChunkMetadata, PgRetriever } from '../retrieval/pgRetriever';
-import type { SearchMode } from '../retrieval/search';
+import { type PipelineConfig, pipelineName } from './pipeline';
 import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, formatContext, NOT_FOUND } from './prompts';
+import { type RewriteRecord, type Rewriter, rewriteRecord, rewriterFor } from './rewrite';
 import { Answer, answerSchemaFor, isAbstention } from './schemas';
 
 export interface AnswerDeps {
   /** PgRetriever fits; k and the search mode live in the retriever. */
   retriever: { invoke(question: string): Promise<Document<ChunkMetadata>[]> };
   chat: ChatProvider;
+  /** Rewrites the question into the retrieval query (M15); absent = retrieve with the question itself. */
+  rewrite?: Rewriter;
   /** Must equal the requestId of the llm_calls sinks behind retriever and chat; buildAnswerDeps guarantees it. */
   requestId: string;
   runId: string;
@@ -40,12 +43,14 @@ export interface AnswerResult {
   /** Cited IDs outside the context, removed from the final answer. */
   droppedCitations: number[];
   retrievedIds: number[];
+  /** The query retrieval used and whether it fell back to the question; null without the rewrite stage. */
+  rewrite: RewriteRecord | null;
   /** The context text the model saw (formatContext of the retrieved chunks); '' when nothing was retrieved. */
   context: string;
   /** Status of the generate call: invalid_output when the last repair round still failed validation. */
   status: 'ok' | 'invalid_output';
   repairs: number;
-  /** Whole request: retrieval, generation and validation. */
+  /** Whole request: rewrite, retrieval, generation and validation. */
   latencyMs: number;
 }
 
@@ -65,9 +70,11 @@ function salvage(raw: string | null): Answer | null {
 
 export async function answer(question: string, deps: AnswerDeps): Promise<AnswerResult> {
   const start = performance.now();
+  // The rewrite feeds retrieval only; the answer prompt keeps the user's question. Errors surface as RewriteError.
+  const rewrite = deps.rewrite ? await deps.rewrite(question) : null;
   let docs: Document<ChunkMetadata>[];
   try {
-    docs = await deps.retriever.invoke(question);
+    docs = await deps.retriever.invoke(rewrite?.query ?? question);
   } catch (err) {
     throw new RetrievalError(err);
   }
@@ -126,11 +133,21 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
     retrievedIds,
     found: result.found,
   });
-  return { requestId: deps.requestId, ...result, retrievedIds, context, status, repairs, latencyMs };
+  return {
+    requestId: deps.requestId,
+    ...result,
+    retrievedIds,
+    rewrite: rewriteRecord(rewrite),
+    context,
+    status,
+    repairs,
+    latencyMs,
+  };
 }
 
 /**
- * Per-request wiring: one requestId shared by the embed and generate llm_calls sinks and the rag_requests row.
+ * Per-request wiring: one requestId shared by the rewrite, embed and generate llm_calls rows and the rag_requests row;
+ * the pipeline name comes from `pipeline`.
  * Throws before any model call when a model has no price (registry).
  */
 export function buildAnswerDeps(
@@ -139,27 +156,28 @@ export function buildAnswerDeps(
   opts: {
     chunkConfig: string;
     k: number;
-    search: SearchMode;
+    pipeline: PipelineConfig;
     runId: string;
-    pipeline: string;
     questionId?: string;
   },
 ): AnswerDeps {
   const requestId = randomUUID();
   const sink = new PostgresLlmCallSink(sql, { runId: opts.runId, requestId });
   const embedder = createEmbeddingProvider(config, sink);
+  const chat = createChatProvider(config, sink);
   return {
     retriever: new PgRetriever({
       sql,
       embedder,
       chunkConfig: opts.chunkConfig,
       k: opts.k,
-      search: opts.search,
+      search: opts.pipeline.search,
     }),
-    chat: createChatProvider(config, sink),
+    chat,
+    ...(opts.pipeline.rewrite === 'on' && { rewrite: rewriterFor(chat) }),
     requestId,
     runId: opts.runId,
-    pipeline: opts.pipeline,
+    pipeline: pipelineName(opts.pipeline),
     ...(opts.questionId !== undefined && { questionId: opts.questionId }),
     requestSink: new PostgresRagRequestSink(sql),
   };

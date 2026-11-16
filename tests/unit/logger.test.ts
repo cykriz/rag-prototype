@@ -123,6 +123,16 @@ describe('LoggedChatProvider', () => {
     expect(expectOneRecord(sink)).toMatchObject({ status: 'invalid_output', attempts: 3 });
   });
 
+  it('logs the operation of the request, generate when absent', async () => {
+    const { sink, provider } = fakeChat(['{"answer":"x"}', 'plain']);
+    await provider.generateObject({ ...REQ, operation: 'rewrite' }, Answer);
+    await provider.generate({ ...REQ, operation: 'expand' });
+    expect(sink.records.map((r) => [r.operation, r.model])).toEqual([
+      ['rewrite', 'fake-chat'],
+      ['expand', 'fake-chat'],
+    ]);
+  });
+
   it('logs judge calls as operation judge on the judge model', async () => {
     const { sink, provider } = fakeChat(['{"answer":"x"}']);
     await provider.judge(REQ, Answer);

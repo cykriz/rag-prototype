@@ -137,7 +137,8 @@ rag-prototype/
 │   │   ├── prompts.ts            Answer prompt, NOT_FOUND rule, citation format
 │   │   ├── schemas.ts            Zod schemas: Answer, Rewrite, Expansion, Rerank
 │   │   ├── answer.ts             Retrieve, build context, generate, validate citations
-│   │   ├── rewrite.ts            Phase 2
+│   │   ├── pipeline.ts           Stages around retrieval (search mode, rewrite) and the rag_requests.pipeline name
+│   │   ├── rewrite.ts            Query rewrite with fallback to the question (phase 2)
 │   │   ├── expand.ts             Phase 2
 │   │   └── rerank.ts             Phase 2
 │   ├── agent/
@@ -433,6 +434,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 - Tasks: `rewrite.ts` with structured output `{ rewritten: string }`; logged as operation `rewrite`; fallback to the original query on invalid output.
 - Acceptance: eval run with rewrite on versus off; added latency per request reported.
 - Acceptance command: `bun --bun vitest run tests/unit/rewrite.test.ts && bun run experiment experiments/exp-rewrite.json`
+- As implemented: config key `rewrite: "off" | "on"` (`RunConfig`, default `off`, so result files written before M15 read as off; `bun run report` labels a matrix row `off`/`on` and adds `rewrite=on` to a config only when on). `GenerateRequest.operation` (`generate`, `rewrite`, `expand`, `rerank`) tags a chat call for `llm_calls` without a new provider method; adapters never send it. The prompt (`REWRITE_SYSTEM_PROMPT`, temperature 0, seed 42) may make vague phrasing concrete and add Bun terms, must keep identifiers verbatim, must not answer or name APIs the question does not imply. Schema `{ rewritten }` is trimmed, non-empty and at most 500 characters, so empty, whitespace-only and runaway output go through the repair loop; still invalid after 2 repairs → retrieval uses the original question (`fallback: true`); a provider error fails the request (`RewriteError`). The rewritten query replaces the question for the whole retrieval step (embedding and full text query); the answer prompt keeps the original question. Result files (`schemaVersion` 3) record `config.rewrite`, `questions[].rewrite` (`{ query, fallback }`, null when off) and `counts.rewriteFallbacks`; answers files also carry call-latency percentiles per `kpis.calls` row, so the `rewrite` row holds the added call latency and, as `invalidOutputRate`, the fallback rate. Added latency per request is the on − off difference of the end-to-end p50; no extra README column. `retrieve`/`ask` take `--rewrite`; the stages travel as one `PipelineConfig` (`src/rag/pipeline.ts`), and `rag_requests.pipeline` becomes `<search>+rewrite` (`baseline` stays plain vector). A retrieval eval with rewrite on also checks and warms up the chat model.
 
 **M16. Query expansion (1.5 h)**
 - Tasks: `expand.ts` with `{ queries: string[] }` (max 3), retrieve per query, fuse with RRF, deduplicate.
@@ -599,7 +601,7 @@ Experiment file (`experiments/exp-chunk-size.json`):
 }
 ```
 
-Result file (`results/2026-11-20T10-00-00Z_exp-chunk-size_md-512-64_retrieval.json`, i.e. `<UTC stamp>_<experiment>_<variant>_<evalType>.json`; without `vary` `<UTC stamp>_<experiment>_<evalType>.json`; `bun run report` reads the JSON, never the name) contains: `experimentId`, `config`, `variedKey`, `gitSha`, `datasetSha256`, `corpusSha`, model tags plus digests from `ollama show --modelfile` or `/api/tags`, `startedAt`, aggregate metrics, per question metrics, KPI block (section 8), `runId` linking to `llm_calls`.
+Result file (`results/2026-11-20T10-00-00Z_exp-chunk-size_md-512-64_retrieval.json`, i.e. `<UTC stamp>_<experiment>_<variant>_<evalType>.json`; without `vary` `<UTC stamp>_<experiment>_<evalType>.json`; `bun run report` reads the JSON, never the name) contains: `experimentId`, `config`, `variedKey`, `gitSha`, `datasetSha256`, `corpusSha`, model tags plus digests from `ollama show --modelfile` or `/api/tags`, `startedAt`, aggregate metrics, per question metrics, KPI block (section 8), `runId` linking to `llm_calls`. `schemaVersion` 2 (M14) stores `retrieved[].score`; 3 (M15) adds `config.rewrite`, `questions[].rewrite`, `counts.rewriteFallbacks` and per-operation call latency percentiles in the answers KPI block.
 
 ---
 

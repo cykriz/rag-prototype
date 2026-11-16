@@ -1,13 +1,12 @@
-// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
+// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid] [--rewrite]
 // Retrieves, answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
 import { sourceLabel } from '../retrieval/pgRetriever';
-import { pipelineName } from '../retrieval/search';
 import { QUESTION_FLAGS, runQuestionCli } from './common';
-import { DB_DOWN, describeError, isDatabaseDown } from './errors';
+import { DB_DOWN, describeError, isDatabaseDown, unwrapStageError } from './errors';
 
 const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS}`;
 
@@ -34,15 +33,15 @@ export function formatAnswer(res: AnswerResult): { out: string; warnings: string
 }
 
 /**
- * Message for an error from answer(). Unwraps RetrievalError first: the connection and status probes check the raw
- * error, and the 404 hint names the embedding model for retrieval failures, the chat model otherwise.
+ * Message for an error from answer(). Unwraps RetrievalError and RewriteError first: the 404 hint names the embedding
+ * model for retrieval failures, the chat model otherwise (rewrite and generate both run on it).
  */
 export function describeAnswerError(err: unknown, config: Config, dbDown: boolean): string {
   if (dbDown) {
     return DB_DOWN;
   }
   const retrieval = err instanceof RetrievalError;
-  const inner = retrieval ? err.cause : err;
+  const inner = unwrapStageError(err);
   return describeError(inner, {
     baseURL: config.baseURL,
     model: retrieval ? config.embedModel : config.chatModel,
@@ -51,7 +50,7 @@ export function describeAnswerError(err: unknown, config: Config, dbDown: boolea
 
 /** describeAnswerError after probing the database with the unwrapped error; shared by ask and eval:answers. */
 export async function answerErrorMessage(err: unknown, config: Config, sql: Sql): Promise<string> {
-  const dbDown = await isDatabaseDown(err instanceof RetrievalError ? err.cause : err, sql);
+  const dbDown = await isDatabaseDown(unwrapStageError(err), sql);
   return describeAnswerError(err, config, dbDown);
 }
 
@@ -63,8 +62,7 @@ function main(argv: string[]): Promise<number> {
         chunkConfig,
         k: args.k,
         runId: `ask-${randomUUID()}`,
-        search: args.search,
-        pipeline: pipelineName(args.search),
+        pipeline: args.pipeline,
       });
       res = await answer(args.question, deps);
     } catch (err) {

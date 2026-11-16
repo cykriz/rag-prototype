@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-
+import { pipelineName } from '../../src/rag/pipeline';
 import { RRF_K, rrf } from '../../src/retrieval/rrf';
-import { pipelineName, SEARCH_MODES } from '../../src/retrieval/search';
+import { SEARCH_MODES } from '../../src/retrieval/search';
 
 const s = (...ranks: number[]) => ranks.reduce((sum, r) => sum + 1 / (RRF_K + r), 0);
 
@@ -44,6 +44,18 @@ describe('rrf', () => {
 
 describe('pipelineName', () => {
   it('keeps baseline for vector and names the other modes', () => {
-    expect(SEARCH_MODES.map(pipelineName)).toEqual(['baseline', 'fts', 'hybrid']);
+    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off' }))).toEqual([
+      'baseline',
+      'fts',
+      'hybrid',
+    ]);
+  });
+
+  it('appends the rewrite stage to the search mode', () => {
+    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'on' }))).toEqual([
+      'vector+rewrite',
+      'fts+rewrite',
+      'hybrid+rewrite',
+    ]);
   });
 });

@@ -1,8 +1,11 @@
 // Error messages shared by the CLIs: Ollama errors (ask:raw, ingest, retrieve, ask) and the database probe
-// (retrieve, ask).
+// (retrieve, ask, eval:*).
 import { APIError } from 'openai';
 import type { Sql } from 'postgres';
+import type { Config } from '../config';
 import { isConnectionError } from '../llm/retry';
+import { RetrievalError } from '../rag/answer';
+import { RewriteError } from '../rag/rewrite';
 
 export const DB_DOWN = 'Database not reachable at DATABASE_URL: start it with `docker compose up -d`';
 
@@ -30,4 +33,25 @@ export function describeError(err: unknown, ctx: { baseURL: string; model: strin
     return `Model call failed with status ${err.status}: ${err.message}${hint}`;
   }
   return err instanceof Error ? err.message : String(err);
+}
+
+/** The provider error inside a RetrievalError or RewriteError, which the connection and status probes check. */
+export const unwrapStageError = (err: unknown): unknown =>
+  err instanceof RetrievalError || err instanceof RewriteError ? err.cause : err;
+
+/**
+ * Message for an error of a retrieval-only run (retrieve, eval:retrieval): a RewriteError is a chat-model failure,
+ * anything else is named against the embedding model. Probes the database with the unwrapped error.
+ */
+export async function retrievalErrorMessage(
+  err: unknown,
+  config: Pick<Config, 'baseURL' | 'chatModel' | 'embedModel'>,
+  sql: Sql,
+): Promise<string> {
+  const inner = unwrapStageError(err);
+  if (await isDatabaseDown(inner, sql)) {
+    return DB_DOWN;
+  }
+  const model = err instanceof RewriteError ? config.chatModel : config.embedModel;
+  return describeError(inner, { baseURL: config.baseURL, model });
 }

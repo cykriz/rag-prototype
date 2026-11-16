@@ -292,6 +292,8 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
     skip !== 'embed' && c.embed,
     skip !== 'k' && `k=${c.k}`,
     skip !== 'search' && c.search,
+    // Only when on, so rows of runs before M15 (read as off) render as before.
+    skip !== 'rewrite' && c.rewrite === 'on' && 'rewrite=on',
   ]
     .filter(Boolean)
     .join(', ');

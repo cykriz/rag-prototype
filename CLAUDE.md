@@ -18,9 +18,9 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
   `DATABASE_URL` as in `.env.example`
 - Ingest: `./scripts/fetch-corpus.sh`, then `bun run ingest [--chunk md-512-64] [--embed <model>] [--force] [--prune]`
   (idempotent; needs `CORPUS_SHA` in `.env`)
-- Retrieve: `bun run retrieve "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]`
+- Retrieve: `bun run retrieve "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid] [--rewrite]`
   (top k chunks with scores, higher is better; needs an ingest of that config and model)
-- Ask: `bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]` (answer with chunk citations
+- Ask: `bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid] [--rewrite]` (answer with chunk citations
   or `NOT_FOUND`; writes `rag_requests` and `llm_calls` rows; needs the ingest and Ollama)
 - Evals: `bun run eval:retrieval --config experiments/baseline.json [--split dev]` and
   `bun run eval:answers --config experiments/baseline.json [--split dev] [--seed <n>]` (answers + LLM judge; needs the

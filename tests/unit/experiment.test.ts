@@ -1,19 +1,31 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseEvalArgs } from '../../src/cli/eval';
+import { parseEvalArgs, requiredModels } from '../../src/cli/eval';
 import { parseExperimentArgs, planRuns } from '../../src/cli/experiment';
+import { loadConfig } from '../../src/config';
 import { ExperimentFile, expandExperiment, loadExperiment, singleConfig } from '../../src/eval/experiment';
 
 const BASELINE = join(import.meta.dirname, '../../experiments/baseline.json');
 
 const parse = (raw: unknown) => ExperimentFile.parse(raw);
 const BASE = { chunkConfig: 'md-512-64', embed: 'nomic-embed-text', k: 5, search: 'vector', split: 'test' };
+/** BASE as a parsed RunConfig: rewrite defaults to off. */
+const RUN = { ...BASE, rewrite: 'off' };
 
 describe('experiment files', () => {
   it('experiments/baseline.json is one retrieval config on the test split', async () => {
     const exp = await loadExperiment(BASELINE);
     expect(exp.id).toBe('baseline');
-    expect(singleConfig(exp, 'retrieval')).toEqual(BASE);
+    expect(singleConfig(exp, 'retrieval')).toEqual(RUN);
+  });
+
+  it('experiments/exp-rewrite.json varies rewrite off, on at the M14 config', async () => {
+    const exp = await loadExperiment(join(import.meta.dirname, '../../experiments/exp-rewrite.json'));
+    expect(expandExperiment(exp)).toEqual([
+      { run: { ...RUN, chunkConfig: 'md-1024-128', rewrite: 'off' }, variedKey: 'rewrite', label: 'off' },
+      { run: { ...RUN, chunkConfig: 'md-1024-128', rewrite: 'on' }, variedKey: 'rewrite', label: 'on' },
+    ]);
+    expect(exp.evals).toEqual(['retrieval', 'answers']);
   });
 
   it('accepts the §7 matrix format, but singleConfig refuses a vary', () => {
@@ -92,9 +104,9 @@ describe('expandExperiment', () => {
 
   it('gives one variant per value in file order, labelled with the value', () => {
     expect(expandExperiment(chunkSize)).toEqual([
-      { run: { ...BASE, chunkConfig: 'md-256-32' }, variedKey: 'chunkConfig', label: 'md-256-32' },
-      { run: { ...BASE, chunkConfig: 'md-512-64' }, variedKey: 'chunkConfig', label: 'md-512-64' },
-      { run: { ...BASE, chunkConfig: 'md-1024-128' }, variedKey: 'chunkConfig', label: 'md-1024-128' },
+      { run: { ...RUN, chunkConfig: 'md-256-32' }, variedKey: 'chunkConfig', label: 'md-256-32' },
+      { run: { ...RUN, chunkConfig: 'md-512-64' }, variedKey: 'chunkConfig', label: 'md-512-64' },
+      { run: { ...RUN, chunkConfig: 'md-1024-128' }, variedKey: 'chunkConfig', label: 'md-1024-128' },
     ]);
     const { k: __, ...noK } = BASE;
     const labels = expandExperiment(
@@ -105,8 +117,25 @@ describe('expandExperiment', () => {
 
   it('gives the single base config without vary', () => {
     expect(expandExperiment(parse({ id: 'baseline', base: BASE, evals: ['retrieval'] }))).toEqual([
-      { run: BASE, variedKey: null, label: null },
+      { run: RUN, variedKey: null, label: null },
     ]);
+  });
+
+  it('takes rewrite in base and refuses it in base and vary at once', () => {
+    const on = parse({ id: 'x', base: { ...BASE, rewrite: 'on' }, evals: ['retrieval'] });
+    expect(expandExperiment(on)[0]?.run.rewrite).toBe('on');
+    // The base schema has no default: an unset base.rewrite stays undefined, so varying it is allowed.
+    expect(parse({ id: 'x', base: BASE, evals: ['retrieval'] }).base.rewrite).toBeUndefined();
+    const both = ExperimentFile.safeParse({
+      id: 'x',
+      base: { ...BASE, rewrite: 'off' },
+      vary: { rewrite: ['off', 'on'] },
+      evals: ['retrieval'],
+    });
+    expect(both.error?.message).toMatch(/also varied/);
+    expect(
+      ExperimentFile.safeParse({ id: 'x', base: { ...BASE, rewrite: 'yes' }, evals: ['retrieval'] }).success,
+    ).toBe(false);
   });
 
   it('names a base field that is neither set nor varied', () => {
@@ -168,5 +197,17 @@ describe('parseExperimentArgs', () => {
     expect(() => parseExperimentArgs(['a.json', 'b.json'])).toThrow(/one experiment file/);
     expect(() => parseExperimentArgs(['a.json', '--split', 'all'])).toThrow(/--split/);
     expect(() => parseExperimentArgs(['a.json', '--seed', 'x'])).toThrow(/--seed/);
+  });
+});
+
+describe('requiredModels', () => {
+  const config = loadConfig({ CHAT_PROVIDER: 'fake', EMBED_PROVIDER: 'fake' });
+  const roles = (evalType: 'retrieval' | 'answers', rewrite: 'off' | 'on') =>
+    requiredModels(config, evalType, { rewrite }).map(([role]) => role);
+
+  it('adds the chat model to a retrieval run only with rewrite on', () => {
+    expect(roles('retrieval', 'off')).toEqual(['embed']);
+    expect(roles('retrieval', 'on')).toEqual(['embed', 'chat']);
+    expect(roles('answers', 'on')).toEqual(['embed', 'chat', 'judge']);
   });
 });
