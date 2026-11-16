@@ -1,8 +1,8 @@
 // Database side of the retrieval eval (docs/PLAN.md M11): checks that the ingest matches the corpus the golden spans
-// were validated against, and searches all questions with batched query embeddings.
+// were validated against, and searches all questions (batched query embeddings where the search mode needs them).
 import type { Sql } from 'postgres';
 import type { EmbeddingProvider } from '../llm/types';
-import { vectorSearch } from '../retrieval/vector';
+import { needsEmbedding, type SearchMode, searchWith } from '../retrieval/search';
 import type { RunKpis } from './answers';
 import type { RetrievedHit, SearchFn } from './runner';
 
@@ -43,25 +43,33 @@ export async function checkIngest(
   }
 }
 
-/** Embeds the questions in batches of EMBED_BATCH (one llm_calls row per batch), then one vectorSearch each. */
-export function pgVectorSearch(
+/**
+ * One search per question in `mode`. Modes with a query vector embed the questions in batches of EMBED_BATCH first
+ * (one llm_calls row per batch); fts makes no embedding call.
+ */
+export function pgSearch(
   sql: Sql,
   embedder: EmbeddingProvider,
-  opts: { chunkConfig: string; k: number },
+  opts: { mode: SearchMode; chunkConfig: string; k: number },
 ): SearchFn {
   return async (questions) => {
     const results: RetrievedHit[][] = [];
     for (let i = 0; i < questions.length; i += EMBED_BATCH) {
       const batch = questions.slice(i, i + EMBED_BATCH);
-      const { vectors } = await embedder.embed(batch, 'query');
-      if (vectors.length !== batch.length) {
-        throw new Error(
-          `Embedding provider returned ${vectors.length} vectors for ${batch.length} questions`,
-        );
+      let vectors: (number[] | undefined)[] = batch.map(() => undefined);
+      if (needsEmbedding(opts.mode)) {
+        ({ vectors } = await embedder.embed(batch, 'query'));
+        if (vectors.length !== batch.length) {
+          throw new Error(
+            `Embedding provider returned ${vectors.length} vectors for ${batch.length} questions`,
+          );
+        }
       }
-      for (const vector of vectors) {
-        const hits = await vectorSearch(sql, {
-          vector,
+      for (const [j, query] of batch.entries()) {
+        const vector = vectors[j];
+        const hits = await searchWith(sql, opts.mode, {
+          query,
+          ...(vector && { vector }),
           k: opts.k,
           chunkConfig: opts.chunkConfig,
           model: embedder.model,
@@ -71,7 +79,7 @@ export function pgVectorSearch(
             chunkId: h.chunkId,
             sourcePath: h.sourcePath,
             content: h.content,
-            distance: h.distance,
+            score: h.score,
           })),
         );
       }

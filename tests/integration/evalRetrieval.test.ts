@@ -5,7 +5,7 @@ import { connect } from '../../src/db/client';
 import { ensureEmbeddingTables } from '../../src/db/embeddingTables';
 import { migrate } from '../../src/db/migrate';
 import type { GoldenEntry } from '../../src/eval/dataset';
-import { checkIngest, fetchRunKpis, pgVectorSearch } from '../../src/eval/pgSource';
+import { checkIngest, fetchRunKpis, pgSearch } from '../../src/eval/pgSource';
 import { runRetrievalEval } from '../../src/eval/runner';
 import { sha256 } from '../../src/ingest/hash';
 import { FakeEmbeddingProvider, fakeEmbedding } from '../../src/llm/fake';
@@ -104,12 +104,13 @@ describe('retrieval eval against the database', () => {
       ],
       split: 'test',
       k: 2,
-      search: pgVectorSearch(sql, embedder, { chunkConfig: CONFIG, k: 2 }),
+      search: pgSearch(sql, embedder, { mode: 'vector', chunkConfig: CONFIG, k: 2 }),
     });
     const [q1, q2] = run.questions;
     expect(q1).toMatchObject({ recall: 1, reciprocalRank: 1, ndcg: 1, firstRelevantRank: 1 });
     expect(q1?.retrieved).toHaveLength(2);
-    expect(q1?.retrieved[0]?.distance).toBeCloseTo(0, 6);
+    // Vector score = 1 − cosine distance.
+    expect(q1?.retrieved[0]?.score).toBeCloseTo(1, 6);
     expect(q2).toMatchObject({ recall: 0, reciprocalRank: 0, ndcg: 0, spansCovered: [false] });
   });
 });

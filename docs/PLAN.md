@@ -130,6 +130,8 @@ rag-prototype/
 │   │   ├── vector.ts             Top k by cosine distance
 │   │   ├── fts.ts                Top k via websearch_to_tsquery (phase 2)
 │   │   ├── hybrid.ts             Reciprocal rank fusion in SQL (phase 2)
+│   │   ├── rrf.ts                RRF_K and the pure rrf() the SQL is tested against (phase 2)
+│   │   ├── search.ts             Search modes, shared hit shape and dispatch (phase 2)
 │   │   └── pgRetriever.ts        LangChain BaseRetriever wrapper around the above
 │   ├── rag/
 │   │   ├── prompts.ts            Answer prompt, NOT_FOUND rule, citation format
@@ -423,6 +425,7 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
   FROM (SELECT * FROM v UNION ALL SELECT * FROM f) u
   GROUP BY id ORDER BY score DESC LIMIT $4;
   ```
+- As implemented: the vector side reads `tableName(model)` instead of the hard-coded `emb_nomic_embed_text`; the depth per side is max(k, 50), which stays ≤ `hnsw.ef_search` = `MAX_K` = 100; ranks break ties by chunk ID (`ORDER BY dist, id` / `rank DESC, id`) and the result is ordered `score DESC, id`. `RRF_K` lives in `src/retrieval/rrf.ts`, whose pure `rrf()` the integration test compares against the SQL. A stop-word-only query yields an empty tsquery: FTS returns no hits and hybrid keeps the vector order; FTS can return fewer than k hits, which the metrics score as misses. Hits of every mode carry `score` (higher is better: vector 1 − cosine distance, FTS `ts_rank_cd`, hybrid the RRF sum); result files moved to `schemaVersion` 2 with `retrieved[].score`. `retrieve`, `ask` and `eval:answers` honour the search mode too (`--search`, `config.search`); `rag_requests.pipeline` is `baseline` for vector and the mode name otherwise.
 - Acceptance: retrieval results written for `vector`, `fts`, `hybrid`. RRF unit test on two ranked lists; integration test where FTS finds an exact identifier that vector search misses on fixtures.
 - Acceptance command: `bun --bun vitest run tests/unit/rrf.test.ts tests/integration/hybrid.test.ts && bun run experiment experiments/exp-search-mode.json`
 
@@ -576,7 +579,7 @@ Each step's winner is chosen on the dev split; the README reports the test split
 | 2 | exp-k | top k | 3, 5, 10 | best chunk size, nomic | retrieval, then answers for best (`exp-k-answers`, no `vary`) and baseline (`baseline`) |
 | 3 | exp-embed-model | embedding model | nomic-embed-text, mxbai-embed-large | chunk size 256 or 512 only (mxbai context is 512 tokens; the better of the two if the best chunk size is 1024), best k | retrieval |
 | 4 | exp-baseline-answers | none | best phase 1 config | | answers; only needed if row 3 changes the config, otherwise `exp-k-answers` is the phase 1 best (as in M13b) |
-| 5 | exp-search-mode | search | vector, fts, hybrid (RRF) | best phase 1 config | retrieval |
+| 5 | exp-search-mode | search | vector, fts, hybrid (RRF) | best phase 1 config; tie cost order fts < vector < hybrid (fts needs no embedding call) | retrieval |
 | 6 | exp-rewrite | query rewrite | off, on | best search mode | retrieval + answers |
 | 7 | exp-expand | query expansion | off, 3 queries | best search mode | retrieval + answers |
 | 8 | exp-rerank | LLM rerank | off, top 20 to 5 | best search mode | retrieval + answers |

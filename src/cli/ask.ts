@@ -1,15 +1,15 @@
-// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>]
+// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
 // Retrieves, answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
 import { sourceLabel } from '../retrieval/pgRetriever';
+import { pipelineName } from '../retrieval/search';
 import { QUESTION_FLAGS, runQuestionCli } from './common';
 import { DB_DOWN, describeError, isDatabaseDown } from './errors';
 
 const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS}`;
-const PIPELINE = 'baseline';
 
 /** stdout: answer, citations and the found flag; stderr: warnings about dropped or missing citations. */
 export function formatAnswer(res: AnswerResult): { out: string; warnings: string[] } {
@@ -63,7 +63,8 @@ function main(argv: string[]): Promise<number> {
         chunkConfig,
         k: args.k,
         runId: `ask-${randomUUID()}`,
-        pipeline: PIPELINE,
+        search: args.search,
+        pipeline: pipelineName(args.search),
       });
       res = await answer(args.question, deps);
     } catch (err) {

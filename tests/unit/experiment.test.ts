@@ -39,7 +39,8 @@ describe('experiment files', () => {
   it('rejects unknown values', () => {
     const bad = (base: Record<string, unknown>) =>
       ExperimentFile.safeParse({ id: 'x', base: { ...BASE, ...base }, evals: ['retrieval'] }).success;
-    expect(bad({ search: 'hybrid' })).toBe(false);
+    expect(bad({ search: 'bm25' })).toBe(false);
+    expect(bad({ search: 'hybrid' })).toBe(true);
     expect(bad({ embed: 'unknown-model' })).toBe(false);
     expect(bad({ chunkConfig: '512' })).toBe(false);
     expect(bad({ k: 0 })).toBe(false);

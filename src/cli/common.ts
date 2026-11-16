@@ -5,17 +5,25 @@ import { type Config, loadConfig } from '../config';
 import { connect, databaseUrl } from '../db/client';
 import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { isConnectionError } from '../llm/retry';
+import { DEFAULT_SEARCH, SEARCH_MODES, type SearchMode } from '../retrieval/search';
 import { assertK, requireEmbeddings } from '../retrieval/vector';
 import { DB_DOWN } from './errors';
 
 export const DEFAULT_K = 5;
 
 /** Flags shared by retrieve and ask, for their usage lines. */
-export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>]`;
+export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}]`;
 
 export type QuestionArgs =
   | { help: true }
-  | { help: false; question: string; k: number; chunk: string; embed: string | undefined };
+  | {
+      help: false;
+      question: string;
+      k: number;
+      chunk: string;
+      embed: string | undefined;
+      search: SearchMode;
+    };
 
 /** Throws on a usage error (exit 2 in the CLIs). */
 export function parseQuestionArgs(argv: string[]): QuestionArgs {
@@ -27,6 +35,7 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
       k: { type: 'string', default: String(DEFAULT_K) },
       chunk: { type: 'string', default: DEFAULT_CHUNK_CONFIG },
       embed: { type: 'string' },
+      search: { type: 'string', default: DEFAULT_SEARCH },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -39,7 +48,11 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
   }
   const k = Number(values.k);
   assertK(k, '--k');
-  return { help: false, question, k, chunk: values.chunk, embed: values.embed };
+  const search = values.search;
+  if (!(SEARCH_MODES as readonly string[]).includes(search)) {
+    throw new Error(`--search must be one of ${SEARCH_MODES.join(', ')}, got "${search}"`);
+  }
+  return { help: false, question, k, chunk: values.chunk, embed: values.embed, search: search as SearchMode };
 }
 
 export interface RetrievalSetup {

@@ -39,11 +39,30 @@ export function assertK(k: number, label = 'k'): void {
   }
 }
 
-function validate(q: VectorQuery): void {
+/** Shared by vectorSearch and hybridSearch. */
+export function validateVectorQuery(q: VectorQuery): void {
   assertK(q.k);
   if (q.vector.length === 0) {
     throw new Error('Query vector is empty');
   }
+}
+
+/**
+ * The HNSW scan of the §4 query: `id` and cosine `dist` of the `limit` nearest chunks of `chunkConfig`, in index
+ * order (unsorted under relaxed_order). Shared by vectorQuery and the vector side of hybridSearch.
+ */
+export function vectorCandidates(
+  sql: TransactionSql,
+  q: Omit<VectorQuery, 'k'>,
+  limit: number,
+): PendingQuery<Row[]> {
+  const vec = pgvector.toSql(q.vector);
+  return sql`
+    SELECT e.chunk_id AS id, e.embedding <=> ${vec}::vector AS dist
+    FROM ${sql(tableName(q.model))} e
+    WHERE e.chunk_config = ${q.chunkConfig}
+    ORDER BY e.embedding <=> ${vec}::vector
+    LIMIT ${limit}`;
 }
 
 /**
@@ -52,19 +71,13 @@ function validate(q: VectorQuery): void {
  * order relaxed_order may scramble; `id` breaks ties.
  */
 export function vectorQuery(sql: TransactionSql, q: VectorQuery): PendingQuery<Row[]> {
-  validate(q);
-  const vec = pgvector.toSql(q.vector);
+  validateVectorQuery(q);
   return sql`
-    SELECT * FROM (
-      SELECT c.id, c.content, c.heading_path, d.source_path,
-             e.embedding <=> ${vec}::vector AS distance
-      FROM ${sql(tableName(q.model))} e
-      JOIN chunks c    ON c.id = e.chunk_id
-      JOIN documents d ON d.id = c.document_id
-      WHERE e.chunk_config = ${q.chunkConfig}
-      ORDER BY e.embedding <=> ${vec}::vector
-      LIMIT ${q.k}
-    ) t ORDER BY distance, id`;
+    SELECT c.id, c.content, c.heading_path, d.source_path, v.dist AS distance
+    FROM (${vectorCandidates(sql, q, q.k)}) v
+    JOIN chunks c    ON c.id = v.id
+    JOIN documents d ON d.id = c.document_id
+    ORDER BY distance, c.id`;
 }
 
 /**
@@ -80,7 +93,7 @@ export async function applyHnswSettings(
 }
 
 export async function vectorSearch(sql: Sql, q: VectorQuery): Promise<VectorHit[]> {
-  validate(q);
+  validateVectorQuery(q);
   const rows = await sql.begin(async (tx) => {
     await applyHnswSettings(tx);
     return (await vectorQuery(tx, q)) as unknown as HitRow[];

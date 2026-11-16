@@ -13,7 +13,7 @@ import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 const doc = (chunk_id: number, source_path: string, heading_path: string, pageContent: string) =>
   new Document<ChunkMetadata>({
     pageContent,
-    metadata: { chunk_id, source_path, heading_path, distance: 0.1 * chunk_id },
+    metadata: { chunk_id, source_path, heading_path, score: 1 - 0.1 * chunk_id },
   });
 
 const DOCS = [

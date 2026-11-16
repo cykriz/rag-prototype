@@ -57,6 +57,7 @@ function scriptedDeps(runId: string, script: string[], questionId?: string) {
   const deps = buildAnswerDeps(sql, CONFIG, {
     chunkConfig: CHUNK_CONFIG.key,
     k: chunkIds.length,
+    search: 'vector',
     runId,
     pipeline: 'baseline',
     ...(questionId !== undefined && { questionId }),

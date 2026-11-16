@@ -1,16 +1,16 @@
-// LangChain retriever over vectorSearch (docs/PLAN.md M8). The query embedding goes through our EmbeddingProvider.
+// LangChain retriever over searchWith (docs/PLAN.md M8, M14). The query embedding goes through our EmbeddingProvider.
 import { Document } from '@langchain/core/documents';
 import { BaseRetriever, type BaseRetrieverInput } from '@langchain/core/retrievers';
 import type { Sql } from 'postgres';
 import type { EmbeddingProvider } from '../llm/types';
-import { vectorSearch } from './vector';
+import { DEFAULT_SEARCH, needsEmbedding, type SearchMode, searchWith } from './search';
 
 export interface ChunkMetadata {
   chunk_id: number;
   source_path: string;
   heading_path: string;
-  /** Cosine distance to the query, ascending across the returned documents. */
-  distance: number;
+  /** Search score, higher is better, descending across the returned documents (SearchHit.score). */
+  score: number;
 }
 
 /** `source_path > heading_path`, or just `source_path` for a chunk without heading. */
@@ -23,6 +23,8 @@ export interface PgRetrieverInput extends BaseRetrieverInput {
   embedder: EmbeddingProvider;
   chunkConfig: string;
   k: number;
+  /** Default DEFAULT_SEARCH (vector). */
+  search?: SearchMode;
 }
 
 export class PgRetriever extends BaseRetriever<ChunkMetadata> {
@@ -32,23 +34,29 @@ export class PgRetriever extends BaseRetriever<ChunkMetadata> {
   private readonly embedder: EmbeddingProvider;
   readonly chunkConfig: string;
   readonly k: number;
+  readonly search: SearchMode;
 
-  constructor({ sql, embedder, chunkConfig, k, ...fields }: PgRetrieverInput) {
+  constructor({ sql, embedder, chunkConfig, k, search = DEFAULT_SEARCH, ...fields }: PgRetrieverInput) {
     super(fields);
     this.sql = sql;
     this.embedder = embedder;
     this.chunkConfig = chunkConfig;
     this.k = k;
+    this.search = search;
   }
 
   async _getRelevantDocuments(query: string): Promise<Document<ChunkMetadata>[]> {
-    const { vectors } = await this.embedder.embed([query], 'query');
-    const [vector] = vectors;
-    if (!vector) {
-      throw new Error('Embedding provider returned no vector for the query');
+    let vector: number[] | undefined;
+    if (needsEmbedding(this.search)) {
+      const { vectors } = await this.embedder.embed([query], 'query');
+      vector = vectors[0];
+      if (!vector) {
+        throw new Error('Embedding provider returned no vector for the query');
+      }
     }
-    const hits = await vectorSearch(this.sql, {
-      vector,
+    const hits = await searchWith(this.sql, this.search, {
+      query,
+      ...(vector && { vector }),
       k: this.k,
       chunkConfig: this.chunkConfig,
       model: this.embedder.model,
@@ -61,7 +69,7 @@ export class PgRetriever extends BaseRetriever<ChunkMetadata> {
             chunk_id: h.chunkId,
             source_path: h.sourcePath,
             heading_path: h.headingPath,
-            distance: h.distance,
+            score: h.score,
           },
         }),
     );

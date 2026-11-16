@@ -4,10 +4,10 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { models } from '../config';
 import { parseChunkConfigKey } from '../ingest/chunk';
+import { SEARCH_MODES } from '../retrieval/search';
 import { MAX_K } from '../retrieval/vector';
 import { SPLITS } from './dataset';
 
-export const SEARCH_MODES = ['vector'] as const;
 export const EVAL_TYPES = ['retrieval', 'answers'] as const;
 export type EvalType = (typeof EVAL_TYPES)[number];
 

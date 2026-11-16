@@ -12,6 +12,8 @@ License, checked on 2026-11-15 at commit `b6f9cfa0e820b025916e50651b377ee1dff4d1
 
 Method: phase 1 varies one setting at a time in a fixed greedy order: chunk size, then k, then the embedding model. At each step the winner is chosen on the dev split, and the tables below show the test split only. Dev has 15 questions, 13 of them answerable. The selection rule ranks by Recall@k first and MRR@k second. A difference of at most one dev question (1/13) on a metric counts as a tie, and a tie goes to the cheaper option: smaller chunks, smaller k, the default embedding model. With so few dev questions this choice is noisy. For example, md-1024-128 won on dev but scores below md-512-64 on test. The selected phase 1 config is md-1024-128 with nomic-embed-text, k=5 and vector search: the `exp-k-answers` row.
 
+Phase 2 starts with the search mode (`exp-search-mode`) at that config: vector search, full text search (`websearch_to_tsquery('english', …)` ranked by `ts_rank_cd`) and hybrid search, which fuses the top max(k, 50) of both with reciprocal rank fusion (k = 60) in SQL. The selection rule is the same; for ties the cost order is fts < vector < hybrid, because full text search needs no embedding call and hybrid needs both. From this step on every result file carries `schemaVersion` 2; only the retrieval layout changed: each hit stores a `score`, higher is better within one mode (vector: 1 − cosine distance), instead of the vector `distance`.
+
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
 <!-- results:start -->
@@ -64,6 +66,6 @@ Test split only, latest run per config from a clean checkout. Metrics are the `a
 ## Limitations
 
 - **Small dataset.** 45 questions (15 dev, 30 test), so differences of a few hundredths are within noise.
-- **Greedy search.** Settings are tuned one at a time (chunk size → k → embedding model), and interactions are not explored. The result is not necessarily the best combination.
+- **Greedy search.** Settings are tuned one at a time (chunk size → k → embedding model → search mode), and interactions are not explored. The result is not necessarily the best combination.
 - **Embedding model comparison.** mxbai-embed-large has a 512-token context, so it was only compared at md-256-32 (the cheaper of the ≤ 512 configs, tied on dev). It was not tried at md-1024-128, the chunk size chosen in the first step.
 - **Latency.** Measured on one laptop and depends on model load state and hardware.

@@ -6,13 +6,14 @@ import { sha256 } from '../../src/ingest/hash';
 import { fakeEmbedding } from '../../src/llm/fake';
 
 /**
- * Inserts one document with `count` synthetic chunks in `config` (creating the chunk_configs row if needed) and their
- * fake nomic embeddings. Chunk text is `${sourcePath} chunk ${i}`, so each call yields distinct vectors.
+ * Inserts one document with synthetic chunks in `config` (creating the chunk_configs row if needed) and their fake
+ * nomic embeddings. Chunk text is `texts`, or `${sourcePath} chunk ${i}` for i < count, so each call yields distinct
+ * vectors. Returns the chunk ID per text.
  */
 export async function insertSyntheticChunks(
   sql: Sql,
-  opts: { config: string; count: number; sourcePath: string },
-): Promise<void> {
+  opts: { config: string; sourcePath: string } & ({ count: number } | { texts: readonly string[] }),
+): Promise<Map<string, number>> {
   const { chunkSize, chunkOverlap, splitter } = parseChunkConfigKey(opts.config);
   await sql`INSERT INTO chunk_configs (key, chunk_size, chunk_overlap, splitter)
             VALUES (${opts.config}, ${chunkSize}, ${chunkOverlap}, ${splitter})
@@ -23,7 +24,10 @@ export async function insertSyntheticChunks(
   if (!doc) {
     throw new Error('document insert returned no row');
   }
-  const texts = Array.from({ length: opts.count }, (_, i) => `${opts.sourcePath} chunk ${i}`);
+  const texts =
+    'texts' in opts
+      ? opts.texts
+      : Array.from({ length: opts.count }, (_, i) => `${opts.sourcePath} chunk ${i}`);
   const chunks = await sql<{ id: string; content: string }[]>`
     INSERT INTO chunks ${sql(
       texts.map((content, ordinal) => ({
@@ -44,4 +48,5 @@ export async function insertSyntheticChunks(
         embedding: pgvector.toSql(fakeEmbedding(c.content, 768)),
       })),
     )}`;
+  return new Map(chunks.map((c) => [c.content, Number(c.id)]));
 }

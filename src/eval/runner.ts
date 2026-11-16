@@ -13,13 +13,18 @@ import {
 } from './metrics';
 import { coverage } from './relevance';
 
-export const RESULT_SCHEMA_VERSION = 1;
+/**
+ * Stamped on every result file (resultHeader). 2 (M14): retrieval files carry `retrieved[].score` (higher is better)
+ * instead of `distance`; the answers layout is unchanged.
+ */
+export const RESULT_SCHEMA_VERSION = 2;
 
 export interface RetrievedHit {
   chunkId: number;
   sourcePath: string;
   content: string;
-  distance: number;
+  /** SearchHit.score: higher is better within one search mode. */
+  score: number;
 }
 
 /** Top k hits per question, in the order of `questions`. */
@@ -41,7 +46,7 @@ export interface QuestionResult {
   firstRelevantRank: number | null;
   /** Per evidence span, in dataset order: covered by any top k chunk. */
   spansCovered: boolean[];
-  retrieved: { chunkId: number; sourcePath: string; distance: number; covers: number[] }[];
+  retrieved: { chunkId: number; sourcePath: string; score: number; covers: number[] }[];
 }
 
 export interface RetrievalCounts {
@@ -80,7 +85,7 @@ export function scoreQuestion(entry: GoldenEntry, hits: readonly RetrievedHit[],
     retrieved: top.map((h, i) => ({
       chunkId: h.chunkId,
       sourcePath: h.sourcePath,
-      distance: h.distance,
+      score: h.score,
       covers: covers[i] ?? [],
     })),
   };
@@ -247,7 +252,7 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
       retrieved: q.retrieved.map((r) => ({
         chunkId: r.chunkId,
         sourcePath: r.sourcePath,
-        distance: round(r.distance, 6),
+        score: round(r.score, 6),
         covers: r.covers,
       })),
     })),

@@ -38,7 +38,7 @@ const hit = (chunkId: number, content: string, sourcePath = 'guides/widget.md'):
   chunkId,
   sourcePath,
   content,
-  distance: chunkId / 3,
+  score: chunkId / 3,
 });
 
 /** q001: its fact at rank 2; q003: nothing relevant. */
@@ -171,7 +171,7 @@ describe('buildResult', () => {
       'spansCovered',
       'retrieved',
     ]);
-    expect(out.questions[0]?.retrieved[0]?.distance).toBe(0.333333);
+    expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);
     expect(serializeResult(out).endsWith('}\n')).toBe(true);
   });
 

@@ -88,13 +88,14 @@ describe('PgRetriever', () => {
       chunk_id: Number(chunk.id),
       source_path: chunk.source_path,
       heading_path: chunk.heading_path,
-      distance: expect.closeTo(0, 6),
+      score: expect.closeTo(1, 6),
     });
-    expect(isAscending(docs.map((d) => d.metadata.distance))).toBe(true);
+    // Vector score = 1 − cosine distance, so it descends.
+    expect(isAscending(docs.map((d) => -d.metadata.score))).toBe(true);
 
-    // The content alone is not the embed text: the fake vector differs, so the distance is not zero.
+    // The content alone is not the embed text: the fake vector differs, so the score is below 1.
     const contentOnly = await retriever.invoke(chunk.content);
-    expect(contentOnly[0]?.metadata.distance).toBeGreaterThan(1e-6);
+    expect(contentOnly[0]?.metadata.score).toBeLessThan(1 - 1e-6);
   });
 });
 

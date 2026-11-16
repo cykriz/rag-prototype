@@ -8,11 +8,12 @@ import { validate } from '../llm/structured';
 import type { ChatProvider, ObjectResult } from '../llm/types';
 import { PostgresLlmCallSink, PostgresRagRequestSink, type RagRequestSink } from '../obs/logger';
 import { type ChunkMetadata, PgRetriever } from '../retrieval/pgRetriever';
+import type { SearchMode } from '../retrieval/search';
 import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, formatContext, NOT_FOUND } from './prompts';
 import { Answer, answerSchemaFor, isAbstention } from './schemas';
 
 export interface AnswerDeps {
-  /** PgRetriever fits; k lives in the retriever. */
+  /** PgRetriever fits; k and the search mode live in the retriever. */
   retriever: { invoke(question: string): Promise<Document<ChunkMetadata>[]> };
   chat: ChatProvider;
   /** Must equal the requestId of the llm_calls sinks behind retriever and chat; buildAnswerDeps guarantees it. */
@@ -48,7 +49,7 @@ export interface AnswerResult {
   latencyMs: number;
 }
 
-/** A failure during retrieval (embedding call or vector search); `cause` is the original error. */
+/** A failure during retrieval (embedding call or search); `cause` is the original error. */
 export class RetrievalError extends Error {
   constructor(cause: unknown) {
     super(cause instanceof Error ? cause.message : String(cause), { cause });
@@ -135,13 +136,26 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
 export function buildAnswerDeps(
   sql: Sql,
   config: Config,
-  opts: { chunkConfig: string; k: number; runId: string; pipeline: string; questionId?: string },
+  opts: {
+    chunkConfig: string;
+    k: number;
+    search: SearchMode;
+    runId: string;
+    pipeline: string;
+    questionId?: string;
+  },
 ): AnswerDeps {
   const requestId = randomUUID();
   const sink = new PostgresLlmCallSink(sql, { runId: opts.runId, requestId });
   const embedder = createEmbeddingProvider(config, sink);
   return {
-    retriever: new PgRetriever({ sql, embedder, chunkConfig: opts.chunkConfig, k: opts.k }),
+    retriever: new PgRetriever({
+      sql,
+      embedder,
+      chunkConfig: opts.chunkConfig,
+      k: opts.k,
+      search: opts.search,
+    }),
     chat: createChatProvider(config, sink),
     requestId,
     runId: opts.runId,

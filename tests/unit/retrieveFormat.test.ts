@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vitest';
 import { formatHits, preview } from '../../src/cli/retrieve';
 import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 
-const doc = (chunk_id: number, distance: number, heading_path: string, pageContent: string) =>
+const doc = (chunk_id: number, score: number, heading_path: string, pageContent: string) =>
   new Document<ChunkMetadata>({
     pageContent,
-    metadata: { chunk_id, source_path: 'runtime/env.md', heading_path, distance },
+    metadata: { chunk_id, source_path: 'runtime/env.md', heading_path, score },
   });
 
 describe('preview', () => {
@@ -23,18 +23,18 @@ describe('preview', () => {
 });
 
 describe('formatHits', () => {
-  const meta = { chunkConfig: 'md-512-64', model: 'nomic-embed-text', k: 2 };
+  const meta = { chunkConfig: 'md-512-64', model: 'nomic-embed-text', k: 2, search: 'vector' as const };
 
-  it('prints rank, distance, chunk ID, source with heading path and a preview line', () => {
+  it('prints rank, score, chunk ID, source with heading path and a preview line', () => {
     const out = formatHits('read env', meta, [
-      doc(12, 0.21345, 'Environment variables', 'Bun reads .env files.'),
-      doc(7, 0.3, '', 'Second chunk.'),
+      doc(12, 0.71345, 'Environment variables', 'Bun reads .env files.'),
+      doc(7, 0.7, '', 'Second chunk.'),
     ]);
     expect(out.split('\n')).toEqual([
-      'Top 2 for "read env" (md-512-64 / nomic-embed-text)',
-      ' 1  0.2135  #12  runtime/env.md > Environment variables',
+      'Top 2 for "read env" (md-512-64 / nomic-embed-text, vector)',
+      ' 1  0.7135  #12  runtime/env.md > Environment variables',
       '    Bun reads .env files.',
-      ' 2  0.3000  #7  runtime/env.md',
+      ' 2  0.7000  #7  runtime/env.md',
       '    Second chunk.',
     ]);
   });
@@ -42,5 +42,11 @@ describe('formatHits', () => {
   it('says so when the config holds fewer chunks than k', () => {
     const out = formatHits('read env', meta, [doc(1, 0.1, '', 'Only one.')]);
     expect(out.split('\n').at(-1)).toBe('only 1 chunks in md-512-64');
+  });
+
+  it('names the search mode and says "matching" when fts finds fewer than k', () => {
+    const out = formatHits('read env', { ...meta, search: 'fts' }, [doc(1, 0.1, '', 'Only one.')]);
+    expect(out.split('\n')[0]).toBe('Top 2 for "read env" (md-512-64 / nomic-embed-text, fts)');
+    expect(out.split('\n').at(-1)).toBe('only 1 matching chunks in md-512-64');
   });
 });

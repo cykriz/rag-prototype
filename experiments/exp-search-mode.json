@@ -1,0 +1,6 @@
+{
+  "id": "exp-search-mode",
+  "base": { "chunkConfig": "md-1024-128", "embed": "nomic-embed-text", "k": 5, "split": "test" },
+  "vary": { "search": ["vector", "fts", "hybrid"] },
+  "evals": ["retrieval"]
+}

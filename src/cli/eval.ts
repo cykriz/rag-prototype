@@ -22,7 +22,7 @@ import {
   singleConfig,
   type VaryKey,
 } from '../eval/experiment';
-import { checkIngest, fetchRunKpis, pgVectorSearch } from '../eval/pgSource';
+import { checkIngest, fetchRunKpis, pgSearch } from '../eval/pgSource';
 import {
   buildResult,
   formatSummary,
@@ -36,14 +36,13 @@ import { createChatProvider, createEmbeddingProvider } from '../llm/registry';
 import { isConnectionError } from '../llm/retry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { answer, buildAnswerDeps } from '../rag/answer';
+import { pipelineName } from '../retrieval/search';
 import { requireEmbeddings } from '../retrieval/vector';
 import { answerErrorMessage } from './ask';
 import { resolveRetrievalConfig } from './common';
 import { DB_DOWN, describeError, isDatabaseDown } from './errors';
 
 const DEFAULT_OUT = 'results';
-/** rag_requests.pipeline of the answer eval; phase 2 pipelines get their own names. */
-const PIPELINE = 'baseline';
 const USAGE =
   `Usage: bun run eval:<retrieval|answers> --config experiments/baseline.json [--split ${SPLITS.join('|')}] ` +
   `[--dataset ${DEFAULT_DATASET}] [--out ${DEFAULT_OUT}] [--seed <uint32>]\n` +
@@ -271,7 +270,7 @@ async function evaluateRetrieval(p: Prepared): Promise<number> {
       entries: p.entries,
       split: run.split,
       k: run.k,
-      search: pgVectorSearch(sql, embedder, { chunkConfig, k: run.k }),
+      search: pgSearch(sql, embedder, { mode: run.search, chunkConfig, k: run.k }),
     });
     const output = buildResult({ ...commonMeta(p, runId), embed }, result);
     await writeResult(p, output, formatSummary(output));
@@ -356,7 +355,8 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
             chunkConfig,
             k: run.k,
             runId,
-            pipeline: PIPELINE,
+            search: run.search,
+            pipeline: pipelineName(run.search),
             questionId: entry.id,
           }),
         ),
