@@ -15,7 +15,7 @@ ollama pull gemma3:12b                # judge, only needed for the evals
 docker compose up -d                  # PostgreSQL 17 + pgvector
 bun run db:migrate && bun run db:embeddings
 ./scripts/fetch-corpus.sh             # Bun docs at the pinned commit into corpus/
-bun run ingest --chunk md-1024-128    # chunk, embed and store the corpus
+bun run ingest                        # chunk, embed and store the corpus
 ```
 
 On a machine with 16 GB of memory, set `MODEL_PROFILE=light` in `.env`, which uses `qwen2.5:3b` and `llama3.1:8b` instead. Every setup step is idempotent and can be run again.
@@ -23,10 +23,10 @@ On a machine with 16 GB of memory, set `MODEL_PROFILE=light` in `.env`, which us
 ### Ask a question
 
 ```bash
-bun run ask --chunk md-1024-128 "How do I read environment variables in Bun?"
+bun run ask "How do I read environment variables in Bun?"
 ```
 
-The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do not cover the question. Without further flags this is the configuration the experiments below selected: md-1024-128 chunks, top 5, vector search. Optional flags:
+The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do not cover the question. Without further flags this is the configuration the experiments below selected: md-1024-128 chunks, top 5, vector search. `--chunk md-512-64` or `md-256-32` searches another ingested chunk set. Optional flags:
 
 - `--k <n>`: number of chunks in the context (default 5).
 - `--search fts|hybrid`: full text or hybrid search instead of vector search.
@@ -34,7 +34,7 @@ The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do n
 - `--rerank`: LLM reranking of the top 20 (about 30 s slower per question, see below).
 - `--pipeline agent`: the model calls a search tool itself, up to four times, and prints its trace first.
 
-`bun run retrieve --chunk md-1024-128 "<question>"` shows only the retrieved chunks with their scores, which helps to debug a poor answer.
+`bun run retrieve "<question>"` shows only the retrieved chunks with their scores, which helps to debug a poor answer.
 
 ### Evaluate
 

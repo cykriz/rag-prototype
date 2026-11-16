@@ -1,4 +1,4 @@
-// bun run ingest [--chunk md-512-64] [--embed <model>] [--root corpus/bun-docs/docs] [--force] [--prune]
+// bun run ingest [--chunk md-1024-128] [--embed <model>] [--root corpus/bun-docs/docs] [--force] [--prune]
 // Idempotent ingest of the corpus into documents, chunks and emb_<model> (docs/PLAN.md M7).
 import { randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
