@@ -21,8 +21,11 @@ export interface ToolDef {
   parameters: Record<string, unknown>;
 }
 
-/** llm_calls.operation of a chat-model call; judge calls go through ChatProvider.judge instead. */
-export type ChatOperation = 'generate' | 'rewrite' | 'expand' | 'rerank';
+/**
+ * llm_calls.operation of a chat-model call; judge calls go through ChatProvider.judge instead. Every chat call of the
+ * agent pipeline (M18) is an agent_step.
+ */
+export type ChatOperation = 'generate' | 'rewrite' | 'expand' | 'rerank' | 'agent_step';
 
 export interface GenerateRequest {
   messages: Message[];

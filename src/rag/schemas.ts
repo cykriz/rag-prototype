@@ -50,7 +50,8 @@ export function answerSchemaFor(contextIds: readonly number[]) {
  */
 export const MAX_QUERY_CHARS = 500;
 
-const SearchQueryText = z.string().trim().min(1).max(MAX_QUERY_CHARS);
+/** A search query: trimmed, non-empty, at most MAX_QUERY_CHARS (rewrite, expand and the agent's search_docs, M18). */
+export const SearchQueryText = z.string().trim().min(1).max(MAX_QUERY_CHARS);
 
 /**
  * Query rewrite (M15). Trimmed, non-empty and capped, so empty, whitespace-only and runaway outputs go through the

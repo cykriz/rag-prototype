@@ -57,3 +57,29 @@ describe('parseQuestionArgs --rerank', () => {
     });
   });
 });
+
+describe('parseQuestionArgs --pipeline', () => {
+  const ask = { pipelineFlag: true };
+
+  it('is only accepted when the caller enables it (ask, not retrieve)', () => {
+    expect(() => parseQuestionArgs(['q', '--pipeline', 'agent'])).toThrow();
+    expect(parseQuestionArgs(['q'])).toMatchObject({ agent: false });
+  });
+
+  it('defaults to baseline and takes agent next to --search', () => {
+    expect(parseQuestionArgs(['q'], ask)).toMatchObject({ agent: false });
+    expect(parseQuestionArgs(['q', '--pipeline', 'agent', '--search', 'hybrid'], ask)).toMatchObject({
+      agent: true,
+      pipeline: { search: 'hybrid', rewrite: 'off', expand: 'off', rerank: 'off' },
+    });
+  });
+
+  it('rejects unknown values, the query stages and a k above the tool limit with agent', () => {
+    expect(() => parseQuestionArgs(['q', '--pipeline', 'graph'], ask)).toThrow('--pipeline must be one of');
+    for (const flag of ['--rewrite', '--expand', '--rerank']) {
+      expect(() => parseQuestionArgs(['q', '--pipeline', 'agent', flag], ask)).toThrow('does not combine');
+    }
+    expect(() => parseQuestionArgs(['q', '--pipeline', 'agent', '--k', '11'], ask)).toThrow('at most 10');
+    expect(parseQuestionArgs(['q', '--rerank', '--k', '11'], ask)).toMatchObject({ agent: false, k: 11 });
+  });
+});

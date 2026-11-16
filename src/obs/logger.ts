@@ -25,7 +25,7 @@ import type {
  * Mirrors the CHECK list of llm_calls.operation (docs/PLAN.md §4). The chat-model operations come from ChatOperation,
  * so a request can only carry an operation the table accepts.
  */
-export type Operation = ChatOperation | 'embed' | 'judge' | 'agent_step';
+export type Operation = ChatOperation | 'embed' | 'judge';
 export type CallStatus = 'ok' | 'error' | 'invalid_output';
 
 /** One llm_calls row without id, run_id, request_id and created_at. */

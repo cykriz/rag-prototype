@@ -87,10 +87,47 @@ export class RetrievalError extends Error {
   }
 }
 
-/** The base Answer from the final raw output, or null when even that does not parse. */
-function salvage(raw: string | null): Answer | null {
-  const v = validate(raw, Answer);
+/**
+ * The Answer of a generateObject call: the validated value, or for invalid_output the base Answer salvaged from the
+ * final raw output (null when even that does not parse), so citations outside the context can still be dropped.
+ */
+export function modelAnswer(res: ObjectResult<Answer>): Answer | null {
+  if (res.status === 'ok') {
+    return res.value;
+  }
+  const v = validate(res.raw, Answer);
   return v.ok ? v.value : null;
+}
+
+/** The abstention when nothing was retrieved: no model call (answer() and the agent, M18). */
+export const NO_CONTEXT_ANSWER: Answer = { found: false, answer: NOT_FOUND, citations: [] };
+
+export type AnswerFields = Pick<AnswerResult, 'found' | 'answer' | 'citations' | 'droppedCitations'>;
+
+/**
+ * Maps the model's Answer onto the result: null → unusable (found null), an abstention → NOT_FOUND, otherwise the
+ * unique citations resolved against `byId` (the chunks the model saw); IDs outside it go to droppedCitations. Shared by
+ * answer() and the agent (M18), whose `byId` is the union of its tool results.
+ */
+export function answerFields(model: Answer | null, byId: ReadonlyMap<number, ChunkMetadata>): AnswerFields {
+  if (model === null) {
+    return { found: null, answer: null, citations: [], droppedCitations: [] };
+  }
+  if (isAbstention(model)) {
+    return { found: false, answer: NOT_FOUND, citations: [], droppedCitations: [] };
+  }
+  const citations: Citation[] = [];
+  const droppedCitations: number[] = [];
+  for (const id of new Set(model.citations)) {
+    const meta = byId.get(id);
+    if (meta) {
+      citations.push({ chunkId: id, sourcePath: meta.source_path, headingPath: meta.heading_path });
+    } else {
+      droppedCitations.push(id);
+    }
+  }
+  // found stays true even with zero valid citations: the citation-validity metric (M12) must see it.
+  return { found: true, answer: model.answer, citations, droppedCitations };
 }
 
 export async function answer(question: string, deps: AnswerDeps): Promise<AnswerResult> {
@@ -130,7 +167,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
   let repairs = 0;
   if (docs.length === 0) {
     // Nothing to ground an answer on; no model call.
-    model = { found: false, answer: NOT_FOUND, citations: [] };
+    model = NO_CONTEXT_ANSWER;
   } else {
     const res: ObjectResult<Answer> = await deps.chat.generateObject(
       {
@@ -142,40 +179,11 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
     );
     repairs = res.repairs;
     status = res.status;
-    model = res.status === 'ok' ? res.value : salvage(res.raw);
+    model = modelAnswer(res);
   }
 
-  let result: Pick<AnswerResult, 'found' | 'answer' | 'citations' | 'droppedCitations'>;
-  if (model === null) {
-    result = { found: null, answer: null, citations: [], droppedCitations: [] };
-  } else if (isAbstention(model)) {
-    result = { found: false, answer: NOT_FOUND, citations: [], droppedCitations: [] };
-  } else {
-    const unique = [...new Set(model.citations)];
-    const citations: Citation[] = [];
-    const droppedCitations: number[] = [];
-    for (const id of unique) {
-      const meta = byId.get(id);
-      if (meta) {
-        citations.push({ chunkId: id, sourcePath: meta.source_path, headingPath: meta.heading_path });
-      } else {
-        droppedCitations.push(id);
-      }
-    }
-    // found stays true even with zero valid citations: the citation-validity metric (M12) must see it.
-    result = { found: true, answer: model.answer, citations, droppedCitations };
-  }
-
-  const latencyMs = Math.round(performance.now() - start);
-  await deps.requestSink.write({
-    requestId: deps.requestId,
-    runId: deps.runId,
-    questionId: deps.questionId ?? null,
-    pipeline: deps.pipeline,
-    totalLatencyMs: latencyMs,
-    retrievedIds,
-    found: result.found,
-  });
+  const result = answerFields(model, byId);
+  const latencyMs = await writeRequest(deps, start, retrievedIds, result.found);
   return {
     requestId: deps.requestId,
     ...result,
@@ -187,6 +195,45 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
     status,
     repairs,
     latencyMs,
+  };
+}
+
+/** What identifies a request in rag_requests; shared by AnswerDeps and the agent's deps (M18). */
+export type RequestMeta = Pick<AnswerDeps, 'requestId' | 'runId' | 'pipeline' | 'questionId' | 'requestSink'>;
+
+/** Writes the request's rag_requests row with the latency since `start` (performance.now()) and returns it. */
+export async function writeRequest(
+  meta: RequestMeta,
+  start: number,
+  retrievedIds: number[],
+  found: boolean | null,
+): Promise<number> {
+  const latencyMs = Math.round(performance.now() - start);
+  await meta.requestSink.write({
+    requestId: meta.requestId,
+    runId: meta.runId,
+    questionId: meta.questionId ?? null,
+    pipeline: meta.pipeline,
+    totalLatencyMs: latencyMs,
+    retrievedIds,
+    found,
+  });
+  return latencyMs;
+}
+
+/**
+ * One requestId with the llm_calls sink, both providers and the rag_requests sink behind it, so every row of a
+ * request carries the same ID; shared by buildAnswerDeps and buildAgentDeps. Throws before any model call when a
+ * model has no price (registry).
+ */
+export function requestWiring(sql: Sql, config: Config, runId: string) {
+  const requestId = randomUUID();
+  const sink = new PostgresLlmCallSink(sql, { runId, requestId });
+  return {
+    requestId,
+    embedder: createEmbeddingProvider(config, sink),
+    chat: createChatProvider(config, sink),
+    requestSink: new PostgresRagRequestSink(sql),
   };
 }
 
@@ -206,10 +253,7 @@ export function buildAnswerDeps(
     questionId?: string;
   },
 ): AnswerDeps {
-  const requestId = randomUUID();
-  const sink = new PostgresLlmCallSink(sql, { runId: opts.runId, requestId });
-  const embedder = createEmbeddingProvider(config, sink);
-  const chat = createChatProvider(config, sink);
+  const { requestId, embedder, chat, requestSink } = requestWiring(sql, config, opts.runId);
   return {
     retriever: new PgRetriever({
       sql,
@@ -226,6 +270,6 @@ export function buildAnswerDeps(
     runId: opts.runId,
     pipeline: pipelineName(opts.pipeline),
     ...(opts.questionId !== undefined && { questionId: opts.questionId }),
-    requestSink: new PostgresRagRequestSink(sql),
+    requestSink,
   };
 }

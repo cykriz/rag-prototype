@@ -1,15 +1,45 @@
 // bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
-//   [--rewrite | --expand] [--rerank]
+//   [--rewrite | --expand] [--rerank] [--pipeline baseline|agent]
 // Retrieves (reranked with --rerank, M17), answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
+// --pipeline agent (M18b): the LangGraph agent searches itself; its tool-call trace is printed before the answer.
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
+import { type AgentResult, buildAgentDeps, runAgent } from '../agent/graph';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
+import { MAX_TOOL_CALLS } from '../rag/pipeline';
 import { sourceLabel } from '../retrieval/pgRetriever';
-import { QUESTION_FLAGS, runQuestionCli } from './common';
+import { ANSWER_PIPELINES, QUESTION_FLAGS, runQuestionCli } from './common';
 import { DB_DOWN, describeError, isDatabaseDown, unwrapStageError } from './errors';
 
-const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS}`;
+const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS} [--pipeline ${ANSWER_PIPELINES.join('|')}]`;
+
+/** One line per search_docs call (query, k, returned chunk IDs), then limit and fallback notes (M18b). */
+export function formatAgentTrace(
+  res: Pick<AgentResult, 'trace' | 'skippedToolCalls' | 'stoppedAtLimit' | 'answerFallback'>,
+): string {
+  const lines = res.trace.map((step, i) => {
+    const n = `[${i + 1}]`;
+    if (step.error !== null) {
+      return `${n} search_docs error: ${step.error}`;
+    }
+    const requested =
+      step.kRequested !== null && step.kRequested !== step.k ? ` (requested ${step.kRequested})` : '';
+    const ids = step.chunkIds.length > 0 ? step.chunkIds.join(', ') : '(no results)';
+    return `${n} search_docs(${JSON.stringify(step.query)}, k=${step.k}${requested}) → ${ids}`;
+  });
+  if (res.trace.length === 0) {
+    lines.push('[0] no search');
+  }
+  if (res.stoppedAtLimit) {
+    const skipped = res.skippedToolCalls > 0 ? `; ${res.skippedToolCalls} more not executed` : '';
+    lines.push(`[limit] stopped after ${MAX_TOOL_CALLS} tool calls${skipped}`);
+  }
+  if (res.answerFallback) {
+    lines.push('[answer] structured answer call over the retrieved chunks');
+  }
+  return lines.join('\n');
+}
 
 /** stdout: answer, citations and the found flag; stderr: warnings about dropped or missing citations. */
 export function formatAnswer(res: AnswerResult): { out: string; warnings: string[] } {
@@ -57,33 +87,45 @@ export async function answerErrorMessage(err: unknown, config: Config, sql: Sql)
 }
 
 function main(argv: string[]): Promise<number> {
-  return runQuestionCli(argv, USAGE, async ({ args, config, chunkConfig, sql }) => {
-    let res: AnswerResult;
-    try {
-      const deps = buildAnswerDeps(sql, config, {
-        chunkConfig,
-        k: args.k,
-        runId: `ask-${randomUUID()}`,
-        pipeline: args.pipeline,
-      });
-      res = await answer(args.question, deps);
-    } catch (err) {
-      console.error(await answerErrorMessage(err, config, sql));
-      return 1;
-    }
-    if (res.found === null) {
-      console.error(
-        `The model returned no usable answer after ${res.repairs} repairs (request ${res.requestId})`,
-      );
-      return 1;
-    }
-    const { out, warnings } = formatAnswer(res);
-    console.log(out);
-    for (const w of warnings) {
-      console.error(w);
-    }
-    return 0;
-  });
+  return runQuestionCli(
+    argv,
+    USAGE,
+    async ({ args, config, chunkConfig, sql }) => {
+      let res: AnswerResult;
+      const runId = `ask-${randomUUID()}`;
+      try {
+        if (args.agent) {
+          const agentRes = await runAgent(
+            args.question,
+            buildAgentDeps(sql, config, { chunkConfig, k: args.k, search: args.pipeline.search, runId }),
+          );
+          console.log(`${formatAgentTrace(agentRes)}\n`);
+          res = agentRes;
+        } else {
+          res = await answer(
+            args.question,
+            buildAnswerDeps(sql, config, { chunkConfig, k: args.k, runId, pipeline: args.pipeline }),
+          );
+        }
+      } catch (err) {
+        console.error(await answerErrorMessage(err, config, sql));
+        return 1;
+      }
+      if (res.found === null) {
+        console.error(
+          `The model returned no usable answer after ${res.repairs} repairs (request ${res.requestId})`,
+        );
+        return 1;
+      }
+      const { out, warnings } = formatAnswer(res);
+      console.log(out);
+      for (const w of warnings) {
+        console.error(w);
+      }
+      return 0;
+    },
+    { pipelineFlag: true },
+  );
 }
 
 if (import.meta.main) {

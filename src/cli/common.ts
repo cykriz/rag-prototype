@@ -10,6 +10,7 @@ import {
   DEFAULT_EXPAND,
   DEFAULT_RERANK,
   DEFAULT_REWRITE,
+  MAX_TOOL_K,
   type PipelineConfig,
 } from '../rag/pipeline';
 import { DEFAULT_SEARCH, SEARCH_MODES, type SearchMode } from '../retrieval/search';
@@ -21,6 +22,14 @@ export const DEFAULT_K = 5;
 /** Flags shared by retrieve and ask, for their usage lines. */
 export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
 
+/** Values of ask's --pipeline (M18b): the retrieve-then-answer pipeline or the agent. */
+export const ANSWER_PIPELINES = ['baseline', 'agent'] as const;
+
+/** Options of parseQuestionArgs/runQuestionCli; only ask takes --pipeline, so retrieve keeps rejecting it. */
+export interface QuestionArgsOptions {
+  pipelineFlag?: boolean;
+}
+
 export type QuestionArgs =
   | { help: true }
   | {
@@ -31,10 +40,12 @@ export type QuestionArgs =
       embed: string | undefined;
       /** The stages around retrieval (--search, --rewrite, --expand, --rerank); later stages add their flags here. */
       pipeline: PipelineConfig;
+      /** --pipeline agent (ask only, M18b): the agent searches with pipeline.search; the other stages are off. */
+      agent: boolean;
     };
 
 /** Throws on a usage error (exit 2 in the CLIs). */
-export function parseQuestionArgs(argv: string[]): QuestionArgs {
+export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}): QuestionArgs {
   const { values, positionals } = parseArgs({
     args: argv,
     strict: true,
@@ -48,6 +59,7 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
       expand: { type: 'boolean', default: DEFAULT_EXPAND === 'on' },
       rerank: { type: 'boolean', default: DEFAULT_RERANK === 'on' },
       help: { type: 'boolean', short: 'h', default: false },
+      ...(opts.pipelineFlag && { pipeline: { type: 'string', default: 'baseline' } }),
     },
   });
   if (values.help) {
@@ -70,7 +82,21 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
     rerank: values.rerank ? 'on' : 'off',
   };
   assertPipeline(pipeline);
-  return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline };
+  const mode = 'pipeline' in values ? values.pipeline : 'baseline';
+  if (!(ANSWER_PIPELINES as readonly unknown[]).includes(mode)) {
+    throw new Error(`--pipeline must be one of ${ANSWER_PIPELINES.join(', ')}, got "${mode}"`);
+  }
+  const agent = mode === 'agent';
+  if (agent) {
+    // Not evaluated together with the agent; --search stays, it picks the agent's search mode.
+    if (values.rewrite || values.expand || values.rerank) {
+      throw new Error('--pipeline agent does not combine with --rewrite, --expand or --rerank');
+    }
+    if (k > MAX_TOOL_K) {
+      throw new Error(`--k must be at most ${MAX_TOOL_K} with --pipeline agent, got ${k}`);
+    }
+  }
+  return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline, agent };
 }
 
 export interface RetrievalSetup {
@@ -99,10 +125,11 @@ export async function runQuestionCli(
   argv: string[],
   usage: string,
   body: (ctx: QuestionCliContext) => Promise<number>,
+  opts: QuestionArgsOptions = {},
 ): Promise<number> {
   let args: QuestionArgs;
   try {
-    args = parseQuestionArgs(argv);
+    args = parseQuestionArgs(argv, opts);
   } catch (err) {
     console.error(`${err instanceof Error ? err.message : String(err)}\n${usage}`);
     return 2;

@@ -1,5 +1,5 @@
 // The pipeline stages around retrieval (docs/PLAN.md M14–M17): one object travels from the CLIs and the eval config
-// to buildAnswerDeps and the retrieval eval, so a new stage widens this type, not every call site.
+// to buildAnswerDeps and the retrieval eval, so a new stage widens this type, not every call site. Agent limits: M18.
 import type { SearchMode } from '../retrieval/search';
 
 export const REWRITE_MODES = ['off', 'on'] as const;
@@ -77,3 +77,15 @@ export function pipelineName(p: PipelineConfig): string {
   }
   return [p.search, ...stages].join('+');
 }
+
+/** Hard limit of executed search_docs calls per agent request (docs/PLAN.md M18a). */
+export const MAX_TOOL_CALLS = 4;
+/**
+ * Largest k the agent may request per search_docs call; larger requests are clamped. 4 calls × 10 md-1024-128 chunks
+ * (about 2000 characters each) stay near 20k tokens, inside qwen2.5:7b's 32k context.
+ */
+export const MAX_TOOL_K = 10;
+
+/** rag_requests.pipeline of the agent (M18): `agent` with vector search as the tool, `<search>+agent` otherwise. */
+export const agentPipelineName = (search: SearchMode): string =>
+  search === 'vector' ? 'agent' : `${search}+agent`;

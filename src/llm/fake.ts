@@ -15,8 +15,17 @@ import type {
 export const FAKE_CHAT_MODEL = 'fake-chat';
 export const FAKE_JUDGE_MODEL = 'fake-judge';
 
-/** One scripted reply: raw content, or an error to throw. */
-export type ScriptedReply = string | Error;
+/**
+ * A scripted assistant turn with tool calls (M18). `arguments` that are not a string are JSON-encoded; ids are
+ * `call_<n>`, counted over the provider's lifetime.
+ */
+export interface ScriptedToolCalls {
+  toolCalls: { name: string; arguments: unknown }[];
+  text?: string;
+}
+
+/** One scripted reply: raw content, an error to throw, or tool calls (generate only). */
+export type ScriptedReply = string | Error | ScriptedToolCalls;
 
 /**
  * Replies come from one shared queue, consumed in call order by generate, generateObject and judge.
@@ -25,10 +34,11 @@ export type ScriptedReply = string | Error;
 export class FakeChatProvider implements ChatProvider {
   /** Every message list the fake received, for assertions. */
   readonly calls: Message[][] = [];
+  private toolCallCount = 0;
 
   constructor(private readonly script: ScriptedReply[] = []) {}
 
-  private next(messages: Message[]): string | undefined {
+  private next(messages: Message[]): string | ScriptedToolCalls | undefined {
     this.calls.push(messages);
     const reply = this.script.shift();
     if (reply instanceof Error) {
@@ -39,6 +49,14 @@ export class FakeChatProvider implements ChatProvider {
 
   async generate(req: GenerateRequest): Promise<GenerateResult> {
     const scripted = this.next(req.messages);
+    if (typeof scripted === 'object') {
+      const toolCalls = scripted.toolCalls.map((c) => ({
+        id: `call_${++this.toolCallCount}`,
+        name: c.name,
+        arguments: typeof c.arguments === 'string' ? c.arguments : JSON.stringify(c.arguments),
+      }));
+      return { text: scripted.text ?? null, toolCalls, model: FAKE_CHAT_MODEL, attempts: 1 };
+    }
     const lastUser = req.messages.findLast((m) => m.role === 'user')?.content ?? '';
     return { text: scripted ?? `fake: ${lastUser}`, toolCalls: [], model: FAKE_CHAT_MODEL, attempts: 1 };
   }
@@ -49,6 +67,9 @@ export class FakeChatProvider implements ChatProvider {
         const content = this.next(messages);
         if (content === undefined) {
           throw new Error('FakeChatProvider: no scripted response');
+        }
+        if (typeof content === 'object') {
+          throw new Error('FakeChatProvider: scripted tool calls are for generate only');
         }
         return { content, model, attempts: 1 };
       },

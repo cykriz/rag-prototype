@@ -1,10 +1,10 @@
-// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite (M15), expansion (M16) and
-// rerank (M17) prompts.
+// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite (M15), expansion (M16),
+// rerank (M17) and agent (M18) prompts.
 import type { Document } from '@langchain/core/documents';
 import type { Message } from '../llm/types';
 import { type ChunkMetadata, sourceLabel } from '../retrieval/pgRetriever';
 import type { SearchHit } from '../retrieval/search';
-import { MAX_EXPANSIONS, MAX_RERANK_SCORE, RERANK_CONTEXT_CHARS } from './pipeline';
+import { MAX_EXPANSIONS, MAX_RERANK_SCORE, MAX_TOOL_CALLS, RERANK_CONTEXT_CHARS } from './pipeline';
 
 export const NOT_FOUND = 'NOT_FOUND';
 /** Fixed for reproducible runs (docs/PLAN.md §7). */
@@ -123,5 +123,25 @@ export function buildRerankMessages(question: string, candidates: readonly Reran
   return [
     { role: 'system', content: RERANK_SYSTEM_PROMPT },
     { role: 'user', content: `Excerpts:\n\n${excerpts}\n\nQuestion: ${question}` },
+  ];
+}
+
+/** Fixed like the answer settings, so an agent run is reproducible (M18). */
+export const AGENT_TEMPERATURE = 0;
+export const AGENT_SEED = 42;
+
+export const AGENT_SYSTEM_PROMPT = `You answer questions about the Bun documentation (the JavaScript runtime, package manager, bundler and test runner). You cannot see the documentation; search it with the search_docs tool.
+
+Rules:
+1. Call search_docs with a focused query in English. You may search at most ${MAX_TOOL_CALLS} times in total; search again with different terms only if the results so far do not answer the question.
+2. Use only facts stated in the search results. Do not use prior knowledge, even if you know the answer.
+3. Every result chunk starts with a header like [chunk:123]. Put the number of every chunk you used in "citations", e.g. 123. Cite only numbers that appear in a header of a search result.
+4. If the search results do not contain the answer, reply with "found": false, "answer": "${NOT_FOUND}" and "citations": [].
+5. When you are done searching, reply without a tool call, with only a JSON object: {"found": boolean, "answer": string, "citations": number[]}`;
+
+export function buildAgentMessages(question: string): Message[] {
+  return [
+    { role: 'system', content: AGENT_SYSTEM_PROMPT },
+    { role: 'user', content: `Question: ${question}` },
   ];
 }
