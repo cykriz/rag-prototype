@@ -122,7 +122,7 @@ interface CallKpis {
   /** Share of calls with status invalid_output. */
   invalidOutputRate: number;
   costUsd: number;
-  /** percentile_cont over llm_calls.latency_ms of the group (M15/M16: rewrite or expand cost per request). */
+  /** percentile_cont over llm_calls.latency_ms of the group (M15–M17: a chat stage's cost per request). */
   latencyP50Ms: number | null;
   latencyP95Ms: number | null;
 }
@@ -247,6 +247,7 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       retrievedIds: q.result.retrievedIds,
       rewrite: q.result.rewrite,
       expand: q.result.expand,
+      rerank: q.result.rerank,
       citationValid: q.citationValid,
       judge: verdict(q.judge),
       judgeRepeat: verdict(q.judgeRepeat),

@@ -58,7 +58,7 @@ function scriptedDeps(runId: string, script: string[], questionId?: string) {
     chunkConfig: CHUNK_CONFIG.key,
     k: chunkIds.length,
     runId,
-    pipeline: { search: 'vector', rewrite: 'off', expand: 'off' },
+    pipeline: { search: 'vector', rewrite: 'off', expand: 'off', rerank: 'off' },
     ...(questionId !== undefined && { questionId }),
   });
   deps.chat = new LoggedChatProvider(new FakeChatProvider(script), {

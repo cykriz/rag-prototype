@@ -1,13 +1,17 @@
 // bun run retrieve "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
-//   [--rewrite | --expand]
+//   [--rewrite | --expand] [--rerank]
 // Prints the top k chunks with score, chunk ID and source (docs/PLAN.md M8, M14); with --rewrite it searches with the
 // rewritten query (M15), with --expand with the question and its expansions fused by RRF (M16), and prints the
-// queries on stderr.
+// queries on stderr. With --rerank it fetches max(k, 20) candidates, reranks them with the chat model and prints the
+// top k in rerank order (M17; the score column stays the search score), the rerank summary on stderr.
 import { randomUUID } from 'node:crypto';
 import type { Document } from '@langchain/core/documents';
 import { createChatProvider, createEmbeddingProvider } from '../llm/registry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { type ExpandTrace, expandQuery, searchQueries } from '../rag/expand';
+import { retrievalDepth } from '../rag/pipeline';
+import { preview } from '../rag/prompts';
+import { documentCandidate, type RerankTrace, rerankerFor, rerankItems } from '../rag/rerank';
 import { rewriteQuery } from '../rag/rewrite';
 import { type ChunkMetadata, PgRetriever, sourceLabel } from '../retrieval/pgRetriever';
 import type { SearchMode } from '../retrieval/search';
@@ -17,12 +21,6 @@ import { retrievalErrorMessage } from './errors';
 const PREVIEW_CHARS = 120;
 
 const USAGE = `Usage: bun run retrieve "<question>" ${QUESTION_FLAGS}`;
-
-/** Whitespace collapsed, cut to `max` characters with an ellipsis. */
-export function preview(text: string, max = PREVIEW_CHARS): string {
-  const flat = text.replace(/\s+/g, ' ').trim();
-  return flat.length > max ? `${flat.slice(0, max - 1).trimEnd()}…` : flat;
-}
 
 export function formatHits(
   question: string,
@@ -35,7 +33,7 @@ export function formatHits(
     const { chunk_id, score } = d.metadata;
     const rank = String(i + 1).padStart(width + 1);
     lines.push(`${rank}  ${score.toFixed(4)}  #${chunk_id}  ${sourceLabel(d.metadata)}`);
-    lines.push(`${' '.repeat(width + 1)}  ${preview(d.pageContent)}`);
+    lines.push(`${' '.repeat(width + 1)}  ${preview(d.pageContent, PREVIEW_CHARS)}`);
   });
   if (docs.length < meta.k) {
     lines.push(
@@ -63,9 +61,33 @@ export function formatExpansion(trace: ExpandTrace): string {
   ].join('\n');
 }
 
+/** The stderr line(s) of --rerank: the kept chunks with model score and search rank, or why the order is unchanged. */
+export function formatRerank(trace: RerankTrace, k: number): string {
+  if (trace.fallback) {
+    return `rerank: invalid output after ${trace.repairs} repairs, keeping the search order`;
+  }
+  if (trace.candidates.length < 2) {
+    return `rerank: ${trace.candidates.length} candidate${trace.candidates.length === 1 ? '' : 's'}, nothing to rerank`;
+  }
+  const ignored = [
+    trace.unknown > 0 && `${trace.unknown} unknown`,
+    trace.duplicates > 0 && `${trace.duplicates} duplicate`,
+    trace.missing > 0 && `${trace.missing} missing`,
+  ].filter(Boolean);
+  const kept = Math.min(k, trace.order.length);
+  return [
+    `rerank: ${trace.candidates.length} candidates, top ${kept} kept` +
+      (ignored.length > 0 ? ` (IDs: ${ignored.join(', ')})` : ''),
+    ...trace.order.slice(0, kept).map((id, i) => {
+      const score = trace.scores[i];
+      return `  #${id}  score ${score === null || score === undefined ? '-' : score}  search rank ${trace.candidates.indexOf(id) + 1}`;
+    }),
+  ].join('\n');
+}
+
 function main(argv: string[]): Promise<number> {
   return runQuestionCli(argv, USAGE, async ({ args, config, chunkConfig, sql }) => {
-    const { search, rewrite, expand } = args.pipeline;
+    const { search, rewrite, expand, rerank } = args.pipeline;
     try {
       const sink = new PostgresLlmCallSink(sql, { runId: `retrieve-${randomUUID()}` });
       let query = args.question;
@@ -79,7 +101,8 @@ function main(argv: string[]): Promise<number> {
         );
       }
       const embedder = createEmbeddingProvider(config, sink);
-      const retriever = new PgRetriever({ sql, embedder, chunkConfig, k: args.k, search });
+      const k = retrievalDepth(args.pipeline, args.k);
+      const retriever = new PgRetriever({ sql, embedder, chunkConfig, k, search });
       let docs: Document<ChunkMetadata>[];
       if (expand === 'on') {
         const trace = await expandQuery(createChatProvider(config, sink), args.question);
@@ -87,6 +110,17 @@ function main(argv: string[]): Promise<number> {
         docs = await retriever.invokeMany(searchQueries(args.question, trace));
       } else {
         docs = await retriever.invoke(query);
+      }
+      if (rerank === 'on') {
+        const { kept, trace } = await rerankItems(
+          rerankerFor(createChatProvider(config, sink)),
+          args.question,
+          docs,
+          documentCandidate,
+          args.k,
+        );
+        console.error(formatRerank(trace, args.k));
+        docs = kept;
       }
       console.log(
         formatHits(args.question, { chunkConfig, model: config.embedModel, k: args.k, search }, docs),

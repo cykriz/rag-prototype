@@ -91,6 +91,7 @@ const result = (found: boolean | null, over: Partial<AnswerResult> = {}): Answer
   found,
   rewrite: null,
   expand: null,
+  rerank: null,
   answer: found === true ? 'an answer' : found === false ? NOT_FOUND : null,
   citations: found === true ? [{ chunkId: 1, sourcePath: 'guides/widget.md', headingPath: '' }] : [],
   droppedCitations: [],
@@ -283,6 +284,7 @@ const CONFIG: RunConfig = {
   split: 'dev',
   rewrite: 'off',
   expand: 'off',
+  rerank: 'off',
 };
 const fake = (name: string) => ({ provider: 'fake', name, tag: null, digest: null });
 const META = {
@@ -356,6 +358,7 @@ describe('buildAnswerResult', () => {
       invalidAnswers: 1,
       rewriteFallbacks: null,
       expandFallbacks: null,
+      rerankFallbacks: null,
     });
     expect(out.aggregate.all).toMatchObject({ citationValidity: 0.6667, invalidAnswerRate: 0.1667 });
     expect(out.aggregate.human).toEqual({
@@ -397,6 +400,7 @@ describe('buildAnswerResult', () => {
       'retrievedIds',
       'rewrite',
       'expand',
+      'rerank',
       'citationValid',
       'judge',
       'judgeRepeat',

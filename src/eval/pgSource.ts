@@ -5,7 +5,7 @@ import type { EmbeddingProvider } from '../llm/types';
 import { multiSearch } from '../retrieval/multi';
 import { embedQueries, needsEmbedding, type SearchHit, type SearchMode, searchWith } from '../retrieval/search';
 import type { RunKpis } from './answers';
-import type { RetrievedHit, SearchFn } from './runner';
+import type { SearchFn } from './runner';
 
 /** Same batch size as ingest. */
 export const EMBED_BATCH = 32;
@@ -45,17 +45,18 @@ export async function checkIngest(
 }
 
 /**
- * One search per question in `mode`. Modes with a query vector embed all queries of all questions in batches of
- * EMBED_BATCH first (one llm_calls row per batch); fts makes no embedding call. Without `fuse` every question has
- * exactly one query and is searched at k as before M16; with `fuse` (expand on) its queries go through multiSearch,
- * fused with RRF even when only the question is left.
+ * One search per question in `mode`, to the depth the runner asks for (retrievalDepth: k, or the rerank candidates,
+ * M17). Modes with a query vector embed all queries of all questions in batches of EMBED_BATCH first (one llm_calls
+ * row per batch); fts makes no embedding call. Without `fuse` every question has exactly one query and is searched
+ * once, as before M16; with `fuse` (expand on) its queries go through multiSearch, fused with RRF even when only the
+ * question is left.
  */
 export function pgSearch(
   sql: Sql,
   embedder: EmbeddingProvider,
-  opts: { mode: SearchMode; chunkConfig: string; k: number; fuse?: boolean },
+  opts: { mode: SearchMode; chunkConfig: string; fuse?: boolean },
 ): SearchFn {
-  return async (queryLists) => {
+  return async (queryLists, depth) => {
     if (!opts.fuse && queryLists.some((qs) => qs.length !== 1)) {
       throw new Error('pgSearch without fuse takes exactly one query per question');
     }
@@ -67,7 +68,7 @@ export function pgSearch(
         vectors.push(...(await embedQueries(embedder, flat.slice(i, i + EMBED_BATCH))));
       }
     }
-    const results: RetrievedHit[][] = [];
+    const results: SearchHit[][] = [];
     let offset = 0;
     for (const queries of queryLists) {
       const own = vectors?.slice(offset, offset + queries.length);
@@ -77,7 +78,7 @@ export function pgSearch(
         hits = await multiSearch(sql, opts.mode, {
           queries,
           ...(own && { vectors: own }),
-          k: opts.k,
+          k: depth,
           chunkConfig: opts.chunkConfig,
           model: embedder.model,
         });
@@ -90,19 +91,12 @@ export function pgSearch(
         hits = await searchWith(sql, opts.mode, {
           query,
           ...(vector && { vector }),
-          k: opts.k,
+          k: depth,
           chunkConfig: opts.chunkConfig,
           model: embedder.model,
         });
       }
-      results.push(
-        hits.map((h) => ({
-          chunkId: h.chunkId,
-          sourcePath: h.sourcePath,
-          content: h.content,
-          score: h.score,
-        })),
-      );
+      results.push(hits);
     }
     return results;
   };

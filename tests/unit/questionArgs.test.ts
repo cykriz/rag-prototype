@@ -45,3 +45,15 @@ describe('parseQuestionArgs --expand', () => {
     );
   });
 });
+
+describe('parseQuestionArgs --rerank', () => {
+  it('is off by default and combines with --rewrite or --expand', () => {
+    expect(parseQuestionArgs(['q'])).toMatchObject({ pipeline: { rerank: 'off' } });
+    expect(parseQuestionArgs(['q', '--rerank', '--expand'])).toMatchObject({
+      pipeline: { search: 'vector', rewrite: 'off', expand: 'on', rerank: 'on' },
+    });
+    expect(parseQuestionArgs(['q', '--rewrite', '--rerank'])).toMatchObject({
+      pipeline: { rewrite: 'on', rerank: 'on' },
+    });
+  });
+});

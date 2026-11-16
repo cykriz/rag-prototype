@@ -1,9 +1,8 @@
-// Chat-model stages before retrieval (docs/PLAN.md M15 rewrite, M16 expand): one structured call per question, a
-// provider error wrapped with the stage name, so callers handle every stage with one instanceof.
+// Chat-model stages around retrieval (docs/PLAN.md M15 rewrite, M16 expand, M17 rerank): one structured call per
+// question, a provider error wrapped with the stage name, so callers handle every stage with one instanceof.
 import type { z } from 'zod';
-import type { ChatOperation, ChatProvider, GenerateRequest, ObjectResult } from '../llm/types';
-
-export type ChatStage = Extract<ChatOperation, 'rewrite' | 'expand'>;
+import type { ChatProvider, GenerateRequest, ObjectResult } from '../llm/types';
+import type { ChatStage } from './pipeline';
 
 /** A provider failure during a chat stage (chat model); `cause` is the original error. */
 export class ChatStageError extends Error {

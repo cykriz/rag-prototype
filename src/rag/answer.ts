@@ -1,4 +1,4 @@
-// Retrieve, build context, generate, validate citations, log the request (docs/PLAN.md M9).
+// Retrieve, rerank (M17), build context, generate, validate citations, log the request (docs/PLAN.md M9).
 import { randomUUID } from 'node:crypto';
 import type { Document } from '@langchain/core/documents';
 import type { Sql } from 'postgres';
@@ -9,13 +9,25 @@ import type { ChatProvider, ObjectResult } from '../llm/types';
 import { PostgresLlmCallSink, PostgresRagRequestSink, type RagRequestSink } from '../obs/logger';
 import { type ChunkMetadata, PgRetriever } from '../retrieval/pgRetriever';
 import { type ExpandRecord, type Expander, expanderFor, expandRecord, searchQueries } from './expand';
-import { type PipelineConfig, pipelineName } from './pipeline';
+import { type PipelineConfig, pipelineName, retrievalDepth } from './pipeline';
 import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, formatContext, NOT_FOUND } from './prompts';
+import {
+  documentCandidate,
+  type Reranker,
+  type RerankRecord,
+  type RerankTrace,
+  rerankerFor,
+  rerankItems,
+  rerankRecord,
+} from './rerank';
 import { type RewriteRecord, type Rewriter, rewriteRecord, rewriterFor } from './rewrite';
 import { Answer, answerSchemaFor, isAbstention } from './schemas';
 
 export interface AnswerDeps {
-  /** PgRetriever fits; k and the search mode live in the retriever. invokeMany fuses several queries (M16). */
+  /**
+   * PgRetriever fits; the depth and the search mode live in the retriever (k, or the rerank candidates). invokeMany
+   * fuses several queries (M16).
+   */
   retriever: {
     invoke(question: string): Promise<Document<ChunkMetadata>[]>;
     invokeMany(queries: readonly string[]): Promise<Document<ChunkMetadata>[]>;
@@ -25,6 +37,8 @@ export interface AnswerDeps {
   rewrite?: Rewriter;
   /** Expands the question into extra search queries (M16); absent = one query. Never together with rewrite. */
   expand?: Expander;
+  /** Reranks the retrieved candidates and keeps the top k (M17); absent = the retriever's hits as they are. */
+  rerank?: { reranker: Reranker; k: number };
   /** Must equal the requestId of the llm_calls sinks behind retriever and chat; buildAnswerDeps guarantees it. */
   requestId: string;
   runId: string;
@@ -48,17 +62,20 @@ export interface AnswerResult {
   citations: Citation[];
   /** Cited IDs outside the context, removed from the final answer. */
   droppedCitations: number[];
+  /** The chunks in the context, in context order (reranked and cut to k with rerank on). */
   retrievedIds: number[];
   /** The query retrieval used and whether it fell back to the question; null without the rewrite stage. */
   rewrite: RewriteRecord | null;
   /** The expansions searched besides the question and whether the stage fell back; null without the expand stage. */
   expand: ExpandRecord | null;
+  /** Candidates, rerank order, scores and whether the stage fell back; null without the rerank stage. */
+  rerank: RerankRecord | null;
   /** The context text the model saw (formatContext of the retrieved chunks); '' when nothing was retrieved. */
   context: string;
   /** Status of the generate call: invalid_output when the last repair round still failed validation. */
   status: 'ok' | 'invalid_output';
   repairs: number;
-  /** Whole request: rewrite or expand, retrieval, generation and validation. */
+  /** Whole request: rewrite or expand, retrieval, rerank, generation and validation. */
   latencyMs: number;
 }
 
@@ -89,6 +106,20 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
       : await deps.retriever.invoke(rewrite?.query ?? question);
   } catch (err) {
     throw new RetrievalError(err);
+  }
+  // After the RetrievalError wrap: a rerank provider error is a ChatStageError, like rewrite and expand. The reranker
+  // judges the candidates against the user's question, not a rewrite or expansion.
+  let reranked: RerankTrace | null = null;
+  if (deps.rerank) {
+    const { kept, trace } = await rerankItems(
+      deps.rerank.reranker,
+      question,
+      docs,
+      documentCandidate,
+      deps.rerank.k,
+    );
+    docs = kept;
+    reranked = trace;
   }
   const retrievedIds = docs.map((d) => d.metadata.chunk_id);
   const byId = new Map(docs.map((d) => [d.metadata.chunk_id, d.metadata]));
@@ -151,6 +182,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
     retrievedIds,
     rewrite: rewriteRecord(rewrite),
     expand: expandRecord(expansion),
+    rerank: rerankRecord(reranked),
     context,
     status,
     repairs,
@@ -159,7 +191,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
 }
 
 /**
- * Per-request wiring: one requestId shared by the rewrite/expand, embed and generate llm_calls rows and the
+ * Per-request wiring: one requestId shared by the rewrite/expand, embed, rerank and generate llm_calls rows and the
  * rag_requests row; the pipeline name comes from `pipeline`, which assertPipeline has accepted.
  * Throws before any model call when a model has no price (registry).
  */
@@ -183,12 +215,13 @@ export function buildAnswerDeps(
       sql,
       embedder,
       chunkConfig: opts.chunkConfig,
-      k: opts.k,
+      k: retrievalDepth(opts.pipeline, opts.k),
       search: opts.pipeline.search,
     }),
     chat,
     ...(opts.pipeline.rewrite === 'on' && { rewrite: rewriterFor(chat) }),
     ...(opts.pipeline.expand === 'on' && { expand: expanderFor(chat) }),
+    ...(opts.pipeline.rerank === 'on' && { rerank: { reranker: rerankerFor(chat), k: opts.k } }),
     requestId,
     runId: opts.runId,
     pipeline: pipelineName(opts.pipeline),

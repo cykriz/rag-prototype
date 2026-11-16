@@ -1,17 +1,20 @@
 import { Document } from '@langchain/core/documents';
 import { APIConnectionError, APIError } from 'openai';
+import postgres from 'postgres';
 import { describe, expect, it } from 'vitest';
 
 import { describeAnswerError, formatAnswer } from '../../src/cli/ask';
 import { loadConfig } from '../../src/config';
 import { FakeChatProvider } from '../../src/llm/fake';
 import type { RagRequestRecord, RagRequestSink } from '../../src/obs/logger';
-import { type AnswerDeps, answer, RetrievalError } from '../../src/rag/answer';
+import { type AnswerDeps, answer, buildAnswerDeps, RetrievalError } from '../../src/rag/answer';
 import { expanderFor } from '../../src/rag/expand';
-import { buildAnswerMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
+import { RERANK_CANDIDATES } from '../../src/rag/pipeline';
+import { buildAnswerMessages, buildRerankMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
+import { documentCandidate, rerankerFor } from '../../src/rag/rerank';
 import { rewriterFor } from '../../src/rag/rewrite';
 import { ChatStageError } from '../../src/rag/stage';
-import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
+import { type ChunkMetadata, PgRetriever } from '../../src/retrieval/pgRetriever';
 
 const doc = (chunk_id: number, source_path: string, heading_path: string, pageContent: string) =>
   new Document<ChunkMetadata>({
@@ -250,6 +253,93 @@ describe('answer', () => {
   });
 });
 
+describe('answer with rerank', () => {
+  it('reranks the candidates against the question and answers from the kept top k', async () => {
+    const { deps, chat, requestSink } = setup([
+      JSON.stringify({
+        ranking: [
+          { chunk_id: 12, score: 9 },
+          { chunk_id: 11, score: 2 },
+        ],
+      }),
+      reply(true, 'Bun reads .env files.', [12]),
+    ]);
+    deps.rerank = { reranker: rerankerFor(chat), k: 1 };
+    const res = await answer('How do I read env vars?', deps);
+    expect(chat.calls[0]).toEqual(
+      buildRerankMessages('How do I read env vars?', DOCS.map(documentCandidate)),
+    );
+    const [kept] = DOCS.slice(1);
+    expect(chat.calls[1]).toEqual(
+      buildAnswerMessages('How do I read env vars?', formatContext(kept ? [kept] : [])),
+    );
+    expect(res.retrievedIds).toEqual([12]);
+    expect(res.rerank).toEqual({
+      candidates: [11, 12],
+      order: [12, 11],
+      scores: [9, 2],
+      unknown: 0,
+      duplicates: 0,
+      missing: 0,
+      fallback: false,
+    });
+    expect(requestSink.records[0]?.retrievedIds).toEqual([12]);
+  });
+
+  it('keeps the search order cut to k when the rerank falls back', async () => {
+    const { deps, chat } = setup(['{bad', '{bad', '{bad', reply(true, 'Use Bun.env.', [11])]);
+    deps.rerank = { reranker: rerankerFor(chat), k: 1 };
+    const res = await answer('How do I read env vars?', deps);
+    expect(res.retrievedIds).toEqual([11]);
+    expect(res.rerank).toMatchObject({ order: [11, 12], fallback: true });
+  });
+
+  it('propagates a rerank provider error as ChatStageError, not as RetrievalError', async () => {
+    const { deps } = setup([]);
+    deps.rerank = { reranker: rerankerFor(new FakeChatProvider([new Error('chat down')])), k: 1 };
+    const err = await answer('q', deps).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ChatStageError);
+    expect(err).toMatchObject({ stage: 'rerank' });
+  });
+
+  it('records no rerank without the stage', async () => {
+    const { deps } = setup([reply(true, 'Use Bun.env.', [11])]);
+    expect((await answer('q', deps)).rerank).toBeNull();
+  });
+});
+
+describe('buildAnswerDeps with rerank', () => {
+  // postgres() connects lazily; nothing here runs a query.
+  const sql = postgres('postgres://localhost:1/unused');
+  const config = loadConfig({ CHAT_PROVIDER: 'fake', EMBED_PROVIDER: 'fake' });
+  const build = (rerank: 'off' | 'on', k: number) =>
+    buildAnswerDeps(sql, config, {
+      chunkConfig: 'md-1024-128',
+      k,
+      runId: 'test-run',
+      pipeline: { search: 'vector', rewrite: 'off', expand: 'off', rerank },
+    });
+  const retrieverK = (deps: AnswerDeps): number => {
+    if (!(deps.retriever instanceof PgRetriever)) {
+      throw new Error('buildAnswerDeps must build a PgRetriever');
+    }
+    return deps.retriever.k;
+  };
+
+  it('retrieves the rerank candidates and keeps k', () => {
+    const deps = build('on', 5);
+    expect(retrieverK(deps)).toBe(RERANK_CANDIDATES);
+    expect(deps.rerank?.k).toBe(5);
+    expect(deps.pipeline).toBe('vector+rerank');
+  });
+
+  it('retrieves k without rerank and wires no reranker', () => {
+    const deps = build('off', 5);
+    expect(retrieverK(deps)).toBe(5);
+    expect(deps.rerank).toBeUndefined();
+  });
+});
+
 describe('answer with expand', () => {
   it('retrieves with the question and its expansions and answers the original question', async () => {
     const { deps, chat, requestSink } = setup([
@@ -344,6 +434,7 @@ describe('ask CLI output', () => {
       found: true,
       rewrite: null,
       expand: null,
+      rerank: null,
       answer: 'Use Bun.env.',
       citations: [{ chunkId: 12, sourcePath: 'runtime/env.md', headingPath: '' }],
       droppedCitations: [999],

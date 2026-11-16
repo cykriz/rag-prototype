@@ -1,0 +1,12 @@
+{
+  "id": "exp-rerank",
+  "base": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "vary": { "rerank": ["off", "on"] },
+  "evals": ["retrieval", "answers"]
+}

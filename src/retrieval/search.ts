@@ -18,6 +18,7 @@ export interface SearchHit {
   /**
    * Higher is better in every mode, comparable only within one mode: vector 1 − cosine distance, fts ts_rank_cd,
    * hybrid the RRF sum. With query expansion (M16, multiSearch) the RRF sum over the query lists, in every mode.
+   * Reranking (M17) reorders hits but keeps this search score.
    */
   score: number;
 }

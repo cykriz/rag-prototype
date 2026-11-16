@@ -13,7 +13,8 @@ export interface ChunkMetadata {
   heading_path: string;
   /**
    * Search score, higher is better, descending across the returned documents (SearchHit.score); the RRF sum over the
-   * query lists for invokeMany (expansion).
+   * query lists for invokeMany (expansion). After a rerank (M17) the documents are in rerank order and keep this
+   * score, so it is no longer descending.
    */
   score: number;
 }

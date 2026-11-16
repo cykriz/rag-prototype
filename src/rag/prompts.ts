@@ -1,8 +1,10 @@
-// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite (M15) and expansion (M16) prompts.
+// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite (M15), expansion (M16) and
+// rerank (M17) prompts.
 import type { Document } from '@langchain/core/documents';
 import type { Message } from '../llm/types';
 import { type ChunkMetadata, sourceLabel } from '../retrieval/pgRetriever';
-import { MAX_EXPANSIONS } from './pipeline';
+import type { SearchHit } from '../retrieval/search';
+import { MAX_EXPANSIONS, MAX_RERANK_SCORE, RERANK_CONTEXT_CHARS } from './pipeline';
 
 export const NOT_FOUND = 'NOT_FOUND';
 /** Fixed for reproducible runs (docs/PLAN.md §7). */
@@ -19,11 +21,21 @@ Rules:
 
 Reply with only a JSON object: {"found": boolean, "answer": string, "citations": number[]}`;
 
-/** `[chunk:123] (source_path > heading)\n<content>` per chunk, in retrieval order, separated by a blank line. */
+/** Whitespace collapsed, cut to `max` characters with an ellipsis (retrieve previews, rerank truncation). */
+export function preview(text: string, max: number): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > max ? `${flat.slice(0, max - 1).trimEnd()}…` : flat;
+}
+
+/** `[chunk:123] (source_path > heading)\n<text>`: the header every prompt that shows chunks uses. */
+export const formatChunk = (
+  meta: Pick<ChunkMetadata, 'chunk_id' | 'source_path' | 'heading_path'>,
+  text: string,
+) => `[chunk:${meta.chunk_id}] (${sourceLabel(meta)})\n${text}`;
+
+/** formatChunk per chunk, in retrieval order, separated by a blank line. */
 export function formatContext(docs: Document<ChunkMetadata>[]): string {
-  return docs
-    .map((d) => `[chunk:${d.metadata.chunk_id}] (${sourceLabel(d.metadata)})\n${d.pageContent.trim()}`)
-    .join('\n\n');
+  return docs.map((d) => formatChunk(d.metadata, d.pageContent.trim())).join('\n\n');
 }
 
 /** `context` is the output of formatContext, built once per request so answer() can return it too. */
@@ -73,5 +85,43 @@ export function buildExpandMessages(question: string): Message[] {
   return [
     { role: 'system', content: EXPAND_SYSTEM_PROMPT },
     { role: 'user', content: `Question: ${question}` },
+  ];
+}
+
+/** Fixed like the answer settings, so a rerank run is reproducible (M17). */
+export const RERANK_TEMPERATURE = 0;
+export const RERANK_SEED = 42;
+
+export const RERANK_SYSTEM_PROMPT = `You rank excerpts from the Bun documentation (the JavaScript runtime, package manager, bundler and test runner) by how relevant they are to a user question.
+
+Rules:
+1. Every excerpt starts with a header like [chunk:123]. Give each excerpt a score from 0 to ${MAX_RERANK_SCORE}: ${MAX_RERANK_SCORE} if it states facts needed to answer the question, 0 if it is unrelated to it.
+2. Judge only whether the excerpt helps answer the question. Do not judge writing quality, length or completeness, and do not answer the question.
+3. Excerpts are cut off; judge what is shown.
+4. List every excerpt exactly once, using only chunk numbers from the headers, best first.
+
+Reply with only a JSON object: {"ranking": [{"chunk_id": number, "score": number}]}`;
+
+/** A rerank candidate: a search hit without its search score. */
+export type RerankCandidate = Omit<SearchHit, 'score'>;
+
+/** Characters of content per candidate: RERANK_CONTEXT_CHARS split evenly. */
+export const rerankChunkChars = (candidates: number): number =>
+  Math.floor(RERANK_CONTEXT_CHARS / Math.max(candidates, 1));
+
+/** Candidates in search order, each cut to rerankChunkChars, then the question (as in the answer prompt). */
+export function buildRerankMessages(question: string, candidates: readonly RerankCandidate[]): Message[] {
+  const max = rerankChunkChars(candidates.length);
+  const excerpts = candidates
+    .map((c) =>
+      formatChunk(
+        { chunk_id: c.chunkId, source_path: c.sourcePath, heading_path: c.headingPath },
+        preview(c.content, max),
+      ),
+    )
+    .join('\n\n');
+  return [
+    { role: 'system', content: RERANK_SYSTEM_PROMPT },
+    { role: 'user', content: `Excerpts:\n\n${excerpts}\n\nQuestion: ${question}` },
   ];
 }

@@ -2,8 +2,10 @@
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
 
 import { type Expander, type ExpandRecord, expandRecord, searchQueries } from '../rag/expand';
-import { activeStages, assertPipeline, QUERY_STAGES, type QueryStage } from '../rag/pipeline';
+import { activeStages, assertPipeline, CHAT_STAGES, type ChatStage, retrievalDepth } from '../rag/pipeline';
+import { type Reranker, type RerankRecord, rerankItems, rerankRecord } from '../rag/rerank';
 import { type RewriteRecord, type Rewriter, rewriteRecord } from '../rag/rewrite';
+import type { SearchHit } from '../retrieval/search';
 import { CATEGORIES, type Category, type GoldenEntry } from './dataset';
 import type { EvalType, RunConfig, VaryKey } from './experiment';
 import {
@@ -24,23 +26,18 @@ import { coverage } from './relevance';
  * `latencyP50Ms`/`latencyP95Ms` per `kpis.calls` row. 4 (M16): `config.expand`, `questions[].expand`
  * (`{ queries, dropped, fallback }` or null; `queries` are the deduped expansions searched besides the question),
  * `counts.expandFallbacks` (null with expand off); with expand on, `retrieved[].score` is the RRF sum over the query
- * lists in every search mode.
+ * lists in every search mode. 5 (M17): `config.rerank`, `questions[].rerank` (`{ candidates, order, scores, unknown,
+ * duplicates, missing, fallback }` or null; `scores` are the model's, aligned to `order`, null for appended
+ * candidates), `counts.rerankFallbacks` (null with rerank off); with rerank on, `retrieved` is in rerank order and
+ * `retrieved[].score` stays the search score, so it is no longer descending.
  */
-export const RESULT_SCHEMA_VERSION = 4;
-
-export interface RetrievedHit {
-  chunkId: number;
-  sourcePath: string;
-  content: string;
-  /** SearchHit.score: higher is better within one search mode. */
-  score: number;
-}
+export const RESULT_SCHEMA_VERSION = 5;
 
 /**
- * Top k hits per question, in the order of `queries`: one query list per question (the question alone, or the
- * question and its expansions, M16).
+ * Top `depth` hits per question, in the order of `queries`: one query list per question (the question alone, or the
+ * question and its expansions, M16). runRetrievalEval passes retrievalDepth: k, or the rerank candidates (M17).
  */
-export type SearchFn = (queries: string[][]) => Promise<RetrievedHit[][]>;
+export type SearchFn = (queries: string[][], depth: number) => Promise<SearchHit[][]>;
 
 export type Origin = 'human' | 'llm';
 
@@ -62,6 +59,8 @@ export interface QuestionResult {
   rewrite: RewriteRecord | null;
   /** The expansions searched besides the question; null without the expand stage. */
   expand: ExpandRecord | null;
+  /** The rerank of the candidates; null without the rerank stage. */
+  rerank: RerankRecord | null;
   retrieved: { chunkId: number; sourcePath: string; score: number; covers: number[] }[];
 }
 
@@ -83,9 +82,9 @@ export interface RetrievalRun {
 /** Metrics of one answerable entry from its top k hits. A span no chunk covers lowers recall; it is no error. */
 export function scoreQuestion(
   entry: GoldenEntry,
-  hits: readonly RetrievedHit[],
+  hits: readonly SearchHit[],
   k: number,
-  stages: { rewrite?: RewriteRecord | null; expand?: ExpandRecord | null } = {},
+  stages: { rewrite?: RewriteRecord | null; expand?: ExpandRecord | null; rerank?: RerankRecord | null } = {},
 ): QuestionResult {
   const top = hits.slice(0, k);
   const covers = coverage(top, entry.evidence);
@@ -105,6 +104,7 @@ export function scoreQuestion(
     spansCovered: entry.evidence.map((_, i) => covered.has(i)),
     rewrite: stages.rewrite ?? null,
     expand: stages.expand ?? null,
+    rerank: stages.rerank ?? null,
     retrieved: top.map((h, i) => ({
       chunkId: h.chunkId,
       sourcePath: h.sourcePath,
@@ -123,6 +123,11 @@ export async function runRetrievalEval(opts: {
   rewrite?: Rewriter;
   /** Expands each question into extra queries first (M16), one call per question in id order; not with rewrite. */
   expand?: Expander;
+  /**
+   * Reranks each question's hits against the question (M17), one call per question in id order, and scores the top
+   * k; `search` is asked for retrievalDepth candidates.
+   */
+  rerank?: Reranker;
 }): Promise<RetrievalRun> {
   assertPipeline({ rewrite: opts.rewrite ? 'on' : 'off', expand: opts.expand ? 'on' : 'off' });
   const inSplit = opts.entries.filter((e) => e.split === opts.split);
@@ -137,9 +142,29 @@ export async function runRetrievalEval(opts: {
     const expansion = expansions[i] ?? null;
     return expansion ? searchQueries(e.question, expansion) : [rewrites[i]?.query ?? e.question];
   });
-  const hits = scored.length === 0 ? [] : await opts.search(queries);
-  if (hits.length !== scored.length) {
-    throw new Error(`search returned ${hits.length} hit lists for ${scored.length} questions`);
+  const depth = retrievalDepth({ rerank: opts.rerank ? 'on' : 'off' }, opts.k);
+  const searched = scored.length === 0 ? [] : await opts.search(queries, depth);
+  if (searched.length !== scored.length) {
+    throw new Error(`search returned ${searched.length} hit lists for ${scored.length} questions`);
+  }
+  const hits: SearchHit[][] = [];
+  const reranks: (RerankRecord | null)[] = [];
+  for (const [i, e] of scored.entries()) {
+    const list = searched[i] ?? [];
+    if (opts.rerank) {
+      const { kept, trace } = await rerankItems(
+        opts.rerank,
+        e.question,
+        list,
+        ({ score: _, ...c }) => c,
+        opts.k,
+      );
+      hits.push(kept);
+      reranks.push(rerankRecord(trace));
+    } else {
+      hits.push(list);
+      reranks.push(null);
+    }
   }
   return {
     counts: {
@@ -151,6 +176,7 @@ export async function runRetrievalEval(opts: {
       scoreQuestion(e, hits[i] ?? [], opts.k, {
         rewrite: rewrites[i] ?? null,
         expand: expansions[i] ?? null,
+        rerank: reranks[i] ?? null,
       }),
     ),
   };
@@ -212,26 +238,31 @@ export interface RunMeta {
 
 export interface ResultMeta extends RunMeta {
   embed: ModelInfo;
-  /** The rewrite or expand model; only with one of them on. */
+  /** The chat model of rewrite, expand or rerank; only with one of them on. */
   chat?: ModelInfo;
 }
 
 /** `counts.<stage>Fallbacks` per stage: questions whose stage fell back, null when the run had the stage off. */
-export type StageFallbacks = { [S in QueryStage as `${S}Fallbacks`]: number | null };
+export type StageFallbacks = { [S in ChatStage as `${S}Fallbacks`]: number | null };
 
 /** The per-stage fallback counts of a run's rows, keyed as in the result files. */
 export function stageFallbacks(
-  rows: readonly { [S in QueryStage]: { fallback: boolean } | null }[],
-  config: Pick<RunConfig, QueryStage>,
+  rows: readonly { [S in ChatStage]: { fallback: boolean } | null }[],
+  config: Pick<RunConfig, ChatStage>,
 ): StageFallbacks {
-  const count = (stage: QueryStage) =>
+  const count = (stage: ChatStage) =>
     config[stage] === 'on' ? rows.filter((r) => r[stage]?.fallback === true).length : null;
-  return { rewriteFallbacks: count('rewrite'), expandFallbacks: count('expand') };
+  // A literal, so the compiler checks every key of StageFallbacks.
+  return {
+    rewriteFallbacks: count('rewrite'),
+    expandFallbacks: count('expand'),
+    rerankFallbacks: count('rerank'),
+  };
 }
 
 /** The stages a run had on, with their fallback counts, for the console summaries. */
-export const activeFallbacks = (counts: StageFallbacks): { stage: QueryStage; fallbacks: number }[] =>
-  QUERY_STAGES.flatMap((stage) => {
+export const activeFallbacks = (counts: StageFallbacks): { stage: ChatStage; fallbacks: number }[] =>
+  CHAT_STAGES.flatMap((stage) => {
     const fallbacks = counts[`${stage}Fallbacks`];
     return fallbacks === null ? [] : [{ stage, fallbacks }];
   });
@@ -257,6 +288,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       split: meta.config.split,
       rewrite: meta.config.rewrite,
       expand: meta.config.expand,
+      rerank: meta.config.rerank,
     },
     variedKey: meta.variedKey,
   };
@@ -319,6 +351,7 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
       spansCovered: q.spansCovered,
       rewrite: q.rewrite,
       expand: q.expand,
+      rerank: q.rerank,
       retrieved: q.retrieved.map((r) => ({
         chunkId: r.chunkId,
         sourcePath: r.sourcePath,
@@ -353,7 +386,7 @@ export function resultFileName(
   return `${stamp}_${experimentId}${middle}_${evalType}.json`;
 }
 
-/** `md-512-64 / nomic-embed-text, k=5, vector, rewrite, test split` for the console summaries; stages only when on. */
+/** `md-512-64 / nomic-embed-text, k=5, vector, rerank, test split` for the console summaries; stages only when on. */
 export function describeRunConfig(config: RunConfig): string {
   const stages = activeStages(config);
   return [

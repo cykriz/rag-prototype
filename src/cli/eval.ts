@@ -37,7 +37,8 @@ import { isConnectionError } from '../llm/retry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { answer, buildAnswerDeps } from '../rag/answer';
 import { expanderFor } from '../rag/expand';
-import { activeStages } from '../rag/pipeline';
+import { activeStages, type ChatStage } from '../rag/pipeline';
+import { rerankerFor } from '../rag/rerank';
 import { rewriterFor } from '../rag/rewrite';
 import { requireEmbeddings } from '../retrieval/vector';
 import { answerErrorMessage } from './ask';
@@ -283,11 +284,11 @@ async function evaluateRetrieval(p: Prepared): Promise<number> {
       search: pgSearch(sql, embedder, {
         mode: run.search,
         chunkConfig,
-        k: run.k,
         fuse: run.expand === 'on',
       }),
       ...(run.rewrite === 'on' && { rewrite: rewriterFor(createChatProvider(config, sink)) }),
       ...(run.expand === 'on' && { expand: expanderFor(createChatProvider(config, sink)) }),
+      ...(run.rerank === 'on' && { rerank: rerankerFor(createChatProvider(config, sink)) }),
     });
     const output = buildResult({ ...commonMeta(p, runId), embed, ...(chat && { chat }) }, result);
     await writeResult(p, output, formatSummary(output));
@@ -309,7 +310,7 @@ async function warmUpAnswering(config: Config): Promise<void> {
   await warmUpChat(config);
 }
 
-/** The chat-model half of the warm-up; also run before a retrieval eval with rewrite or expand on. */
+/** The chat-model half of the warm-up; also run before a retrieval eval with a chat stage on. */
 async function warmUpChat(config: Config): Promise<void> {
   if (config.chatProvider !== 'fake') {
     await createChatProvider(config).generate({
@@ -330,17 +331,17 @@ async function warmUpJudge(config: Config): Promise<void> {
 
 export type ModelRole = 'embed' | 'chat' | 'judge';
 
-/** A retrieval run calls the chat model when a stage before retrieval needs it (rewrite M15, expand M16). */
-const needsChat = (run: Pick<RunConfig, 'rewrite' | 'expand'>): boolean => activeStages(run).length > 0;
+/** A retrieval run calls the chat model when a chat stage is on (rewrite M15, expand M16, rerank M17). */
+const needsChat = (run: Pick<RunConfig, ChatStage>): boolean => activeStages(run).length > 0;
 
 /**
  * The models a run of `evalType` calls, with their provider; the judge runs on the chat provider. A retrieval run
- * with rewrite or expand on calls the chat model too.
+ * with a chat stage on calls the chat model too.
  */
 export function requiredModels(
   config: Config,
   evalType: EvalType,
-  run: Pick<RunConfig, 'rewrite' | 'expand'>,
+  run: Pick<RunConfig, ChatStage>,
 ): [ModelRole, ProviderName, string][] {
   const embed: [ModelRole, ProviderName, string] = ['embed', config.embedProvider, config.embedModel];
   const chat: [ModelRole, ProviderName, string] = ['chat', config.chatProvider, config.chatModel];
@@ -401,7 +402,7 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
             chunkConfig,
             k: run.k,
             runId,
-            pipeline: { search: run.search, rewrite: run.rewrite, expand: run.expand },
+            pipeline: { search: run.search, rewrite: run.rewrite, expand: run.expand, rerank: run.rerank },
             questionId: entry.id,
           }),
         ),

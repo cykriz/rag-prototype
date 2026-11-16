@@ -165,8 +165,8 @@ describe('search mode wiring', () => {
   });
 
   it('pgSearch in fts mode makes no embedding call', async () => {
-    const search = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K });
-    const [hits] = await search([[IDENTIFIER]]);
+    const search = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG });
+    const [hits] = await search([[IDENTIFIER]], K);
     expect(hits?.map((h) => h.chunkId)).toEqual([targetId]);
   });
 });
@@ -238,10 +238,10 @@ describe('multi-query search (M16)', () => {
   });
 
   it('pgSearch with fuse searches every query of a question; without fuse it takes one query each', async () => {
-    const fused = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K, fuse: true });
-    const [hits] = await fused([[ALPHA, BETA]]);
+    const fused = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, fuse: true });
+    const [hits] = await fused([[ALPHA, BETA]], K);
     expect(hits?.[0]?.chunkId).toBe(chunk.get(SHARED));
-    const plain = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K });
-    await expect(plain([[ALPHA, BETA]])).rejects.toThrow(/exactly one query/);
+    const plain = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG });
+    await expect(plain([[ALPHA, BETA]], K)).rejects.toThrow(/exactly one query/);
   });
 });

@@ -296,6 +296,8 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
     skip !== 'rewrite' && c.rewrite === 'on' && 'rewrite=on',
     // Likewise for M16: rows of runs before it read as expand off.
     skip !== 'expand' && c.expand === 'on' && 'expand=on',
+    // Likewise for M17: rows of runs before it read as rerank off.
+    skip !== 'rerank' && c.rerank === 'on' && 'rerank=on',
   ]
     .filter(Boolean)
     .join(', ');

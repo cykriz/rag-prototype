@@ -1,7 +1,8 @@
 import { Document } from '@langchain/core/documents';
 import { describe, expect, it } from 'vitest';
 
-import { formatHits, preview } from '../../src/cli/retrieve';
+import { formatHits } from '../../src/cli/retrieve';
+import { preview } from '../../src/rag/prompts';
 import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 
 const doc = (chunk_id: number, score: number, heading_path: string, pageContent: string) =>
@@ -12,7 +13,7 @@ const doc = (chunk_id: number, score: number, heading_path: string, pageContent:
 
 describe('preview', () => {
   it('collapses whitespace and keeps short text as is', () => {
-    expect(preview('  Bun reads\n\n.env   files ')).toBe('Bun reads .env files');
+    expect(preview('  Bun reads\n\n.env   files ', 120)).toBe('Bun reads .env files');
   });
 
   it('cuts long text to the limit with an ellipsis', () => {

@@ -5,7 +5,13 @@ import { type Config, loadConfig } from '../config';
 import { connect, databaseUrl } from '../db/client';
 import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { isConnectionError } from '../llm/retry';
-import { assertPipeline, DEFAULT_EXPAND, DEFAULT_REWRITE, type PipelineConfig } from '../rag/pipeline';
+import {
+  assertPipeline,
+  DEFAULT_EXPAND,
+  DEFAULT_RERANK,
+  DEFAULT_REWRITE,
+  type PipelineConfig,
+} from '../rag/pipeline';
 import { DEFAULT_SEARCH, SEARCH_MODES, type SearchMode } from '../retrieval/search';
 import { assertK, requireEmbeddings } from '../retrieval/vector';
 import { DB_DOWN } from './errors';
@@ -13,7 +19,7 @@ import { DB_DOWN } from './errors';
 export const DEFAULT_K = 5;
 
 /** Flags shared by retrieve and ask, for their usage lines. */
-export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand]`;
+export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
 
 export type QuestionArgs =
   | { help: true }
@@ -23,7 +29,7 @@ export type QuestionArgs =
       k: number;
       chunk: string;
       embed: string | undefined;
-      /** The stages around retrieval (--search, --rewrite, --expand); later stages add their flags here. */
+      /** The stages around retrieval (--search, --rewrite, --expand, --rerank); later stages add their flags here. */
       pipeline: PipelineConfig;
     };
 
@@ -40,6 +46,7 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
       search: { type: 'string', default: DEFAULT_SEARCH },
       rewrite: { type: 'boolean', default: DEFAULT_REWRITE === 'on' },
       expand: { type: 'boolean', default: DEFAULT_EXPAND === 'on' },
+      rerank: { type: 'boolean', default: DEFAULT_RERANK === 'on' },
       help: { type: 'boolean', short: 'h', default: false },
     },
   });
@@ -60,6 +67,7 @@ export function parseQuestionArgs(argv: string[]): QuestionArgs {
     search: search as SearchMode,
     rewrite: values.rewrite ? 'on' : 'off',
     expand: values.expand ? 'on' : 'off',
+    rerank: values.rerank ? 'on' : 'off',
   };
   assertPipeline(pipeline);
   return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline };

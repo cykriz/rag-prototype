@@ -104,7 +104,7 @@ describe('retrieval eval against the database', () => {
       ],
       split: 'test',
       k: 2,
-      search: pgSearch(sql, embedder, { mode: 'vector', chunkConfig: CONFIG, k: 2 }),
+      search: pgSearch(sql, embedder, { mode: 'vector', chunkConfig: CONFIG }),
     });
     const [q1, q2] = run.questions;
     expect(q1).toMatchObject({ recall: 1, reciprocalRank: 1, ndcg: 1, firstRelevantRank: 1 });

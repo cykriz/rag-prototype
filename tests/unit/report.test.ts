@@ -191,6 +191,47 @@ describe('expand (M16)', () => {
   });
 });
 
+describe('rerank (M17)', () => {
+  it('reads result files without config.rerank as off and labels a single config with rerank=on', async () => {
+    const all = await loadResults(FIXTURES);
+    expect(all.every((r) => r.data.config.rerank === 'off')).toBe(true);
+    const base = all.find((r) => r.file.includes('baseline_retrieval') && !r.data.gitDirty);
+    if (!base) {
+      throw new Error('fixture missing');
+    }
+    const variant = (rerank: 'off' | 'on', startedAt: string) => ({
+      file: `${startedAt}_exp-rerank_${rerank}_retrieval.json`,
+      data: {
+        ...base.data,
+        experimentId: 'exp-rerank',
+        startedAt,
+        variedKey: 'rerank' as const,
+        config: { ...base.data.config, rerank },
+      },
+    });
+    const single = {
+      file: 'z_single.json',
+      data: {
+        ...base.data,
+        experimentId: 'single-rerank',
+        startedAt: '2026-02-01T10:00:02.000Z',
+        config: { ...base.data.config, rerank: 'on' as const },
+      },
+    };
+    const block = renderBlock(
+      selectResults([
+        variant('on', '2026-02-01T10:00:01.000Z'),
+        variant('off', '2026-02-01T10:00:00.000Z'),
+        single,
+      ]),
+    );
+    const { chunkConfig, embed, k, search } = base.data.config;
+    expect(block).toContain(`### exp-rerank: rerank\n\nFixed: ${chunkConfig}, ${embed}, k=${k}, ${search}.`);
+    expect(block).toMatch(/\| rerank \| Recall@k [^\n]*\n[^\n]*\n\| off \|[^\n]*\n\| on \|/);
+    expect(block).toContain(`single-rerank (${chunkConfig}, ${embed}, k=${k}, ${search}, rerank=on)`);
+  });
+});
+
 describe('replaceBlock', () => {
   it('replaces only the text between the markers', () => {
     const readme = `# Title\n\n${START}\nold\n${END}\n\nTail\n`;

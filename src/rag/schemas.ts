@@ -1,6 +1,6 @@
-// Zod schemas for structured model output (docs/PLAN.md M9, M15, M16; Rerank follows in phase 2).
+// Zod schemas for structured model output (docs/PLAN.md M9 answer, M15 rewrite, M16 expand, M17 rerank).
 import { z } from 'zod';
-import { MAX_EXPANSIONS } from './pipeline';
+import { MAX_EXPANSIONS, MAX_RERANK_SCORE } from './pipeline';
 import { NOT_FOUND } from './prompts';
 
 export const Answer = z.object({
@@ -70,3 +70,38 @@ export const ExpandOutput = z.object({
   queries: z.array(SearchQueryText).min(1).max(MAX_EXPANSIONS),
 });
 export type ExpandOutput = z.infer<typeof ExpandOutput>;
+
+/**
+ * Rerank output (M17): at least one entry, integer chunk IDs, scores within 0–MAX_RERANK_SCORE. Unknown, duplicate
+ * and missing IDs are tolerated here and handled by applyRanking; a schema miss goes through the repair loop and ends
+ * as invalid_output, which falls back to the search order.
+ */
+export const RerankOutput = z.object({
+  ranking: z
+    .array(
+      z.object({
+        chunk_id: z.number().int(),
+        score: z.number().min(0).max(MAX_RERANK_SCORE),
+      }),
+    )
+    .min(1),
+});
+export type RerankOutput = z.infer<typeof RerankOutput>;
+
+/**
+ * RerankOutput, refined against one request's candidates: a ranking that names none of them carries no judgement,
+ * so it goes through the repair loop (with the allowed IDs in the message) instead of passing as a no-op.
+ */
+export function rerankSchemaFor(candidateIds: readonly number[]) {
+  const allowed = new Set(candidateIds);
+  const list = candidateIds.join(', ');
+  return RerankOutput.superRefine((r, ctx) => {
+    if (!r.ranking.some((e) => allowed.has(e.chunk_id))) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['ranking'],
+        message: `no chunk_id in ranking is a chunk ID from the context (allowed: ${list})`,
+      });
+    }
+  });
+}

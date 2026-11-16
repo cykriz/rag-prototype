@@ -40,7 +40,7 @@ export const unwrapStageError = (err: unknown): unknown =>
   err instanceof RetrievalError || err instanceof ChatStageError ? err.cause : err;
 
 /**
- * Message for an error of a retrieval-only run (retrieve, eval:retrieval): a ChatStageError (rewrite, expand) is a
+ * Message for an error of a retrieval-only run (retrieve, eval:retrieval): a ChatStageError (rewrite, expand, rerank) is a
  * chat-model failure, anything else is named against the embedding model. Probes the database with the unwrapped error.
  */
 export async function retrievalErrorMessage(

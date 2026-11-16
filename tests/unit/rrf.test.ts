@@ -44,28 +44,36 @@ describe('rrf', () => {
 
 describe('pipelineName', () => {
   it('keeps baseline for vector and names the other modes', () => {
-    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'off' }))).toEqual([
-      'baseline',
-      'fts',
-      'hybrid',
-    ]);
+    expect(
+      SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'off', rerank: 'off' })),
+    ).toEqual(['baseline', 'fts', 'hybrid']);
   });
 
   it('appends the rewrite stage to the search mode', () => {
-    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'on', expand: 'off' }))).toEqual([
-      'vector+rewrite',
-      'fts+rewrite',
-      'hybrid+rewrite',
-    ]);
+    expect(
+      SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'on', expand: 'off', rerank: 'off' })),
+    ).toEqual(['vector+rewrite', 'fts+rewrite', 'hybrid+rewrite']);
   });
 });
 
 describe('pipelineName with expand', () => {
   it('appends the expand stage to the search mode', () => {
-    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'on' }))).toEqual([
-      'vector+expand',
-      'fts+expand',
-      'hybrid+expand',
-    ]);
+    expect(
+      SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'on', rerank: 'off' })),
+    ).toEqual(['vector+expand', 'fts+expand', 'hybrid+expand']);
+  });
+});
+
+describe('pipelineName with rerank', () => {
+  it('appends rerank after the query stages', () => {
+    expect(
+      SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'off', rerank: 'on' })),
+    ).toEqual(['vector+rerank', 'fts+rerank', 'hybrid+rerank']);
+    expect(pipelineName({ search: 'vector', rewrite: 'on', expand: 'off', rerank: 'on' })).toBe(
+      'vector+rewrite+rerank',
+    );
+    expect(pipelineName({ search: 'hybrid', rewrite: 'off', expand: 'on', rerank: 'on' })).toBe(
+      'hybrid+expand+rerank',
+    );
   });
 });

@@ -4,11 +4,12 @@ import type { RunConfig } from '../../src/eval/experiment';
 import {
   buildResult,
   formatSummary,
-  type RetrievedHit,
   resultFileName,
   runRetrievalEval,
   serializeResult,
 } from '../../src/eval/runner';
+import { RERANK_CANDIDATES } from '../../src/rag/pipeline';
+import type { SearchHit } from '../../src/retrieval/search';
 
 const entry = (over: Partial<GoldenEntry> & Pick<GoldenEntry, 'id'>): GoldenEntry => ({
   split: 'test',
@@ -34,15 +35,16 @@ const ENTRIES: GoldenEntry[] = [
   }),
 ];
 
-const hit = (chunkId: number, content: string, sourcePath = 'guides/widget.md'): RetrievedHit => ({
+const hit = (chunkId: number, content: string, sourcePath = 'guides/widget.md'): SearchHit => ({
   chunkId,
   sourcePath,
+  headingPath: '',
   content,
   score: chunkId / 3,
 });
 
 /** q001: its fact at rank 2; q003: nothing relevant. */
-const HITS: Record<string, RetrievedHit[]> = {
+const HITS: Record<string, SearchHit[]> = {
   'question q001': [hit(1, 'unrelated'), hit(2, 'The fact q001 about the widget.')],
   'question q003': [hit(3, 'fact q003', 'guides/other.md')],
 };
@@ -55,6 +57,7 @@ const CONFIG: RunConfig = {
   split: 'test',
   rewrite: 'off',
   expand: 'off',
+  rerank: 'off',
 };
 
 async function run(split: RunConfig['split'] = 'test') {
@@ -63,7 +66,9 @@ async function run(split: RunConfig['split'] = 'test') {
     entries: ENTRIES,
     split,
     k: 5,
-    search: async (qs) => {
+    search: async (qs, depth) => {
+      // Without rerank the search depth is k.
+      expect(depth).toBe(5);
       asked.push(qs);
       return qs.map(([q]) => (q === undefined ? [] : (HITS[q] ?? [])));
     },
@@ -176,11 +181,79 @@ describe('runRetrievalEval', () => {
       },
       result,
     );
-    expect(out.schemaVersion).toBe(4);
-    expect(out.counts).toMatchObject({ rewriteFallbacks: null, expandFallbacks: 1 });
+    expect(out.counts).toMatchObject({ rewriteFallbacks: null, expandFallbacks: 1, rerankFallbacks: null });
     expect(out.config.expand).toBe('on');
     expect(formatSummary(out).split('\n')[0]).toContain('vector, expand, test split');
     expect(formatSummary(out).split('\n')[0]).toContain('expand fallback 1/2');
+  });
+
+  it('reranks the candidates per question and scores the reranked top k', async () => {
+    const asked: string[][][] = [];
+    const depths: number[] = [];
+    const reranked: [string, number[]][] = [];
+    const result = await runRetrievalEval({
+      entries: ENTRIES,
+      split: 'test',
+      k: 1,
+      search: async (qs, depth) => {
+        asked.push(qs);
+        depths.push(depth);
+        return qs.map(([q]) => (q === undefined ? [] : (HITS[q] ?? [])));
+      },
+      rerank: async (question, candidates) => {
+        const ids = candidates.map((c) => c.chunkId);
+        reranked.push([question, ids]);
+        const fallback = question === 'question q003';
+        const order = fallback ? ids : [...ids].reverse();
+        return {
+          candidates: ids,
+          order,
+          scores: order.map(() => (fallback ? null : 5)),
+          unknown: 0,
+          duplicates: 0,
+          missing: 0,
+          fallback,
+          repairs: fallback ? 2 : 0,
+        };
+      },
+    });
+    expect(asked).toEqual([[['question q001'], ['question q003']]]);
+    // The search fetches the rerank candidates, the score uses k.
+    expect(depths).toEqual([RERANK_CANDIDATES]);
+    expect(reranked).toEqual([
+      ['question q001', [1, 2]],
+      ['question q003', [3]],
+    ]);
+    // q001: the fact at search rank 2 moves to rank 1, inside k = 1.
+    const [q001, q003] = result.questions;
+    expect(q001?.retrieved.map((r) => r.chunkId)).toEqual([2]);
+    expect(q001?.recall).toBe(1);
+    expect(q001?.rerank).toMatchObject({ candidates: [1, 2], order: [2, 1], fallback: false });
+    expect(q001?.rerank).not.toHaveProperty('repairs');
+    expect(q003?.rerank).toMatchObject({ fallback: true });
+    const out = buildResult(
+      {
+        experimentId: 'exp-rerank',
+        runId: 'r',
+        startedAt: new Date(0),
+        finishedAt: new Date(0),
+        gitSha: 'a'.repeat(40),
+        gitDirty: false,
+        datasetSha256: 'b'.repeat(64),
+        corpusSha: 'c'.repeat(40),
+        config: { ...CONFIG, k: 1, rerank: 'on' },
+        variedKey: 'rerank',
+        embed: { provider: 'fake', name: 'nomic-embed-text', tag: null, digest: null },
+        chat: { provider: 'fake', name: 'fake-chat', tag: null, digest: null },
+      },
+      result,
+    );
+    expect(out.counts).toMatchObject({ rewriteFallbacks: null, expandFallbacks: null, rerankFallbacks: 1 });
+    expect(out.config.rerank).toBe('on');
+    // The search score stays, so the reranked list is no longer descending by score.
+    expect(out.questions[0]?.retrieved[0]?.score).toBe(0.666667);
+    expect(formatSummary(out).split('\n')[0]).toContain('vector, rerank, test split');
+    expect(formatSummary(out).split('\n')[0]).toContain('rerank fallback 1/2');
   });
 
   it('records no rewrite without the stage', async () => {
@@ -270,8 +343,10 @@ describe('buildResult', () => {
       'spansCovered',
       'rewrite',
       'expand',
+      'rerank',
       'retrieved',
     ]);
+    expect(out.schemaVersion).toBe(5);
     expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);
     expect(out.counts.rewriteFallbacks).toBeNull();
     expect(out.config.rewrite).toBe('off');
