@@ -2,6 +2,54 @@
 
 Local, offline RAG over the Bun documentation. Design, milestones and schema: [docs/PLAN.md](docs/PLAN.md).
 
+## Quickstart
+
+Prerequisites: [Bun](https://bun.sh), Docker, [Ollama](https://ollama.com) and git. Everything runs locally; no API key is needed.
+
+```bash
+bun install
+cp .env.example .env                  # defaults work as is
+ollama pull qwen2.5:7b                # chat model
+ollama pull nomic-embed-text          # embedding model
+ollama pull gemma3:12b                # judge, only needed for the evals
+docker compose up -d                  # PostgreSQL 17 + pgvector
+bun run db:migrate && bun run db:embeddings
+./scripts/fetch-corpus.sh             # Bun docs at the pinned commit into corpus/
+bun run ingest --chunk md-1024-128    # chunk, embed and store the corpus
+```
+
+On a machine with 16 GB of memory, set `MODEL_PROFILE=light` in `.env`, which uses `qwen2.5:3b` and `llama3.1:8b` instead. Every setup step is idempotent and can be run again.
+
+### Ask a question
+
+```bash
+bun run ask --chunk md-1024-128 "How do I read environment variables in Bun?"
+```
+
+The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do not cover the question. Without further flags this is the configuration the experiments below selected: md-1024-128 chunks, top 5, vector search. Optional flags:
+
+- `--k <n>`: number of chunks in the context (default 5).
+- `--search fts|hybrid`: full text or hybrid search instead of vector search.
+- `--rewrite` or `--expand` (not both): rewrite the question, or search extra generated queries.
+- `--rerank`: LLM reranking of the top 20 (about 30 s slower per question, see below).
+- `--pipeline agent`: the model calls a search tool itself, up to four times, and prints its trace first.
+
+`bun run retrieve --chunk md-1024-128 "<question>"` shows only the retrieved chunks with their scores, which helps to debug a poor answer.
+
+### Evaluate
+
+- `bun run eval:validate`: checks the golden dataset in `eval/golden.jsonl` against the corpus.
+- `bun run experiment experiments/<file>.json [--split dev] [--seed <n>]`: runs an experiment matrix and writes `results/*.json`. An answers run over the 30 test questions takes about 15–40 minutes on a laptop.
+- `bun run report`: regenerates the results tables below from `results/`.
+
+### Troubleshooting
+
+- `No embeddings for <config>`: run `bun run ingest --chunk <config>`.
+- Ollama unreachable or a model not found: start Ollama and pull the model the error names.
+- Database unreachable: `docker compose up -d`, and check `DATABASE_URL` in `.env`.
+
+Development: `bun run lint`, `bun run typecheck` and `bun run test`. The integration tests need the database; `bun run test:unit` runs without it.
+
 ## Corpus and license
 
 The corpus is the Bun documentation (`docs/` in [oven-sh/bun](https://github.com/oven-sh/bun)) at the commit pinned as `CORPUS_SHA` in `.env.example`. `./scripts/fetch-corpus.sh` downloads it into `corpus/`, which is gitignored; this repository contains no corpus files.
