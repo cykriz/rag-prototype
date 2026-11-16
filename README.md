@@ -20,6 +20,16 @@ Then query expansion (`exp-expand`), at the same config with rewriting off. The 
 
 Then LLM reranking (`exp-rerank`), at the same config with rewriting and expansion off. Vector search fetches the top 20 chunks. The chat model scores each of them from 0 to 10 for how much it helps answer the question, using temperature 0 and seed 42. Each chunk is cut to 1200 characters, enough to show 88 % of the dev evidence spans. The five best-scored chunks go into the context. IDs the model invents are ignored, and chunks it leaves out are appended in search order. If the output is still invalid after two repairs, the search order stays; no run needed this. In practice the model scores only a handful of chunks: on average about 16.5 of the 20 are left out and appended. The same rule decides: answers first, retrieval only on a tie, a full tie goes to off. On dev, reranking wins: accuracy 4.85 against 4.69, a gap of 0.15, outside 1/13. The whole gap comes from a single question, which went from 3 to 5. Retrieval agrees, with Recall@5 0.77 against 0.69 and MRR@5 0.71 against 0.40. One dev question gained evidence and none lost any. On test, the answers come out even (accuracy 4.78 against 4.77, completeness 4.43 against 4.36). Retrieval improves again, with Recall@5 0.78 against 0.72 and MRR@5 0.73 against 0.61. Two test questions gained evidence and none lost any, and one of them is now answered instead of abstained (false abstention 0.08 against 0.12). The gain is expensive. The rerank call reads about 5800 input tokens and writes about 80 output tokens, and takes 28.6 s at the median. The end-to-end p50 on test grows by 31 s (43961 against 12681 ms), and tokens per question roughly triple. The dev rule picks reranking, but on test it bought better ranking, not better answers, at about 30 s per question. So the later milestones deliberately depart from the rule and run without reranking; the stage stays available as `--rerank` and `rerank: "on"`. Result files now carry `schemaVersion` 5. Each question records the candidates, the reranked order with the model's scores, the counts of unknown, duplicate and missing IDs, and whether the stage fell back.
 
+Last, the agent (`exp-agent`), a LangGraph loop around the same chat model. Instead of one fixed search, the model gets a `search_docs(query, k)` tool backed by vector search at the same config (md-1024-128, k = 5 by default, at most 10). It may call the tool up to four times before it has to answer. Its final reply must be a valid cited answer over the chunks its searches returned. Otherwise one structured answer call with the normal answer prompt runs over those chunks (the answer fallback). The judge sees exactly those chunks as context. Only the agent arm ran, on test. It is compared with the newest run of the same config without the agent (the rerank-off row, same shuffle seed), so there is no dev selection here. The agent is slightly worse: accuracy 4.65 against 4.77 and completeness 4.30 against 4.36. Abstention accuracy drops from 1.00 to 0.80, because it answered one of the five unanswerable questions. In exchange it abstained wrongly a little less often (false abstention 0.08 against 0.12). The agent never used its freedom. It searched exactly once on every question, mostly with k = 5, and never reached the limit. 6 of 30 answers (20 %) needed the answer fallback. In effect it is the baseline with an extra model turn. That turn costs 3.0 s at the median (15634 against 12681 ms; `exp-k-answers` measured the same baseline at 6879 ms, so the latency gap is noisy) and 42 % more tokens per question (3913 against 2746). The agent is therefore not adopted. Result files now carry `schemaVersion` 6, with each question's tool call trace, the tool call count, whether the limit was reached and whether the answer fell back.
+
+### What did not help
+
+- **Hybrid search:** tied with vector on dev and was ahead on test retrieval only (Recall@5 +0.08). It never had an answers run, so vector search stayed.
+- **Query rewriting:** lost clearly on dev (accuracy 4.17 against 4.69) but was ahead on test (+0.14). With 13 answerable dev questions, the selection signal is weak in both directions. Not adopted.
+- **Query expansion:** same picture: it lost on dev (4.46 against 4.69) and was ahead on test (+0.14). Not adopted.
+- **LLM reranking:** better ranking (Recall@5 +0.06, nDCG +0.12), but answers stayed even (+0.01 accuracy). It added 31 s at p50 and about three times the tokens. Latency without gain, so it is off.
+- **Agent:** worse answers (accuracy −0.12, abstention accuracy 1.00 → 0.80), 3 s more at p50 and 42 % more tokens. It never searched more than once.
+
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
 <!-- results:start -->
@@ -96,6 +106,14 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 12681 | 19134 | 2746 | 0.00 |
 | on | 0.78 | 0.73 | 0.72 | 0.92 | 4.78 | 4.43 | 4.83 | 1.00 | 43961 | 53160 | 8716 | 0.00 |
 
+### exp-agent: pipeline
+
+Fixed: md-1024-128, nomic-embed-text, k=5, vector.
+
+| pipeline | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| agent | – | – | – | – | 4.65 | 4.30 | 4.87 | 0.80 | 15634 | 28941 | 3913 | 0.00 |
+
 ### Phase 2 deltas vs. baseline
 
 | Technique | Baseline | Δ Recall@k | Δ nDCG@k | Δ Accuracy | Δ Completeness | Δ Abstention acc. | Δ p50 ms | Δ Tokens/q |
@@ -105,6 +123,7 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | exp-rewrite: rewrite=on | exp-rewrite: rewrite=off | +0.04 | +0.09 | +0.14 | +0.18 | +0.00 | +1394 | +240 |
 | exp-expand: expand=on | exp-expand: expand=off | +0.04 | +0.04 | +0.14 | +0.22 | +0.00 | -1205 | +280 |
 | exp-rerank: rerank=on | exp-rerank: rerank=off | +0.06 | +0.12 | +0.01 | +0.07 | +0.00 | +31280 | +5970 |
+| exp-agent: pipeline=agent | exp-rerank: rerank=off | – | – | -0.12 | -0.06 | -0.20 | +2953 | +1167 |
 
 Each row minus its baseline: the same experiment with the technique off, or else the newest run of the same config with it off (named in the Baseline column).
 
@@ -120,6 +139,7 @@ Each row minus its baseline: the same experiment with the technique off, or else
 | exp-expand: expand=on | 2955 | 71 | 0.00 | 0.00 | 0.00 | 0.04 |
 | exp-rerank: rerank=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
 | exp-rerank: rerank=on | 8593 | 122 | 0.00 | 0.00 | 0.00 | 0.08 |
+| exp-agent: pipeline=agent | 3820 | 93 | 0.00 | 0.00 | 0.00 | 0.08 |
 
 Test split only, latest run per config from a clean checkout. Metrics are the `all` group of each result file (human and llm reference answers are reported separately there); `–` = not run or not recorded. Tokens/q, Cost/100 q and the KPI rates count the answer pipeline without the judge. Dataset `89f4a8a4`, corpus `b6f9cfa0`.
 <!-- results:end -->
