@@ -1,0 +1,1287 @@
+{
+  "schemaVersion": 3,
+  "experimentId": "exp-rewrite",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-8072b59a-6475-45f3-b3ba-76605abbd326",
+  "startedAt": "2026-11-16T11:01:01.800Z",
+  "finishedAt": "2026-11-16T11:01:02.910Z",
+  "gitSha": "336f534302aa2a6dab9498d05bbcdbfa7fb2e5b9",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "off"
+  },
+  "variedKey": "rewrite",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    }
+  },
+  "counts": {
+    "questions": 30,
+    "evaluated": 25,
+    "excludedNegative": 5,
+    "rewriteFallbacks": null
+  },
+  "aggregate": {
+    "all": {
+      "n": 25,
+      "recall": 0.72,
+      "mrr": 0.6067,
+      "ndcg": 0.5956,
+      "keywordCoverage": 0.9
+    },
+    "human": {
+      "n": 16,
+      "recall": 0.75,
+      "mrr": 0.5313,
+      "ndcg": 0.587,
+      "keywordCoverage": 0.8438
+    },
+    "llm": {
+      "n": 9,
+      "recall": 0.6667,
+      "mrr": 0.7407,
+      "ndcg": 0.6107,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 10,
+        "recall": 0.7,
+        "mrr": 0.4167,
+        "ndcg": 0.4893,
+        "keywordCoverage": 0.85
+      },
+      "how_to": {
+        "n": 7,
+        "recall": 0.8571,
+        "mrr": 0.7619,
+        "ndcg": 0.7857,
+        "keywordCoverage": 0.8571
+      },
+      "multi_document": {
+        "n": 5,
+        "recall": 0.6,
+        "mrr": 0.8667,
+        "ndcg": 0.5993,
+        "keywordCoverage": 1
+      },
+      "vocabulary_mismatch": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.4444,
+        "ndcg": 0.5,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.667575,
+          "covers": []
+        },
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.658032,
+          "covers": []
+        },
+        {
+          "chunkId": 10194,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.644543,
+          "covers": []
+        },
+        {
+          "chunkId": 10190,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.643523,
+          "covers": []
+        },
+        {
+          "chunkId": 10623,
+          "sourcePath": "lint/rules/eslint/default-param-last.mdx",
+          "score": 0.633967,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10186,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.679033,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12177,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.617536,
+          "covers": []
+        },
+        {
+          "chunkId": 11856,
+          "sourcePath": "runtime/cron.mdx",
+          "score": 0.615987,
+          "covers": []
+        },
+        {
+          "chunkId": 11513,
+          "sourcePath": "lint/rules/unicorn/prefer-date-now.mdx",
+          "score": 0.614424,
+          "covers": []
+        },
+        {
+          "chunkId": 10666,
+          "sourcePath": "lint/rules/eslint/no-continue.mdx",
+          "score": 0.613622,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10473,
+          "sourcePath": "guides/util/detect-bun.mdx",
+          "score": 0.742751,
+          "covers": []
+        },
+        {
+          "chunkId": 10581,
+          "sourcePath": "lint/rules/bun/fast-check-no-unseeded-random.mdx",
+          "score": 0.740996,
+          "covers": []
+        },
+        {
+          "chunkId": 11912,
+          "sourcePath": "runtime/http/error-handling.mdx",
+          "score": 0.735003,
+          "covers": []
+        },
+        {
+          "chunkId": 10521,
+          "sourcePath": "lint/rules/bun-test/no-conditional-expect.mdx",
+          "score": 0.73463,
+          "covers": []
+        },
+        {
+          "chunkId": 11821,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.732728,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.722709,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.714004,
+          "covers": []
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.676361,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10623,
+          "sourcePath": "lint/rules/eslint/default-param-last.mdx",
+          "score": 0.658668,
+          "covers": []
+        },
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.657925,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10443,
+          "sourcePath": "guides/streams/to-array.mdx",
+          "score": 0.842075,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10444,
+          "sourcePath": "guides/streams/to-arraybuffer.mdx",
+          "score": 0.774392,
+          "covers": []
+        },
+        {
+          "chunkId": 12076,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.761756,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.748117,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.745027,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10441,
+          "sourcePath": "guides/streams/node-readable-to-string.mdx",
+          "score": 0.740904,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.739663,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10278,
+          "sourcePath": "guides/binary/blob-to-stream.mdx",
+          "score": 0.721745,
+          "covers": []
+        },
+        {
+          "chunkId": 10439,
+          "sourcePath": "guides/streams/node-readable-to-blob.mdx",
+          "score": 0.709092,
+          "covers": []
+        },
+        {
+          "chunkId": 10279,
+          "sourcePath": "guides/binary/blob-to-string.mdx",
+          "score": 0.70599,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 12196,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.758777,
+          "covers": []
+        },
+        {
+          "chunkId": 10458,
+          "sourcePath": "guides/test/mock-functions.mdx",
+          "score": 0.749104,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10982,
+          "sourcePath": "lint/rules/jest/prefer-jest-mocked.mdx",
+          "score": 0.736452,
+          "covers": []
+        },
+        {
+          "chunkId": 12197,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.732837,
+          "covers": []
+        },
+        {
+          "chunkId": 11614,
+          "sourcePath": "lint/rules/vitest/prefer-mock-return-shorthand.mdx",
+          "score": 0.715227,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10952,
+          "sourcePath": "lint/rules/jest/no-disabled-tests.mdx",
+          "score": 0.759849,
+          "covers": []
+        },
+        {
+          "chunkId": 11579,
+          "sourcePath": "lint/rules/vitest/no-disabled-tests.mdx",
+          "score": 0.756259,
+          "covers": []
+        },
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.755143,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10524,
+          "sourcePath": "lint/rules/bun-test/no-disabled-tests.mdx",
+          "score": 0.740868,
+          "covers": []
+        },
+        {
+          "chunkId": 11626,
+          "sourcePath": "lint/rules/vitest/prefer-todo.mdx",
+          "score": 0.72195,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 11796,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.659992,
+          "covers": []
+        },
+        {
+          "chunkId": 11768,
+          "sourcePath": "quickstart.mdx",
+          "score": 0.63681,
+          "covers": []
+        },
+        {
+          "chunkId": 11514,
+          "sourcePath": "lint/rules/unicorn/prefer-default-parameters.mdx",
+          "score": 0.63351,
+          "covers": []
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.630986,
+          "covers": []
+        },
+        {
+          "chunkId": 11975,
+          "sourcePath": "runtime/networking/fetch.mdx",
+          "score": 0.628706,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 12008,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.707841,
+          "covers": []
+        },
+        {
+          "chunkId": 12009,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.695578,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12004,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.660902,
+          "covers": []
+        },
+        {
+          "chunkId": 12014,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.654512,
+          "covers": []
+        },
+        {
+          "chunkId": 12011,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.637157,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10143,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.732062,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10144,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.681469,
+          "covers": []
+        },
+        {
+          "chunkId": 10141,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.676303,
+          "covers": []
+        },
+        {
+          "chunkId": 10149,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.673972,
+          "covers": []
+        },
+        {
+          "chunkId": 10150,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.671971,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.787547,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.754408,
+          "covers": []
+        },
+        {
+          "chunkId": 10459,
+          "sourcePath": "guides/test/rerun-each.mdx",
+          "score": 0.725098,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.719944,
+          "covers": []
+        },
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.709536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10469,
+          "sourcePath": "guides/test/watch-mode.mdx",
+          "score": 0.697865,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.686691,
+          "covers": []
+        },
+        {
+          "chunkId": 10160,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.653346,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11822,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.6514,
+          "covers": []
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.636718,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.760717,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10173,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.710026,
+          "covers": []
+        },
+        {
+          "chunkId": 10139,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.705607,
+          "covers": []
+        },
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.697206,
+          "covers": []
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.691937,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10391,
+          "sourcePath": "guides/install/yarnlock.mdx",
+          "score": 0.813244,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11664,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.702121,
+          "covers": []
+        },
+        {
+          "chunkId": 11665,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.674106,
+          "covers": []
+        },
+        {
+          "chunkId": 10385,
+          "sourcePath": "guides/install/git-diff-bun-lockfile.mdx",
+          "score": 0.660325,
+          "covers": []
+        },
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.653375,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10394,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.811899,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10392,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.798892,
+          "covers": []
+        },
+        {
+          "chunkId": 10510,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.77012,
+          "covers": []
+        },
+        {
+          "chunkId": 10924,
+          "sourcePath": "lint/rules/index.mdx",
+          "score": 0.768163,
+          "covers": []
+        },
+        {
+          "chunkId": 10507,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.760485,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10404,
+          "sourcePath": "guides/process/spawn-stdout.mdx",
+          "score": 0.676111,
+          "covers": []
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.662584,
+          "covers": []
+        },
+        {
+          "chunkId": 10403,
+          "sourcePath": "guides/process/spawn-stderr.mdx",
+          "score": 0.652021,
+          "covers": []
+        },
+        {
+          "chunkId": 10400,
+          "sourcePath": "guides/process/ipc.mdx",
+          "score": 0.650236,
+          "covers": []
+        },
+        {
+          "chunkId": 10500,
+          "sourcePath": "guides/write-file/stdout.mdx",
+          "score": 0.646824,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.742063,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11662,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.741198,
+          "covers": []
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.728988,
+          "covers": []
+        },
+        {
+          "chunkId": 10382,
+          "sourcePath": "guides/install/from-npm-install-to-bun-install.mdx",
+          "score": 0.724902,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.72448,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 12218,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.755587,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 12173,
+          "sourcePath": "test/configuration.mdx",
+          "score": 0.718972,
+          "covers": []
+        },
+        {
+          "chunkId": 12219,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.716068,
+          "covers": []
+        },
+        {
+          "chunkId": 12186,
+          "sourcePath": "test/index.mdx",
+          "score": 0.703645,
+          "covers": []
+        },
+        {
+          "chunkId": 11799,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.700757,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.8503,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.831759,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.813642,
+          "covers": []
+        },
+        {
+          "chunkId": 10388,
+          "sourcePath": "guides/install/registry-scope.mdx",
+          "score": 0.795628,
+          "covers": []
+        },
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.794493,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.78368,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.808516,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.795542,
+          "covers": []
+        },
+        {
+          "chunkId": 11791,
+          "sourcePath": "runtime/bun-apis.mdx",
+          "score": 0.738477,
+          "covers": []
+        },
+        {
+          "chunkId": 10153,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.737118,
+          "covers": []
+        },
+        {
+          "chunkId": 11920,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.734143,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.3066,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.7389,
+          "covers": []
+        },
+        {
+          "chunkId": 11094,
+          "sourcePath": "lint/rules/node/no-process-env.mdx",
+          "score": 0.715319,
+          "covers": []
+        },
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.712843,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.690319,
+          "covers": []
+        },
+        {
+          "chunkId": 10590,
+          "sourcePath": "lint/rules/bun/no-env-at-module-scope.mdx",
+          "score": 0.68861,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 11082,
+          "sourcePath": "lint/rules/nextjs/no-sync-scripts.mdx",
+          "score": 0.644322,
+          "covers": []
+        },
+        {
+          "chunkId": 11198,
+          "sourcePath": "lint/rules/react/jsx-no-duplicate-props.mdx",
+          "score": 0.632355,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.62826,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.625021,
+          "covers": []
+        },
+        {
+          "chunkId": 10749,
+          "sourcePath": "lint/rules/eslint/no-self-assign.mdx",
+          "score": 0.61776,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 12015,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.636062,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12016,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.63424,
+          "covers": []
+        },
+        {
+          "chunkId": 12017,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.630335,
+          "covers": []
+        },
+        {
+          "chunkId": 11709,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.613399,
+          "covers": []
+        },
+        {
+          "chunkId": 11461,
+          "sourcePath": "lint/rules/unicorn/no-hex-escape.mdx",
+          "score": 0.608151,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "retrieved": [
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.724498,
+          "covers": []
+        },
+        {
+          "chunkId": 11640,
+          "sourcePath": "pm/catalogs.mdx",
+          "score": 0.71768,
+          "covers": []
+        },
+        {
+          "chunkId": 10861,
+          "sourcePath": "lint/rules/import/no-relative-packages.mdx",
+          "score": 0.7159,
+          "covers": []
+        },
+        {
+          "chunkId": 11820,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.688898,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.687209,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}

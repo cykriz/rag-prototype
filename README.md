@@ -14,6 +14,8 @@ Method: phase 1 varies one setting at a time in a fixed greedy order: chunk size
 
 Phase 2 starts with the search mode (`exp-search-mode`) at that config: vector search, full text search (`websearch_to_tsquery('english', …)` ranked by `ts_rank_cd`) and hybrid search, which fuses the top max(k, 50) of both with reciprocal rank fusion (k = 60) in SQL. The selection rule is the same; for ties the cost order is fts < vector < hybrid, because full text search needs no embedding call and hybrid needs both. On dev, vector and hybrid tie (Recall@5 0.69 for both; hybrid's MRR@5 lead of 0.05 is within 1/13), so vector search stays. On test, hybrid is ahead (Recall@5 0.80 against 0.72): the same small dev split problem as above. Full text search alone falls far behind because `websearch_to_tsquery` joins every word of a question with AND: 8 of 13 dev questions and 12 of 25 test questions match no chunk at all. From this step on every result file carries `schemaVersion` 2; only the retrieval layout changed: each hit stores a `score`, higher is better within one mode (vector: 1 − cosine distance), instead of the vector `distance`.
 
+Next comes query rewriting (`exp-rewrite`), at that config with vector search. Before retrieval, the chat model turns the question into one search query, using temperature 0 and seed 42. The prompt lets it make vague wording concrete and add Bun terms. It must keep identifiers exactly as written, must not answer the question and must not name APIs the question does not imply. The rewritten query is used for both the embedding and the full text query, while the answer prompt keeps the original question. If the output is still invalid after two repairs, retrieval falls back to the original question; no run needed this. The answers decide, because the rewrite costs a model call on every request. Retrieval breaks a tie only, and a full tie goes to off. On dev, off wins: accuracy 4.69 against 4.17, well outside 1/13. Retrieval agrees, with Recall@5 0.69 against 0.58. The rewrites read well but flatten specific terms, so three dev questions lost their evidence and one gained it. On test, rewriting is ahead (accuracy 4.91 against 4.77, Recall@5 0.76 against 0.72), the same small dev split problem again, so the pipeline stays without rewriting. The rewrite call itself takes about 0.9 s at the median. The end-to-end p50 grows by 1.4 s on test (8264 against 6870 ms) and by 1.0 s on dev. Result files now carry `schemaVersion` 3. Each question records the query that retrieval used and whether it fell back. Answers files also report the latency percentiles of each call type.
+
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
 <!-- results:start -->
@@ -63,12 +65,23 @@ Fixed: md-1024-128, nomic-embed-text, k=5.
 | hybrid | 0.80 | 0.71 | 0.69 | 0.98 | – | – | – | – | – | – | – | – |
 | vector | 0.72 | 0.61 | 0.60 | 0.90 | – | – | – | – | – | – | – | – |
 
+### exp-rewrite: rewrite
+
+Fixed: md-1024-128, nomic-embed-text, k=5, vector.
+
+| rewrite | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 6870 | 10806 | 2746 | 0.00 |
+| on | 0.76 | 0.72 | 0.69 | 0.94 | 4.91 | 4.55 | 5.00 | 1.00 | 8264 | 12853 | 2986 | 0.00 |
+
 ### KPIs
 
 | Config | In tok/q | Out tok/q | Est. token share | Retry rate | Invalid output rate | False abst. |
 | --- | --- | --- | --- | --- | --- | --- |
 | baseline (md-512-64, nomic-embed-text, k=5, vector) | 1884 | 46 | 0.00 | 0.07 | 0.00 | 0.08 |
 | exp-k-answers (md-1024-128, nomic-embed-text, k=5, vector) | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-rewrite: rewrite=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-rewrite: rewrite=on | 2922 | 64 | 0.00 | 0.00 | 0.00 | 0.12 |
 
 Test split only, latest run per config from a clean checkout. Metrics are the `all` group of each result file (human and llm reference answers are reported separately there); `–` = not run or not recorded. Tokens/q, Cost/100 q and the KPI rates count the answer pipeline without the judge. Dataset `89f4a8a4`, corpus `b6f9cfa0`.
 <!-- results:end -->

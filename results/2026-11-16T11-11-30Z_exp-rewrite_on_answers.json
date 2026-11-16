@@ -1,0 +1,1234 @@
+{
+  "schemaVersion": 3,
+  "experimentId": "exp-rewrite",
+  "evalType": "answers",
+  "runId": "eval-answers-1e950e6d-724a-4c8d-8f68-5714fe7e88c0",
+  "startedAt": "2026-11-16T11:11:30.571Z",
+  "finishedAt": "2026-11-16T11:21:48.132Z",
+  "gitSha": "336f534302aa2a6dab9498d05bbcdbfa7fb2e5b9",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "on"
+  },
+  "variedKey": "rewrite",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    },
+    "judge": {
+      "provider": "ollama",
+      "name": "gemma3:12b",
+      "tag": "gemma3:12b",
+      "digest": "b92b218582c521ba287f38f1d6057dcd3c6cbff036f13cac97b5d861f5e58ec3"
+    }
+  },
+  "judge": {
+    "temperature": 0,
+    "seed": 42
+  },
+  "shuffleSeed": 3623154837,
+  "counts": {
+    "questions": 30,
+    "answerable": 25,
+    "negative": 5,
+    "judged": 22,
+    "judgeInvalid": 0,
+    "invalidAnswers": 0,
+    "rewriteFallbacks": 0
+  },
+  "aggregate": {
+    "all": {
+      "nAnswerable": 25,
+      "nNegative": 5,
+      "scored": 22,
+      "accuracy": 4.9091,
+      "completeness": 4.5455,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0.12,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "human": {
+      "nAnswerable": 16,
+      "nNegative": 0,
+      "scored": 14,
+      "accuracy": 4.8571,
+      "completeness": 4.7143,
+      "relevance": 5,
+      "abstentionAccuracy": null,
+      "falseAbstentionRate": 0.125,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "llm": {
+      "nAnswerable": 9,
+      "nNegative": 5,
+      "scored": 8,
+      "accuracy": 5,
+      "completeness": 4.25,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0.1111,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    }
+  },
+  "selfConsistency": {
+    "sampled": 3,
+    "repeatInvalid": 0,
+    "pairs": 3,
+    "identicalShare": 1,
+    "perDimension": {
+      "accuracy": 1,
+      "completeness": 1,
+      "relevance": 1
+    }
+  },
+  "kpis": {
+    "latencyMs": {
+      "p50": 8263.5,
+      "p95": 12852.95
+    },
+    "calls": [
+      {
+        "operation": "embed",
+        "model": "nomic-embed-text",
+        "calls": 30,
+        "avgInputTokens": 23,
+        "avgOutputTokens": 0,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 10,
+        "latencyP95Ms": 11.55
+      },
+      {
+        "operation": "generate",
+        "model": "qwen2.5:7b",
+        "calls": 30,
+        "avgInputTokens": 2721.5,
+        "avgOutputTokens": 42.0667,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 7057.5,
+        "latencyP95Ms": 11593.8
+      },
+      {
+        "operation": "judge",
+        "model": "gemma3:12b",
+        "calls": 25,
+        "avgInputTokens": 3027.48,
+        "avgOutputTokens": 90.2,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 14684,
+        "latencyP95Ms": 19765.8
+      },
+      {
+        "operation": "rewrite",
+        "model": "qwen2.5:7b",
+        "calls": 30,
+        "avgInputTokens": 177,
+        "avgOutputTokens": 22.3,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 933.5,
+        "latencyP95Ms": 1347.6
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "9bc26159-6aee-4419-bc67-2e833182b3c3",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9534,
+      "answer": "In development, minification is not enabled by default. In production, minification is enabled by default.",
+      "citations": [
+        10189,
+        10195
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10195,
+        10189,
+        10190,
+        12158,
+        10194
+      ],
+      "rewrite": {
+        "query": "What is the default value for minification in development and production environments?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER explicitly states that minification is disabled in development and enabled in production. The assistant's answer directly and accurately reflects this information. The assistant's answer is concise and relevant to the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "6fd248f2-52b3-491a-b3f4-e425ce1021ee",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6160,
+      "answer": "Macros run at bundle-time.",
+      "citations": [
+        10186
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10186,
+        10450,
+        11938,
+        10473,
+        10466
+      ],
+      "rewrite": {
+        "query": "When do macros execute in Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context explicitly states that \"Macros are JavaScript functions that run at bundle-time.\" The assistant's answer accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "18b81665-5ccb-4569-a24c-3c92d8797459",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7419,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10581,
+        12150,
+        10226,
+        10473,
+        10354
+      ],
+      "rewrite": {
+        "query": "What code does bun fmt --check return if there are any issues that are not syntax errors?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "d76d344a-8db3-4ec6-9d84-1219e3218460",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7750,
+      "answer": "The default registry is registry.npmjs.org.",
+      "citations": [
+        10381,
+        11716
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10381,
+        11707,
+        11661,
+        11716,
+        11708
+      ],
+      "rewrite": {
+        "query": "What is the default registry in Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default registry. The provided context explicitly states \"The default registry is `registry.npmjs.org`.\". The assistant's answer directly and accurately reflects this information. It is concise and relevant.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default registry. The provided context explicitly states \"The default registry is `registry.npmjs.org`.\". The assistant's answer directly and accurately reflects this information. It is concise and relevant.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "8dac773a-5b34-4998-8419-db447d56b0e3",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 4013,
+      "answer": "Bun.readableStreamToArray",
+      "citations": [
+        10443
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10443,
+        10444,
+        10448,
+        10446,
+        10445
+      ],
+      "rewrite": {
+        "query": "How does Bun read the contents of a ReadableStream into an array of chunks?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks what reads the contents of a ReadableStream into an array of chunks. The REFERENCE ANSWER and CONTEXT explicitly state that `Bun.readableStreamToArray` performs this function. The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "22c99bc8-bc1b-4c39-8ff6-fa87fce6d278",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 4248,
+      "answer": "To transform a stream into a string, call its `text()` method.",
+      "citations": [
+        10448
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10448,
+        10441,
+        10445,
+        10447,
+        10443
+      ],
+      "rewrite": {
+        "query": "How to convert a stream to a string in Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly and accurately states the primary method for converting a stream to a string, as described in the provided context. It's concise and avoids unnecessary information. The answer is complete as it covers the main point of the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "783c4715-24ba-4adf-bb3b-2ed90ad681a7",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6279,
+      "answer": "Yes, mocked functions in tests can accept arguments.",
+      "citations": [
+        12196,
+        10458
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12196,
+        10458,
+        10570,
+        10556,
+        10543
+      ],
+      "rewrite": {
+        "query": "Can mocked functions in test cases accept arguments in Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context includes multiple examples demonstrating that the `mock` function can accept arguments, such as `mock((multiplier: number) => multiplier * Math.random())`. The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context includes multiple examples demonstrating that the `mock` function can accept arguments, such as `mock((multiplier: number) => multiplier * Math.random())`. The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "90c385c4-8759-4797-9ac3-022dfa3201c7",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 4413,
+      "answer": "test.skip",
+      "citations": [
+        10461
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10461,
+        10524,
+        10568,
+        10528,
+        10450
+      ],
+      "rewrite": {
+        "query": "How do you skip a test in Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the function to skip a test. The REFERENCE ANSWER directly states that it is `test.skip`. The CONTEXT also confirms this by providing an example of using `test.skip` to skip a test.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "09616d6e-802b-4d14-831d-62667c6aba60",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5240,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11768,
+        11796,
+        11967,
+        10261,
+        11927
+      ],
+      "rewrite": {
+        "query": "What is the default hostname for the HTTP server in Bun?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "7a54fa27-d565-471d-9380-0e169d52e15c",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8572,
+      "answer": "us-east-1",
+      "citations": [
+        12008,
+        12009
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12004,
+        12008,
+        12009,
+        12006,
+        12005
+      ],
+      "rewrite": {
+        "query": "What is the default S3 region when using Bun to upload files?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default S3 region. The context states that when using Bun's S3 client, if no region is specified and a virtual hosted-style endpoint is not used, the default region is us-east-1. The answer directly and accurately provides this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "8235d200-b256-40ea-b8a0-8dbd2942da4c",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9350,
+      "answer": "Use `Bun.build` or `bun build` to bundle your fullstack application ahead of time.",
+      "citations": [
+        10143
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10143,
+        10342,
+        10144,
+        10145,
+        10324
+      ],
+      "rewrite": {
+        "query": "How to use Bun to bundle a fullstack application ahead of time?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to bundle a fullstack application ahead of time. The REFERENCE ANSWER states that you can use `Bun.build` or `bun build`. The CONTEXT confirms this, stating \"As of Bun v1.2.17, you can use `Bun.build` or `bun build` to bundle your fullstack application ahead of time.\" The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "c0d16ab7-887c-4a3d-bc81-d511a5d37ac7",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5150,
+      "answer": "Use the --bail flag to abort a test run after the first failure.",
+      "citations": [
+        10450
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10450,
+        10466,
+        10571,
+        10459,
+        10525
+      ],
+      "rewrite": {
+        "query": "How do I make bun test stop after the first failing test using --exit flag?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly and accurately addresses the question using the information provided in the context. It correctly states that the `--bail` flag stops the test run after the first failure. The answer is concise and complete, covering the core functionality described in the reference answer and context.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly and accurately addresses the question using the information provided in the context. It correctly states that the `--bail` flag stops the test run after the first failure. The answer is concise and complete, covering the core functionality described in the reference answer and context.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "96a6cd9b-97ea-423a-b99c-b05a16774b43",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9747,
+      "answer": "Use the `--watch` flag with the `bun build` command.",
+      "citations": [
+        10160
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10469,
+        12112,
+        12113,
+        10160,
+        11822
+      ],
+      "rewrite": {
+        "query": "How to use watch mode for building with Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to build with watch mode. The reference answer provides the exact command `bun build ./test.tsx --outdir ./out --watch`. The assistant answer only provides a partial answer, stating to use the `--watch` flag, but not in conjunction with `bun build`. The context provides multiple examples of using `--watch` with `bun build`, `bun test`, and other commands. Therefore, the assistant's answer is incomplete.",
+        "accuracy": 3,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "96d50994-dfa4-42e3-9228-cdf666d2aa8e",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 15247,
+      "answer": "You can use and enable minification in the bundler by using the `--minify` flag or the `minify` option in the JavaScript API. For granular control, you can enable specific modes like `--minify-whitespace`, `--minify-syntax`, or `--minify-identifiers`. In the JavaScript API, you can pass a boolean or an object to the `minify` option to enable all or specific minification modes.",
+      "citations": [
+        10189,
+        10139
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10189,
+        10139,
+        10173,
+        10158,
+        10260
+      ],
+      "rewrite": {
+        "query": "How can I enable and use minification in the Bun bundler?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies the `--minify` flag and the `minify` option in the JavaScript API as ways to enable minification. It also mentions the granular control options for specific modes. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "6a6f1d24-8549-476c-9742-ae11f35508d5",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8768,
+      "answer": "Use the `--yarn` flag with the `bun install` command.",
+      "citations": [
+        10391
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10391,
+        11664,
+        10385,
+        11706,
+        11665
+      ],
+      "rewrite": {
+        "query": "How can I produce a lock file compatible with Yarn using Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to produce a yarn compatible lock file. The REFERENCE ANSWER states that this can be done with `bun install --yarn`. The assistant answer directly and accurately provides this information. The assistant answer is concise and relevant.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "e52d9e85-7403-4ddf-a43a-2464ede8d05d",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10394,
+      "answer": "Open an issue",
+      "citations": [
+        10394
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10394,
+        10392,
+        10510,
+        10507,
+        10397
+      ],
+      "rewrite": {
+        "query": "How to handle discrepancies between Bun lint and ESLint 10 rule checks?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks what to do when `bun lint` and ESLint disagree. The REFERENCE ANSWER states that this is a bug and to report it on GitHub. The CONTEXT explicitly states \"If `bun lint` and ESLint 10 disagree about a rule, that's a bug. [Open an issue](https://github.com/oven-sh/bun/issues)\". The assistant's answer perfectly matches this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "8e3abaef-639a-4788-998c-085c43dc7b7a",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6773,
+      "answer": "To write to the input stream of a subprocess, you can pass the value `",
+      "citations": [
+        11827
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10404,
+        11827,
+        10406,
+        10405,
+        10400
+      ],
+      "rewrite": {
+        "query": "How can a process pipe output to the input stream of a subprocess using Bun?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer correctly states that setting `stdin: \"pipe\"` in `Bun.spawn` returns a `FileSink` for writing to the subprocess's input stream. The provided context supports this claim and provides an example. The assistant's answer is incomplete as it only states the value and doesn't mention the `Bun.spawn` function or the `FileSink`.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "a1678fde-e122-4711-9cc2-891f8a092f16",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 12694,
+      "answer": "When you run `bun install` for the first time in a pnpm monorepo, Bun migrates the `pnpm-lock.yaml` to a `bun.lock` file and uses the isolated installs layout. The `node_modules` layout will be symlinks pointing to the central store in `node_modules/.bun/`.",
+      "citations": [
+        11706,
+        11662
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11706,
+        11662,
+        11703,
+        10390,
+        11701
+      ],
+      "rewrite": {
+        "query": "What is the node_modules layout and lockfile behavior when running bun install for the first time in a pnpm monorepo?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly states that `bun install` migrates `pnpm-lock.yaml` to `bun.lock` and uses isolated installs. It also accurately describes the `node_modules` layout as symlinks to a central store. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "d10449a7-a0f8-4e2a-aad1-3a8773648a97",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 12983,
+      "answer": "Yes, you can still get one JUnit XML file even when running with multiple workers. You need to use the `--reporter=junit` and `--reporter-outfile` flags together.",
+      "citations": [
+        12218
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12218,
+        12173,
+        11799,
+        10455,
+        12186
+      ],
+      "rewrite": {
+        "query": "How can I generate a single JUnit XML file when running bun test with multiple workers, and what flags are required?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies that a single JUnit XML file can be generated with multiple workers. It also accurately lists the required flags: `--reporter=junit` and `--reporter-outfile`. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "fae2a20e-621a-4676-851c-4090b0528aba",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8341,
+      "answer": "If the environment variable is not set, Bun warns and treats the field as empty. It then uses the credentials .npmrc has for that registry, if any.",
+      "citations": [
+        10388,
+        11716
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11707,
+        10381,
+        11708,
+        11716,
+        10388
+      ],
+      "rewrite": {
+        "query": "How does Bun handle a registry token in bunfig.toml pointing to an unset environment variable, and what is the role of .npmrc?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer accurately summarizes the behavior described in the provided context. It correctly states that Bun will warn, treat the unset environment variable as empty, and then fall back to credentials in `.npmrc`. It also correctly mentions that `.npmrc` credentials are used as a fallback.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "3877cac0-8868-4683-80bf-57113f57021b",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9854,
+      "answer": "bun --hot for a Bun.serve app with frontend code enables hot reloading, updating the server with the new code without restarting the process.",
+      "citations": [
+        12113,
+        10364
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12113,
+        10364,
+        10153,
+        10151,
+        11920
+      ],
+      "rewrite": {
+        "query": "What is the effect of using --hot with Bun.serve and does it cause the process to restart?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly states that `bun --hot` enables hot reloading and avoids restarting the process. This aligns with the provided documentation which explicitly states that Bun swaps changed modules in its cache and doesn't hard-restart the process, and that it's the server-side equivalent of hot reloading in the browser. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "1511e50c-1e1b-449e-865c-d7072afcc0df",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10863,
+      "answer": "To turn off automatic .env loading, you can use the `--no-env-file` flag or set `env = false` in `bunfig.toml`. This is generally done in production or CI/CD pipelines where you want to rely solely on system environment variables.",
+      "citations": [
+        11872,
+        12112
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11872,
+        10590,
+        12112,
+        10431,
+        10364
+      ],
+      "rewrite": {
+        "query": "How does Bun handle .env files at runtime and what flag can be used to disable automatic .env loading?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies both methods for disabling automatic .env loading: `--no-env-file` and `env = false` in `bunfig.toml`. It also provides the context of when to use this, which aligns with the reference answer. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "83bd0dbc-2871-41d2-9199-1eae5eaf8363",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8186,
+      "answer": "You can use the `--watch` flag to run your code in watch mode, which will restart the process whenever a file changes.",
+      "citations": [
+        12112
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12112,
+        10469,
+        10415,
+        12113,
+        11082
+      ],
+      "rewrite": {
+        "query": "How can I use the watch command to automatically run my script whenever I save changes to my code?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer directly states that using `bun --watch` will restart the process on each change. The assistant's answer accurately reflects this information. The assistant's answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "fd4a83e8-d325-44f8-8964-7015827220be",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 12124,
+      "answer": "Yes, you can store sensitive credentials like access tokens in your OS password manager using the `Bun.secrets` API instead of keeping them in plain-text files.",
+      "citations": [
+        12016
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12016,
+        12015,
+        12017,
+        11709,
+        10379
+      ],
+      "rewrite": {
+        "query": "Can I store an access token in an OS password manager instead of a plain-text file?",
+        "fallback": false
+      },
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER directly states that you can use `Bun.secrets` to store credentials, which aligns with the CONTEXT's description of the API and its purpose. The assistant's answer accurately reflects this information in a concise manner.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "2b230766-9f89-41d3-89e1-96c7ff49bc13",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8937,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10390,
+        11644,
+        11692,
+        11820,
+        11701
+      ],
+      "rewrite": {
+        "query": "How do I prevent a package in my monorepo from silently relying on libraries that only sit in a sibling's dependency list using Bun?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q040",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "733ba98b-cf14-42ea-9c44-33299ce130f7",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5911,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10298,
+        10303,
+        10296,
+        10293,
+        10302
+      ],
+      "rewrite": {
+        "query": "How to deploy a Bun app on Kubernetes",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q041",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "9b7f47a2-4360-489c-a414-5273ec2a3de9",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6141,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11927,
+        11791,
+        10303,
+        11722,
+        11680
+      ],
+      "rewrite": {
+        "query": "Can Bun.serve expose Prometheus metrics out of the box?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q043",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "a49e6001-2918-46f3-a7af-48a4dde06e8c",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 3604,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11791,
+        12087,
+        12133,
+        11927,
+        11764
+      ],
+      "rewrite": {
+        "query": "Is there a native Kafka client included in Bun?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q044",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "3fb20022-502e-4723-bbbf-cff149664b7d",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5712,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11927,
+        11971,
+        11791,
+        10365,
+        10361
+      ],
+      "rewrite": {
+        "query": "Is there an SMTP client available in Bun for sending emails?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q045",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "b3c7f7df-aa98-4f92-a5be-0be6307ad0bf",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10320,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11661,
+        11677,
+        10597,
+        11707,
+        11651
+      ],
+      "rewrite": {
+        "query": "Does Bun support Deno-style permission flags such as --allow-net to sandbox a script?",
+        "fallback": false
+      },
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    }
+  ]
+}
