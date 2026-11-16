@@ -130,7 +130,11 @@ describe('bun run experiment', () => {
   it('writes one result file per variant with the variant in its name and header', async () => {
     const file = await experimentFile(['md-512-64', 'md-1024-128']);
     expect(await run(file)).toBe(0);
-    const names = (await readdir(join(dir, 'results'))).sort();
+    // Sorted without the timestamp prefix: the two runs can fall into different seconds.
+    const afterStamp = (name: string) => name.slice(name.indexOf('_'));
+    const names = (await readdir(join(dir, 'results'))).sort((a, b) =>
+      afterStamp(a).localeCompare(afterStamp(b)),
+    );
     expect(names).toHaveLength(2);
     expect(names[0]).toMatch(/_exp-chunk-size_md-1024-128_retrieval\.json$/);
     expect(names[1]).toMatch(/_exp-chunk-size_md-512-64_retrieval\.json$/);
