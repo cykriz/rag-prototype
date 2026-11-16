@@ -5,8 +5,9 @@ import { FakeChatProvider } from '../../src/llm/fake';
 import type { ChatProvider, GenerateRequest } from '../../src/llm/types';
 import { type LlmCallRecord, type LlmCallSink, LoggedChatProvider } from '../../src/obs/logger';
 import { REWRITE_SEED, REWRITE_SYSTEM_PROMPT, REWRITE_TEMPERATURE } from '../../src/rag/prompts';
-import { RewriteError, rewriteQuery } from '../../src/rag/rewrite';
-import { MAX_REWRITE_CHARS } from '../../src/rag/schemas';
+import { rewriteQuery } from '../../src/rag/rewrite';
+import { MAX_QUERY_CHARS } from '../../src/rag/schemas';
+import { ChatStageError } from '../../src/rag/stage';
 
 const QUESTION = 'how do I add a package?';
 const ok = (rewritten: string) => JSON.stringify({ rewritten });
@@ -111,7 +112,7 @@ describe('rewriteQuery', () => {
   it.each([
     ['empty', ''],
     ['whitespace-only', ' \n\t '],
-    ['over the length cap', 'x'.repeat(MAX_REWRITE_CHARS + 1)],
+    ['over the length cap', 'x'.repeat(MAX_QUERY_CHARS + 1)],
   ])('falls back on %s text', async (_, text) => {
     const { chat } = logged([ok(text), ok(text), ok(text)]);
     expect(await rewriteQuery(chat, QUESTION)).toMatchObject({ query: QUESTION, fallback: true });
@@ -121,8 +122,9 @@ describe('rewriteQuery', () => {
     const boom = new Error('connection refused');
     const { sink, chat } = logged([boom]);
     const err = await rewriteQuery(chat, QUESTION).catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(RewriteError);
-    expect((err as RewriteError).cause).toBe(boom);
+    expect(err).toBeInstanceOf(ChatStageError);
+    expect(err).toMatchObject({ stage: 'rewrite' });
+    expect((err as ChatStageError).cause).toBe(boom);
     expect(sink.records.map((r) => [r.operation, r.status])).toEqual([['rewrite', 'error']]);
   });
 });

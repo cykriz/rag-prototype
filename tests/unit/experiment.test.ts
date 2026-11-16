@@ -3,20 +3,51 @@ import { describe, expect, it } from 'vitest';
 import { parseEvalArgs, requiredModels } from '../../src/cli/eval';
 import { parseExperimentArgs, planRuns } from '../../src/cli/experiment';
 import { loadConfig } from '../../src/config';
-import { ExperimentFile, expandExperiment, loadExperiment, singleConfig } from '../../src/eval/experiment';
+import {
+  ExperimentFile,
+  expandExperiment,
+  loadExperiment,
+  RunConfig,
+  singleConfig,
+} from '../../src/eval/experiment';
 
 const BASELINE = join(import.meta.dirname, '../../experiments/baseline.json');
 
 const parse = (raw: unknown) => ExperimentFile.parse(raw);
 const BASE = { chunkConfig: 'md-512-64', embed: 'nomic-embed-text', k: 5, search: 'vector', split: 'test' };
-/** BASE as a parsed RunConfig: rewrite defaults to off. */
-const RUN = { ...BASE, rewrite: 'off' };
+/** BASE as a parsed RunConfig: rewrite and expand default to off. */
+const RUN = { ...BASE, rewrite: 'off', expand: 'off' };
 
 describe('experiment files', () => {
   it('experiments/baseline.json is one retrieval config on the test split', async () => {
     const exp = await loadExperiment(BASELINE);
     expect(exp.id).toBe('baseline');
     expect(singleConfig(exp, 'retrieval')).toEqual(RUN);
+  });
+
+  it('experiments/exp-expand.json varies expand off, on at the M15 config', async () => {
+    const exp = await loadExperiment(join(import.meta.dirname, '../../experiments/exp-expand.json'));
+    expect(expandExperiment(exp)).toEqual([
+      { run: { ...RUN, chunkConfig: 'md-1024-128', expand: 'off' }, variedKey: 'expand', label: 'off' },
+      { run: { ...RUN, chunkConfig: 'md-1024-128', expand: 'on' }, variedKey: 'expand', label: 'on' },
+    ]);
+    expect(exp.evals).toEqual(['retrieval', 'answers']);
+  });
+
+  it('reads a config without expand as off and refuses rewrite and expand together', () => {
+    const { expand: _, ...withoutExpand } = RUN;
+    expect(RunConfig.parse(withoutExpand).expand).toBe('off');
+    expect(RunConfig.safeParse({ ...RUN, rewrite: 'on', expand: 'on' }).success).toBe(false);
+    expect(() =>
+      expandExperiment(
+        ExperimentFile.parse({
+          id: 'exp-both',
+          base: { ...BASE, rewrite: 'on' },
+          vary: { expand: ['off', 'on'] },
+          evals: ['retrieval'],
+        }),
+      ),
+    ).toThrow(/rewrite and expand cannot both be on/);
   });
 
   it('experiments/exp-rewrite.json varies rewrite off, on at the M14 config', async () => {
@@ -202,12 +233,13 @@ describe('parseExperimentArgs', () => {
 
 describe('requiredModels', () => {
   const config = loadConfig({ CHAT_PROVIDER: 'fake', EMBED_PROVIDER: 'fake' });
-  const roles = (evalType: 'retrieval' | 'answers', rewrite: 'off' | 'on') =>
-    requiredModels(config, evalType, { rewrite }).map(([role]) => role);
+  const roles = (evalType: 'retrieval' | 'answers', rewrite: 'off' | 'on', expand: 'off' | 'on' = 'off') =>
+    requiredModels(config, evalType, { rewrite, expand }).map(([role]) => role);
 
-  it('adds the chat model to a retrieval run only with rewrite on', () => {
+  it('adds the chat model to a retrieval run only with rewrite or expand on', () => {
     expect(roles('retrieval', 'off')).toEqual(['embed']);
     expect(roles('retrieval', 'on')).toEqual(['embed', 'chat']);
+    expect(roles('retrieval', 'off', 'on')).toEqual(['embed', 'chat']);
     expect(roles('answers', 'on')).toEqual(['embed', 'chat', 'judge']);
   });
 });

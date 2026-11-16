@@ -5,7 +5,7 @@ import type { Sql } from 'postgres';
 import type { Config } from '../config';
 import { isConnectionError } from '../llm/retry';
 import { RetrievalError } from '../rag/answer';
-import { RewriteError } from '../rag/rewrite';
+import { ChatStageError } from '../rag/stage';
 
 export const DB_DOWN = 'Database not reachable at DATABASE_URL: start it with `docker compose up -d`';
 
@@ -35,13 +35,13 @@ export function describeError(err: unknown, ctx: { baseURL: string; model: strin
   return err instanceof Error ? err.message : String(err);
 }
 
-/** The provider error inside a RetrievalError or RewriteError, which the connection and status probes check. */
+/** The provider error inside a RetrievalError or ChatStageError, which the connection and status probes check. */
 export const unwrapStageError = (err: unknown): unknown =>
-  err instanceof RetrievalError || err instanceof RewriteError ? err.cause : err;
+  err instanceof RetrievalError || err instanceof ChatStageError ? err.cause : err;
 
 /**
- * Message for an error of a retrieval-only run (retrieve, eval:retrieval): a RewriteError is a chat-model failure,
- * anything else is named against the embedding model. Probes the database with the unwrapped error.
+ * Message for an error of a retrieval-only run (retrieve, eval:retrieval): a ChatStageError (rewrite, expand) is a
+ * chat-model failure, anything else is named against the embedding model. Probes the database with the unwrapped error.
  */
 export async function retrievalErrorMessage(
   err: unknown,
@@ -52,6 +52,6 @@ export async function retrievalErrorMessage(
   if (await isDatabaseDown(inner, sql)) {
     return DB_DOWN;
   }
-  const model = err instanceof RewriteError ? config.chatModel : config.embedModel;
+  const model = err instanceof ChatStageError ? config.chatModel : config.embedModel;
   return describeError(inner, { baseURL: config.baseURL, model });
 }

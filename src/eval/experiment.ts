@@ -4,7 +4,14 @@ import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { models } from '../config';
 import { parseChunkConfigKey } from '../ingest/chunk';
-import { DEFAULT_REWRITE, REWRITE_MODES } from '../rag/pipeline';
+import {
+  DEFAULT_EXPAND,
+  DEFAULT_REWRITE,
+  EXPAND_MODES,
+  REWRITE_MODES,
+  STAGE_CONFLICT,
+  stagesConflict,
+} from '../rag/pipeline';
 import { SEARCH_MODES } from '../retrieval/search';
 import { MAX_K } from '../retrieval/vector';
 import { SPLITS } from './dataset';
@@ -24,6 +31,7 @@ const K = z.number().int().min(1).max(MAX_K);
 const Search = z.enum(SEARCH_MODES);
 const Split = z.enum(SPLITS);
 const Rewrite = z.enum(REWRITE_MODES);
+const Expand = z.enum(EXPAND_MODES);
 
 const RUN_FIELDS = {
   chunkConfig: ChunkConfigKey,
@@ -32,13 +40,23 @@ const RUN_FIELDS = {
   search: Search,
   split: Split,
   rewrite: Rewrite,
+  expand: Expand,
 };
 
-/** `rewrite` (M15) defaults to off, so result files written before it still parse, read as off. */
-export const RunConfig = z.strictObject({ ...RUN_FIELDS, rewrite: Rewrite.default(DEFAULT_REWRITE) });
+/**
+ * `rewrite` (M15) and `expand` (M16) default to off, so result files written before them still parse, read as off.
+ * Both on is refused (assertPipeline).
+ */
+export const RunConfig = z
+  .strictObject({
+    ...RUN_FIELDS,
+    rewrite: Rewrite.default(DEFAULT_REWRITE),
+    expand: Expand.default(DEFAULT_EXPAND),
+  })
+  .refine((c) => !stagesConflict(c), { message: STAGE_CONFLICT, path: ['expand'] });
 export type RunConfig = z.infer<typeof RunConfig>;
 
-export const VARY_KEYS = ['chunkConfig', 'embed', 'k', 'search', 'split', 'rewrite'] as const;
+export const VARY_KEYS = ['chunkConfig', 'embed', 'k', 'search', 'split', 'rewrite', 'expand'] as const;
 export type VaryKey = (typeof VARY_KEYS)[number];
 
 const unique = <T>(values: readonly T[]) => new Set(values).size === values.length;
@@ -46,7 +64,7 @@ const unique = <T>(values: readonly T[]) => new Set(values).size === values.leng
 export const ExperimentFile = z
   .strictObject({
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
-    // Without the rewrite default: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
+    // Without the rewrite/expand defaults: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
     // trip the base-vs-vary check below. expandExperiment applies the default.
     base: z.strictObject(RUN_FIELDS).partial(),
     vary: z
@@ -57,6 +75,7 @@ export const ExperimentFile = z
         search: z.array(Search).min(1).refine(unique, 'values must be unique'),
         split: z.array(Split).min(1).refine(unique, 'values must be unique'),
         rewrite: z.array(Rewrite).min(1).refine(unique, 'values must be unique'),
+        expand: z.array(Expand).min(1).refine(unique, 'values must be unique'),
       })
       .partial()
       .default({}),

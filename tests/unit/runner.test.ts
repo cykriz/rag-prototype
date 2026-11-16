@@ -54,17 +54,18 @@ const CONFIG: RunConfig = {
   search: 'vector',
   split: 'test',
   rewrite: 'off',
+  expand: 'off',
 };
 
 async function run(split: RunConfig['split'] = 'test') {
-  const asked: string[][] = [];
+  const asked: string[][][] = [];
   const result = await runRetrievalEval({
     entries: ENTRIES,
     split,
     k: 5,
     search: async (qs) => {
       asked.push(qs);
-      return qs.map((q) => HITS[q] ?? []);
+      return qs.map(([q]) => (q === undefined ? [] : (HITS[q] ?? [])));
     },
   });
   return { result, asked };
@@ -73,7 +74,7 @@ async function run(split: RunConfig['split'] = 'test') {
 describe('runRetrievalEval', () => {
   it('scores answerable entries of the split, sorted by id, and excludes negatives', async () => {
     const { result, asked } = await run();
-    expect(asked).toEqual([['question q001', 'question q003']]);
+    expect(asked).toEqual([[['question q001'], ['question q003']]]);
     expect(result.counts).toEqual({ questions: 3, evaluated: 2, excludedNegative: 1 });
     const [q1, q3] = result.questions;
     expect(q1).toMatchObject({
@@ -91,7 +92,7 @@ describe('runRetrievalEval', () => {
   });
 
   it('searches with the rewritten queries and records them per question', async () => {
-    const asked: string[][] = [];
+    const asked: string[][][] = [];
     const rewritten: string[] = [];
     const result = await runRetrievalEval({
       entries: ENTRIES,
@@ -109,7 +110,7 @@ describe('runRetrievalEval', () => {
       },
     });
     expect(rewritten).toEqual(['question q001', 'question q003']);
-    expect(asked).toEqual([['rewritten q001', 'question q003']]);
+    expect(asked).toEqual([[['rewritten q001'], ['question q003']]]);
     expect(result.questions.map((q) => q.rewrite)).toEqual([
       { query: 'rewritten q001', fallback: false },
       { query: 'question q003', fallback: true },
@@ -138,9 +139,53 @@ describe('runRetrievalEval', () => {
     expect(formatSummary(out).split('\n')[0]).toContain('rewrite fallback 1/2');
   });
 
+  it('searches the question with its expansions and records them per question', async () => {
+    const asked: string[][][] = [];
+    const result = await runRetrievalEval({
+      entries: ENTRIES,
+      split: 'test',
+      k: 5,
+      search: async (qs) => {
+        asked.push(qs);
+        return qs.map(() => []);
+      },
+      expand: async (q) =>
+        q === 'question q001'
+          ? { queries: ['expansion a', 'expansion b'], dropped: 1, fallback: false, repairs: 0 }
+          : { queries: [], dropped: 0, fallback: true, repairs: 2 },
+    });
+    expect(asked).toEqual([[['question q001', 'expansion a', 'expansion b'], ['question q003']]]);
+    expect(result.questions.map((q) => [q.rewrite, q.expand])).toEqual([
+      [null, { queries: ['expansion a', 'expansion b'], dropped: 1, fallback: false }],
+      [null, { queries: [], dropped: 0, fallback: true }],
+    ]);
+    const out = buildResult(
+      {
+        experimentId: 'exp-expand',
+        runId: 'r',
+        startedAt: new Date(0),
+        finishedAt: new Date(0),
+        gitSha: 'a'.repeat(40),
+        gitDirty: false,
+        datasetSha256: 'b'.repeat(64),
+        corpusSha: 'c'.repeat(40),
+        config: { ...CONFIG, expand: 'on' },
+        variedKey: 'expand',
+        embed: { provider: 'fake', name: 'nomic-embed-text', tag: null, digest: null },
+        chat: { provider: 'fake', name: 'fake-chat', tag: null, digest: null },
+      },
+      result,
+    );
+    expect(out.schemaVersion).toBe(4);
+    expect(out.counts).toMatchObject({ rewriteFallbacks: null, expandFallbacks: 1 });
+    expect(out.config.expand).toBe('on');
+    expect(formatSummary(out).split('\n')[0]).toContain('vector, expand, test split');
+    expect(formatSummary(out).split('\n')[0]).toContain('expand fallback 1/2');
+  });
+
   it('records no rewrite without the stage', async () => {
     const { result } = await run();
-    expect(result.questions.every((q) => q.rewrite === null)).toBe(true);
+    expect(result.questions.every((q) => q.rewrite === null && q.expand === null)).toBe(true);
   });
 
   it('does not call search for an empty split', async () => {
@@ -224,6 +269,7 @@ describe('buildResult', () => {
       'firstRelevantRank',
       'spansCovered',
       'rewrite',
+      'expand',
       'retrieved',
     ]);
     expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);

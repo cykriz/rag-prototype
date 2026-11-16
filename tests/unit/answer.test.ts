@@ -7,8 +7,10 @@ import { loadConfig } from '../../src/config';
 import { FakeChatProvider } from '../../src/llm/fake';
 import type { RagRequestRecord, RagRequestSink } from '../../src/obs/logger';
 import { type AnswerDeps, answer, RetrievalError } from '../../src/rag/answer';
+import { expanderFor } from '../../src/rag/expand';
 import { buildAnswerMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
-import { RewriteError, rewriterFor } from '../../src/rag/rewrite';
+import { rewriterFor } from '../../src/rag/rewrite';
+import { ChatStageError } from '../../src/rag/stage';
 import type { ChunkMetadata } from '../../src/retrieval/pgRetriever';
 
 const doc = (chunk_id: number, source_path: string, heading_path: string, pageContent: string) =>
@@ -41,7 +43,7 @@ function setup(script: string[], docs = DOCS) {
   const chat = new FakeChatProvider(script);
   const requestSink = new MemorySink();
   const deps: AnswerDeps = {
-    retriever: { invoke: async () => docs },
+    retriever: { invoke: async () => docs, invokeMany: async () => docs },
     chat,
     requestId: '00000000-0000-4000-8000-000000000001',
     runId: 'test-run',
@@ -179,7 +181,10 @@ describe('answer', () => {
   it('wraps retrieval failures in RetrievalError and writes no request row', async () => {
     const { deps, requestSink } = setup([]);
     const boom = new Error('embed failed');
-    deps.retriever = { invoke: async () => Promise.reject(boom) };
+    deps.retriever = {
+      invoke: async () => Promise.reject(boom),
+      invokeMany: async () => Promise.reject(boom),
+    };
     const err = await answer('q', deps).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(RetrievalError);
     expect((err as RetrievalError).cause).toBe(boom);
@@ -196,6 +201,9 @@ describe('answer', () => {
       invoke: async (q: string) => {
         asked.push(q);
         return DOCS;
+      },
+      invokeMany: async () => {
+        throw new Error('invokeMany must not be called without expand');
       },
     };
     deps.rewrite = rewriterFor(chat);
@@ -215,6 +223,9 @@ describe('answer', () => {
         asked.push(q);
         return DOCS;
       },
+      invokeMany: async () => {
+        throw new Error('invokeMany must not be called without expand');
+      },
     };
     deps.rewrite = rewriterFor(chat);
     const res = await answer('How do I read env vars?', deps);
@@ -227,14 +238,84 @@ describe('answer', () => {
     expect((await answer('q', deps)).rewrite).toBeNull();
   });
 
-  it('propagates a rewrite provider error as RewriteError and writes no request row', async () => {
+  it('propagates a rewrite provider error as ChatStageError and writes no request row', async () => {
     const boom = new Error('chat down');
     const { deps, chat, requestSink } = setup([]);
     deps.rewrite = rewriterFor(new FakeChatProvider([boom]));
     const err = await answer('q', deps).catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(RewriteError);
+    expect(err).toBeInstanceOf(ChatStageError);
+    expect(err).toMatchObject({ stage: 'rewrite' });
     expect(chat.calls).toHaveLength(0);
     expect(requestSink.records).toHaveLength(0);
+  });
+});
+
+describe('answer with expand', () => {
+  it('retrieves with the question and its expansions and answers the original question', async () => {
+    const { deps, chat, requestSink } = setup([
+      JSON.stringify({ queries: ['Bun.env environment variables', 'read .env file'] }),
+      reply(true, 'Use Bun.env.', [11]),
+    ]);
+    const asked: (readonly string[])[] = [];
+    deps.retriever = {
+      invoke: async () => {
+        throw new Error('invoke must not be called with expand');
+      },
+      invokeMany: async (qs) => {
+        asked.push(qs);
+        return DOCS;
+      },
+    };
+    deps.expand = expanderFor(chat);
+    const res = await answer('How do I read env vars?', deps);
+    expect(asked).toEqual([['How do I read env vars?', 'Bun.env environment variables', 'read .env file']]);
+    expect(chat.calls[1]).toEqual(buildAnswerMessages('How do I read env vars?', formatContext(DOCS)));
+    expect(res.expand).toEqual({
+      queries: ['Bun.env environment variables', 'read .env file'],
+      dropped: 0,
+      fallback: false,
+    });
+    expect(res.rewrite).toBeNull();
+    expect(requestSink.records[0]?.retrievedIds).toEqual([11, 12]);
+  });
+
+  it('retrieves with the question alone when the expansion falls back', async () => {
+    const { deps, chat } = setup(['{bad', '{bad', '{bad', reply(true, 'Use Bun.env.', [11])]);
+    const asked: (readonly string[])[] = [];
+    deps.retriever = {
+      invoke: async () => DOCS,
+      invokeMany: async (qs) => {
+        asked.push(qs);
+        return DOCS;
+      },
+    };
+    deps.expand = expanderFor(chat);
+    const res = await answer('How do I read env vars?', deps);
+    expect(asked).toEqual([['How do I read env vars?']]);
+    expect(res.expand).toEqual({ queries: [], dropped: 0, fallback: true });
+  });
+
+  it('propagates an expand provider error as ChatStageError and wraps a fused retrieval failure', async () => {
+    const { deps, requestSink } = setup([]);
+    deps.expand = expanderFor(new FakeChatProvider([new Error('chat down')]));
+    expect(await answer('q', deps).catch((e: unknown) => e)).toBeInstanceOf(ChatStageError);
+    expect(await answer('q', deps).catch((e: unknown) => e)).toMatchObject({ stage: 'expand' });
+
+    const boom = new Error('embed failed');
+    deps.expand = expanderFor(new FakeChatProvider([JSON.stringify({ queries: ['x'] })]));
+    deps.retriever = { invoke: async () => DOCS, invokeMany: async () => Promise.reject(boom) };
+    const err = await answer('q', deps).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(RetrievalError);
+    expect((err as RetrievalError).cause).toBe(boom);
+    expect(requestSink.records).toHaveLength(0);
+  });
+
+  it('names the chat model for an expand ChatStageError 404', () => {
+    const config = loadConfig({});
+    const notFound = APIError.generate(404, undefined, 'model not found', new Headers());
+    expect(describeAnswerError(new ChatStageError('expand', notFound), config, false)).toContain(
+      `ollama pull ${config.chatModel}`,
+    );
   });
 });
 
@@ -247,7 +328,7 @@ describe('ask CLI output', () => {
       `ollama pull ${config.embedModel}`,
     );
     expect(describeAnswerError(notFound, config, false)).toContain(`ollama pull ${config.chatModel}`);
-    expect(describeAnswerError(new RewriteError(notFound), config, false)).toContain(
+    expect(describeAnswerError(new ChatStageError('rewrite', notFound), config, false)).toContain(
       `ollama pull ${config.chatModel}`,
     );
   });
@@ -262,6 +343,7 @@ describe('ask CLI output', () => {
       requestId: 'r1',
       found: true,
       rewrite: null,
+      expand: null,
       answer: 'Use Bun.env.',
       citations: [{ chunkId: 12, sourcePath: 'runtime/env.md', headingPath: '' }],
       droppedCitations: [999],

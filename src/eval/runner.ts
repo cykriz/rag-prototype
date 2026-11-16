@@ -1,5 +1,8 @@
 // Retrieval eval runner (docs/PLAN.md M11): scores one config against the golden dataset and builds the result
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
+
+import { type Expander, type ExpandRecord, expandRecord, searchQueries } from '../rag/expand';
+import { activeStages, assertPipeline, QUERY_STAGES, type QueryStage } from '../rag/pipeline';
 import { type RewriteRecord, type Rewriter, rewriteRecord } from '../rag/rewrite';
 import { CATEGORIES, type Category, type GoldenEntry } from './dataset';
 import type { EvalType, RunConfig, VaryKey } from './experiment';
@@ -18,9 +21,12 @@ import { coverage } from './relevance';
  * Stamped on every result file (resultHeader). 2 (M14): retrieval files carry `retrieved[].score` (higher is better)
  * instead of `distance`; the answers layout is unchanged. 3 (M15): `config.rewrite`, `questions[].rewrite`
  * (`{ query, fallback }` or null), `counts.rewriteFallbacks` (null with rewrite off), and answers files carry
- * `latencyP50Ms`/`latencyP95Ms` per `kpis.calls` row.
+ * `latencyP50Ms`/`latencyP95Ms` per `kpis.calls` row. 4 (M16): `config.expand`, `questions[].expand`
+ * (`{ queries, dropped, fallback }` or null; `queries` are the deduped expansions searched besides the question),
+ * `counts.expandFallbacks` (null with expand off); with expand on, `retrieved[].score` is the RRF sum over the query
+ * lists in every search mode.
  */
-export const RESULT_SCHEMA_VERSION = 3;
+export const RESULT_SCHEMA_VERSION = 4;
 
 export interface RetrievedHit {
   chunkId: number;
@@ -30,8 +36,11 @@ export interface RetrievedHit {
   score: number;
 }
 
-/** Top k hits per question, in the order of `questions`. */
-export type SearchFn = (questions: string[]) => Promise<RetrievedHit[][]>;
+/**
+ * Top k hits per question, in the order of `queries`: one query list per question (the question alone, or the
+ * question and its expansions, M16).
+ */
+export type SearchFn = (queries: string[][]) => Promise<RetrievedHit[][]>;
 
 export type Origin = 'human' | 'llm';
 
@@ -51,6 +60,8 @@ export interface QuestionResult {
   spansCovered: boolean[];
   /** The query retrieval used; null without the rewrite stage. */
   rewrite: RewriteRecord | null;
+  /** The expansions searched besides the question; null without the expand stage. */
+  expand: ExpandRecord | null;
   retrieved: { chunkId: number; sourcePath: string; score: number; covers: number[] }[];
 }
 
@@ -74,7 +85,7 @@ export function scoreQuestion(
   entry: GoldenEntry,
   hits: readonly RetrievedHit[],
   k: number,
-  rewrite: RewriteRecord | null = null,
+  stages: { rewrite?: RewriteRecord | null; expand?: ExpandRecord | null } = {},
 ): QuestionResult {
   const top = hits.slice(0, k);
   const covers = coverage(top, entry.evidence);
@@ -92,7 +103,8 @@ export function scoreQuestion(
     ),
     firstRelevantRank: firstRelevantRank(covers),
     spansCovered: entry.evidence.map((_, i) => covered.has(i)),
-    rewrite,
+    rewrite: stages.rewrite ?? null,
+    expand: stages.expand ?? null,
     retrieved: top.map((h, i) => ({
       chunkId: h.chunkId,
       sourcePath: h.sourcePath,
@@ -109,15 +121,22 @@ export async function runRetrievalEval(opts: {
   search: SearchFn;
   /** Rewrites each question into the search query first (M15), one call per question in id order. */
   rewrite?: Rewriter;
+  /** Expands each question into extra queries first (M16), one call per question in id order; not with rewrite. */
+  expand?: Expander;
 }): Promise<RetrievalRun> {
+  assertPipeline({ rewrite: opts.rewrite ? 'on' : 'off', expand: opts.expand ? 'on' : 'off' });
   const inSplit = opts.entries.filter((e) => e.split === opts.split);
   const scored = inSplit.filter((e) => e.answerable).sort((a, b) => a.id.localeCompare(b.id));
   const rewrites: (RewriteRecord | null)[] = [];
+  const expansions: (ExpandRecord | null)[] = [];
   for (const e of scored) {
-    const t = opts.rewrite ? await opts.rewrite(e.question) : null;
-    rewrites.push(rewriteRecord(t));
+    rewrites.push(rewriteRecord(opts.rewrite ? await opts.rewrite(e.question) : null));
+    expansions.push(expandRecord(opts.expand ? await opts.expand(e.question) : null));
   }
-  const queries = scored.map((e, i) => rewrites[i]?.query ?? e.question);
+  const queries = scored.map((e, i) => {
+    const expansion = expansions[i] ?? null;
+    return expansion ? searchQueries(e.question, expansion) : [rewrites[i]?.query ?? e.question];
+  });
   const hits = scored.length === 0 ? [] : await opts.search(queries);
   if (hits.length !== scored.length) {
     throw new Error(`search returned ${hits.length} hit lists for ${scored.length} questions`);
@@ -128,7 +147,12 @@ export async function runRetrievalEval(opts: {
       evaluated: scored.length,
       excludedNegative: inSplit.length - scored.length,
     },
-    questions: scored.map((e, i) => scoreQuestion(e, hits[i] ?? [], opts.k, rewrites[i] ?? null)),
+    questions: scored.map((e, i) =>
+      scoreQuestion(e, hits[i] ?? [], opts.k, {
+        rewrite: rewrites[i] ?? null,
+        expand: expansions[i] ?? null,
+      }),
+    ),
   };
 }
 
@@ -188,17 +212,29 @@ export interface RunMeta {
 
 export interface ResultMeta extends RunMeta {
   embed: ModelInfo;
-  /** The rewrite model; only with rewrite on. */
+  /** The rewrite or expand model; only with one of them on. */
   chat?: ModelInfo;
 }
 
-/** Questions whose rewrite fell back to the question; null when the run had no rewrite stage. */
-export function rewriteFallbacks(
-  rows: readonly { rewrite: RewriteRecord | null }[],
-  rewrite: RunConfig['rewrite'],
-): number | null {
-  return rewrite === 'on' ? rows.filter((r) => r.rewrite?.fallback === true).length : null;
+/** `counts.<stage>Fallbacks` per stage: questions whose stage fell back, null when the run had the stage off. */
+export type StageFallbacks = { [S in QueryStage as `${S}Fallbacks`]: number | null };
+
+/** The per-stage fallback counts of a run's rows, keyed as in the result files. */
+export function stageFallbacks(
+  rows: readonly { [S in QueryStage]: { fallback: boolean } | null }[],
+  config: Pick<RunConfig, QueryStage>,
+): StageFallbacks {
+  const count = (stage: QueryStage) =>
+    config[stage] === 'on' ? rows.filter((r) => r[stage]?.fallback === true).length : null;
+  return { rewriteFallbacks: count('rewrite'), expandFallbacks: count('expand') };
 }
+
+/** The stages a run had on, with their fallback counts, for the console summaries. */
+export const activeFallbacks = (counts: StageFallbacks): { stage: QueryStage; fallbacks: number }[] =>
+  QUERY_STAGES.flatMap((stage) => {
+    const fallbacks = counts[`${stage}Fallbacks`];
+    return fallbacks === null ? [] : [{ stage, fallbacks }];
+  });
 
 /** The keys every result file starts with, in this order; shared by the retrieval and answers results. */
 export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
@@ -220,6 +256,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       search: meta.config.search,
       split: meta.config.split,
       rewrite: meta.config.rewrite,
+      expand: meta.config.expand,
     },
     variedKey: meta.variedKey,
   };
@@ -262,7 +299,7 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
       questions: run.counts.questions,
       evaluated: run.counts.evaluated,
       excludedNegative: run.counts.excludedNegative,
-      rewriteFallbacks: rewriteFallbacks(run.questions, meta.config.rewrite),
+      ...stageFallbacks(run.questions, meta.config),
     },
     aggregate: {
       all: roundAggregate(agg.all),
@@ -281,6 +318,7 @@ export function buildResult(meta: ResultMeta, run: RetrievalRun) {
       firstRelevantRank: q.firstRelevantRank,
       spansCovered: q.spansCovered,
       rewrite: q.rewrite,
+      expand: q.expand,
       retrieved: q.retrieved.map((r) => ({
         chunkId: r.chunkId,
         sourcePath: r.sourcePath,
@@ -317,7 +355,7 @@ export function resultFileName(
 
 /** `md-512-64 / nomic-embed-text, k=5, vector, rewrite, test split` for the console summaries; stages only when on. */
 export function describeRunConfig(config: RunConfig): string {
-  const stages = config.rewrite === 'on' ? ['rewrite'] : [];
+  const stages = activeStages(config);
   return [
     `${config.chunkConfig} / ${config.embed}`,
     `k=${config.k}`,
@@ -336,9 +374,9 @@ export function formatSummary(result: RetrievalResult): string {
   const lines = [
     `${result.experimentId} (${describeRunConfig(config)}): ` +
       `${counts.evaluated} questions scored, ${counts.excludedNegative} negative excluded` +
-      (counts.rewriteFallbacks === null
-        ? ''
-        : `, rewrite fallback ${counts.rewriteFallbacks}/${counts.evaluated}`),
+      activeFallbacks(counts)
+        .map(({ stage, fallbacks }) => `, ${stage} fallback ${fallbacks}/${counts.evaluated}`)
+        .join(''),
     `${'group'.padEnd(6)}${'n'.padStart(4)}  ${[`Recall@${k}`, `MRR@${k}`, `nDCG@${k}`, `KW@${k}`]
       .map((h) => h.padStart(9))
       .join('')}`,

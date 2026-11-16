@@ -44,7 +44,7 @@ describe('rrf', () => {
 
 describe('pipelineName', () => {
   it('keeps baseline for vector and names the other modes', () => {
-    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off' }))).toEqual([
+    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'off' }))).toEqual([
       'baseline',
       'fts',
       'hybrid',
@@ -52,10 +52,20 @@ describe('pipelineName', () => {
   });
 
   it('appends the rewrite stage to the search mode', () => {
-    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'on' }))).toEqual([
+    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'on', expand: 'off' }))).toEqual([
       'vector+rewrite',
       'fts+rewrite',
       'hybrid+rewrite',
+    ]);
+  });
+});
+
+describe('pipelineName with expand', () => {
+  it('appends the expand stage to the search mode', () => {
+    expect(SEARCH_MODES.map((search) => pipelineName({ search, rewrite: 'off', expand: 'on' }))).toEqual([
+      'vector+expand',
+      'fts+expand',
+      'hybrid+expand',
     ]);
   });
 });

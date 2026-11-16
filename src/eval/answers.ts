@@ -1,6 +1,8 @@
 // Answer eval runner (docs/PLAN.md M12): answers every entry of a split, judges the answered ones in a seeded
 // shuffled order, re-judges a 10 % sample and builds the result file of §7. Pure apart from the injected answer
 // and judge functions, so unit tests need neither database nor model.
+
+import type { ChatProvider } from '../llm/types';
 import type { AnswerResult } from '../rag/answer';
 import type { Category, GoldenEntry } from './dataset';
 import type { RunConfig } from './experiment';
@@ -17,8 +19,8 @@ import {
   shuffle,
 } from './judge';
 import { JUDGE_SEED, JUDGE_TEMPERATURE } from './prompts';
-import type { ChatProvider } from '../llm/types';
 import {
+  activeFallbacks,
   byOrigin,
   describeRunConfig,
   type ModelInfo,
@@ -26,9 +28,9 @@ import {
   originOf,
   type RunMeta,
   resultHeader,
-  rewriteFallbacks,
   round,
   roundOrNull,
+  stageFallbacks,
 } from './runner';
 
 export interface AnsweredEntry {
@@ -120,7 +122,7 @@ interface CallKpis {
   /** Share of calls with status invalid_output. */
   invalidOutputRate: number;
   costUsd: number;
-  /** percentile_cont over llm_calls.latency_ms of the group (M15: rewrite cost per request). */
+  /** percentile_cont over llm_calls.latency_ms of the group (M15/M16: rewrite or expand cost per request). */
   latencyP50Ms: number | null;
   latencyP95Ms: number | null;
 }
@@ -196,9 +198,9 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       judged: qs.filter((q) => q.judge !== null).length,
       judgeInvalid: qs.filter((q) => q.judge?.status === 'invalid_output').length,
       invalidAnswers: qs.filter((q) => q.result.found === null).length,
-      rewriteFallbacks: rewriteFallbacks(
+      ...stageFallbacks(
         qs.map((q) => q.result),
-        meta.config.rewrite,
+        meta.config,
       ),
     },
     aggregate: { all: roundMetrics(agg.all), human: roundMetrics(agg.human), llm: roundMetrics(agg.llm) },
@@ -244,6 +246,7 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       droppedCitations: q.result.droppedCitations,
       retrievedIds: q.result.retrievedIds,
       rewrite: q.result.rewrite,
+      expand: q.result.expand,
       citationValid: q.citationValid,
       judge: verdict(q.judge),
       judgeRepeat: verdict(q.judgeRepeat),
@@ -288,11 +291,11 @@ export function formatAnswerSummary(result: AnswerEvalResult): string {
       `rel ${fmt(sc.perDimension.relevance)})`,
     `latency p50 ${kpis.latencyMs.p50 ?? '-'} ms, p95 ${kpis.latencyMs.p95 ?? '-'} ms`,
   );
-  const rewrite = kpis.calls.find((c) => c.operation === 'rewrite');
-  if (counts.rewriteFallbacks !== null) {
+  for (const { stage, fallbacks } of activeFallbacks(counts)) {
+    const call = kpis.calls.find((c) => c.operation === stage);
     lines.push(
-      `rewrite: fallback ${counts.rewriteFallbacks}/${counts.questions}, ` +
-        `call p50 ${rewrite?.latencyP50Ms ?? '-'} ms, p95 ${rewrite?.latencyP95Ms ?? '-'} ms`,
+      `${stage}: fallback ${fallbacks}/${counts.questions}, ` +
+        `call p50 ${call?.latencyP50Ms ?? '-'} ms, p95 ${call?.latencyP95Ms ?? '-'} ms`,
     );
   }
   return lines.join('\n');

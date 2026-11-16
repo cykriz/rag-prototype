@@ -9,6 +9,7 @@ import { FakeEmbeddingProvider, fakeEmbedding } from '../../src/llm/fake';
 import type { EmbeddingProvider } from '../../src/llm/types';
 import { ftsSearch } from '../../src/retrieval/fts';
 import { hybridDepth, hybridSearch } from '../../src/retrieval/hybrid';
+import { multiSearch } from '../../src/retrieval/multi';
 import { PgRetriever } from '../../src/retrieval/pgRetriever';
 import { rrf } from '../../src/retrieval/rrf';
 import { vectorSearch } from '../../src/retrieval/vector';
@@ -165,7 +166,82 @@ describe('search mode wiring', () => {
 
   it('pgSearch in fts mode makes no embedding call', async () => {
     const search = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K });
-    const [hits] = await search([IDENTIFIER]);
+    const [hits] = await search([[IDENTIFIER]]);
     expect(hits?.map((h) => h.chunkId)).toEqual([targetId]);
+  });
+});
+
+describe('multi-query search (M16)', () => {
+  // FTS keeps the ranking deterministic: each single-term chunk ranks first for its own query, the shared chunk
+  // second in both lists.
+  const ALPHA = 'quuxAlpha';
+  const BETA = 'quuxBeta';
+  const ONLY_ALPHA = `${ALPHA} ${ALPHA} ${ALPHA} only.`;
+  const ONLY_BETA = `${BETA} ${BETA} ${BETA} only.`;
+  const SHARED = `Both ${ALPHA} and ${BETA}.`;
+  let chunk: Map<string, number>;
+
+  beforeAll(async () => {
+    chunk = await insertSyntheticChunks(sql, {
+      config: CONFIG,
+      texts: [ONLY_ALPHA, ONLY_BETA, SHARED],
+      sourcePath: 'guides/multi.md',
+    });
+  });
+
+  it('ranks the chunk found by both queries above the chunks found once at rank 1', async () => {
+    const alpha = await ftsSearch(sql, { query: ALPHA, k: K, chunkConfig: CONFIG });
+    const beta = await ftsSearch(sql, { query: BETA, k: K, chunkConfig: CONFIG });
+    // Preconditions: each single-term chunk leads its own list, the shared one is second in both.
+    expect(ids(alpha)).toEqual([chunk.get(ONLY_ALPHA), chunk.get(SHARED)]);
+    expect(ids(beta)).toEqual([chunk.get(ONLY_BETA), chunk.get(SHARED)]);
+
+    const fused = await multiSearch(sql, 'fts', {
+      queries: [ALPHA, BETA],
+      k: K,
+      chunkConfig: CONFIG,
+      model: MODEL,
+    });
+    expect(ids(fused)[0]).toBe(chunk.get(SHARED));
+    expect(new Set(ids(fused))).toEqual(
+      new Set([chunk.get(SHARED), chunk.get(ONLY_ALPHA), chunk.get(ONLY_BETA)]),
+    );
+  });
+
+  it('keeps the searchWith order for one query', async () => {
+    const vector = vectorOf('buffered writes');
+    const single = await multiSearch(sql, 'vector', {
+      queries: ['buffered writes'],
+      vectors: [vector],
+      k: K,
+      chunkConfig: CONFIG,
+      model: MODEL,
+    });
+    const plain = await vectorSearch(sql, { vector, k: K, chunkConfig: CONFIG, model: MODEL });
+    expect(ids(single)).toEqual(ids(plain));
+  });
+
+  it('PgRetriever.invokeMany embeds all queries in one call', async () => {
+    const batches: string[][] = [];
+    const counting: EmbeddingProvider = {
+      model: MODEL,
+      dim: DIM,
+      embed: (texts, kind) => {
+        batches.push(texts);
+        return embedder.embed(texts, kind);
+      },
+    };
+    const retriever = new PgRetriever({ sql, embedder: counting, chunkConfig: CONFIG, k: K });
+    const docs = await retriever.invokeMany(['q', ALPHA, BETA]);
+    expect(batches).toEqual([['q', ALPHA, BETA]]);
+    expect(docs).toHaveLength(K);
+  });
+
+  it('pgSearch with fuse searches every query of a question; without fuse it takes one query each', async () => {
+    const fused = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K, fuse: true });
+    const [hits] = await fused([[ALPHA, BETA]]);
+    expect(hits?.[0]?.chunkId).toBe(chunk.get(SHARED));
+    const plain = pgSearch(sql, throwingEmbedder, { mode: 'fts', chunkConfig: CONFIG, k: K });
+    await expect(plain([[ALPHA, BETA]])).rejects.toThrow(/exactly one query/);
   });
 });

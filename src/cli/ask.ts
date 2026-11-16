@@ -1,4 +1,5 @@
-// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid] [--rewrite]
+// bun run ask "<question>" [--k 5] [--chunk md-512-64] [--embed <model>] [--search vector|fts|hybrid]
+//   [--rewrite | --expand]
 // Retrieves, answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
@@ -33,8 +34,8 @@ export function formatAnswer(res: AnswerResult): { out: string; warnings: string
 }
 
 /**
- * Message for an error from answer(). Unwraps RetrievalError and RewriteError first: the 404 hint names the embedding
- * model for retrieval failures, the chat model otherwise (rewrite and generate both run on it).
+ * Message for an error from answer(). Unwraps RetrievalError and ChatStageError (rewrite, expand) first: the 404 hint names
+ * the embedding model for retrieval failures, the chat model otherwise (rewrite, expand and generate all run on it).
  */
 export function describeAnswerError(err: unknown, config: Config, dbDown: boolean): string {
   if (dbDown) {

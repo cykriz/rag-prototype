@@ -1,7 +1,8 @@
-// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite prompt (M15).
+// Answer prompt: NOT_FOUND rule and citation format (docs/PLAN.md M9); query rewrite (M15) and expansion (M16) prompts.
 import type { Document } from '@langchain/core/documents';
 import type { Message } from '../llm/types';
 import { type ChunkMetadata, sourceLabel } from '../retrieval/pgRetriever';
+import { MAX_EXPANSIONS } from './pipeline';
 
 export const NOT_FOUND = 'NOT_FOUND';
 /** Fixed for reproducible runs (docs/PLAN.md §7). */
@@ -50,6 +51,27 @@ Reply with only a JSON object: {"rewritten": string}`;
 export function buildRewriteMessages(question: string): Message[] {
   return [
     { role: 'system', content: REWRITE_SYSTEM_PROMPT },
+    { role: 'user', content: `Question: ${question}` },
+  ];
+}
+
+/** Fixed like the answer settings, so an expansion run is reproducible (M16). */
+export const EXPAND_TEMPERATURE = 0;
+export const EXPAND_SEED = 42;
+
+export const EXPAND_SYSTEM_PROMPT = `You write additional search queries for a user question about Bun (the JavaScript runtime, package manager, bundler and test runner). The queries search the Bun documentation together with the original question, so each one should find relevant passages the question alone might miss.
+
+Rules:
+1. Write between 1 and ${MAX_EXPANSIONS} queries. Each query is one line in English.
+2. Keep every identifier, API name, command, flag, file name, config key and error message from the question exactly as written.
+3. You may rephrase the question, use the terms the Bun documentation would use for the topic (for example "bun install" for installing packages), or split a question that asks several things into one query per part.
+4. Do not answer the question. Do not add API names, flags or facts that the question does not imply. Do not repeat the question unchanged.
+
+Reply with only a JSON object: {"queries": string[]}`;
+
+export function buildExpandMessages(question: string): Message[] {
+  return [
+    { role: 'system', content: EXPAND_SYSTEM_PROMPT },
     { role: 'user', content: `Question: ${question}` },
   ];
 }

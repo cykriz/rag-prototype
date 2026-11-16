@@ -1,5 +1,6 @@
-// Zod schemas for structured model output (docs/PLAN.md M9, M15; Expansion and Rerank follow in phase 2).
+// Zod schemas for structured model output (docs/PLAN.md M9, M15, M16; Rerank follows in phase 2).
 import { z } from 'zod';
+import { MAX_EXPANSIONS } from './pipeline';
 import { NOT_FOUND } from './prompts';
 
 export const Answer = z.object({
@@ -43,14 +44,29 @@ export function answerSchemaFor(contextIds: readonly number[]) {
   });
 }
 
-/** Longest accepted rewrite; the golden questions are one sentence, so more is a runaway output. */
-export const MAX_REWRITE_CHARS = 500;
+/**
+ * Longest accepted search query of the rewrite (M15) and expand (M16) stages; the golden questions are one sentence,
+ * so more is a runaway output.
+ */
+export const MAX_QUERY_CHARS = 500;
+
+const SearchQueryText = z.string().trim().min(1).max(MAX_QUERY_CHARS);
 
 /**
  * Query rewrite (M15). Trimmed, non-empty and capped, so empty, whitespace-only and runaway outputs go through the
  * repair loop and end as invalid_output, which falls back to the original question.
  */
 export const RewriteOutput = z.object({
-  rewritten: z.string().trim().min(1).max(MAX_REWRITE_CHARS),
+  rewritten: SearchQueryText,
 });
 export type RewriteOutput = z.infer<typeof RewriteOutput>;
+
+/**
+ * Query expansion (M16). An empty list, blank or over-long strings and more than MAX_EXPANSIONS entries fail
+ * validation (rejected, not truncated), go through the repair loop and end as invalid_output, which falls back to
+ * the original question alone.
+ */
+export const ExpandOutput = z.object({
+  queries: z.array(SearchQueryText).min(1).max(MAX_EXPANSIONS),
+});
+export type ExpandOutput = z.infer<typeof ExpandOutput>;

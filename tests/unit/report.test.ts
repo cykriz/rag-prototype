@@ -146,6 +146,51 @@ describe('rewrite (M15)', () => {
   });
 });
 
+describe('expand (M16)', () => {
+  it('reads result files without config.expand as off', async () => {
+    const all = await loadResults(FIXTURES);
+    expect(all.every((r) => r.data.config.expand === 'off')).toBe(true);
+  });
+
+  it('renders an expand matrix with off/on rows and labels a single config with expand=on', async () => {
+    const all = await loadResults(FIXTURES);
+    const base = all.find((r) => r.file.includes('baseline_retrieval') && !r.data.gitDirty);
+    if (!base) {
+      throw new Error('fixture missing');
+    }
+    const variant = (expand: 'off' | 'on', startedAt: string) => ({
+      file: `${startedAt}_exp-expand_${expand}_retrieval.json`,
+      data: {
+        ...base.data,
+        experimentId: 'exp-expand',
+        startedAt,
+        variedKey: 'expand' as const,
+        config: { ...base.data.config, expand },
+      },
+    });
+    const single = {
+      file: 'z_single.json',
+      data: {
+        ...base.data,
+        experimentId: 'single-expand',
+        startedAt: '2026-02-01T10:00:02.000Z',
+        config: { ...base.data.config, expand: 'on' as const },
+      },
+    };
+    const block = renderBlock(
+      selectResults([
+        variant('on', '2026-02-01T10:00:01.000Z'),
+        variant('off', '2026-02-01T10:00:00.000Z'),
+        single,
+      ]),
+    );
+    const { chunkConfig, embed, k, search } = base.data.config;
+    expect(block).toContain(`### exp-expand: expand\n\nFixed: ${chunkConfig}, ${embed}, k=${k}, ${search}.`);
+    expect(block).toMatch(/\| expand \| Recall@k [^\n]*\n[^\n]*\n\| off \|[^\n]*\n\| on \|/);
+    expect(block).toContain(`single-expand (${chunkConfig}, ${embed}, k=${k}, ${search}, expand=on)`);
+  });
+});
+
 describe('replaceBlock', () => {
   it('replaces only the text between the markers', () => {
     const readme = `# Title\n\n${START}\nold\n${END}\n\nTail\n`;

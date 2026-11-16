@@ -13,8 +13,8 @@ import type { Sql } from 'postgres';
 import { z } from 'zod';
 import type { Config, ProviderName } from '../config';
 import { connect } from '../db/client';
-import { DEFAULT_DATASET, type GoldenEntry, loadDataset, parseDataset, SPLITS } from '../eval/dataset';
 import { answerAll, buildAnswerResult, formatAnswerSummary, judgeAll } from '../eval/answers';
+import { DEFAULT_DATASET, type GoldenEntry, loadDataset, parseDataset, SPLITS } from '../eval/dataset';
 import {
   type EvalType,
   loadExperiment,
@@ -36,6 +36,8 @@ import { createChatProvider, createEmbeddingProvider } from '../llm/registry';
 import { isConnectionError } from '../llm/retry';
 import { PostgresLlmCallSink } from '../obs/logger';
 import { answer, buildAnswerDeps } from '../rag/answer';
+import { expanderFor } from '../rag/expand';
+import { activeStages } from '../rag/pipeline';
 import { rewriterFor } from '../rag/rewrite';
 import { requireEmbeddings } from '../retrieval/vector';
 import { answerErrorMessage } from './ask';
@@ -271,15 +273,21 @@ async function evaluateRetrieval(p: Prepared): Promise<number> {
   try {
     const sink = new PostgresLlmCallSink(sql, { runId });
     const embedder = createEmbeddingProvider(config, sink);
-    if (run.rewrite === 'on') {
+    if (needsChat(run)) {
       await warmUpChat(config);
     }
     const result = await runRetrievalEval({
       entries: p.entries,
       split: run.split,
       k: run.k,
-      search: pgSearch(sql, embedder, { mode: run.search, chunkConfig, k: run.k }),
+      search: pgSearch(sql, embedder, {
+        mode: run.search,
+        chunkConfig,
+        k: run.k,
+        fuse: run.expand === 'on',
+      }),
       ...(run.rewrite === 'on' && { rewrite: rewriterFor(createChatProvider(config, sink)) }),
+      ...(run.expand === 'on' && { expand: expanderFor(createChatProvider(config, sink)) }),
     });
     const output = buildResult({ ...commonMeta(p, runId), embed, ...(chat && { chat }) }, result);
     await writeResult(p, output, formatSummary(output));
@@ -301,7 +309,7 @@ async function warmUpAnswering(config: Config): Promise<void> {
   await warmUpChat(config);
 }
 
-/** The chat-model half of the warm-up; also run before a retrieval eval with rewrite on. */
+/** The chat-model half of the warm-up; also run before a retrieval eval with rewrite or expand on. */
 async function warmUpChat(config: Config): Promise<void> {
   if (config.chatProvider !== 'fake') {
     await createChatProvider(config).generate({
@@ -322,19 +330,22 @@ async function warmUpJudge(config: Config): Promise<void> {
 
 export type ModelRole = 'embed' | 'chat' | 'judge';
 
+/** A retrieval run calls the chat model when a stage before retrieval needs it (rewrite M15, expand M16). */
+const needsChat = (run: Pick<RunConfig, 'rewrite' | 'expand'>): boolean => activeStages(run).length > 0;
+
 /**
  * The models a run of `evalType` calls, with their provider; the judge runs on the chat provider. A retrieval run
- * with rewrite on calls the chat model too.
+ * with rewrite or expand on calls the chat model too.
  */
 export function requiredModels(
   config: Config,
   evalType: EvalType,
-  run: Pick<RunConfig, 'rewrite'>,
+  run: Pick<RunConfig, 'rewrite' | 'expand'>,
 ): [ModelRole, ProviderName, string][] {
   const embed: [ModelRole, ProviderName, string] = ['embed', config.embedProvider, config.embedModel];
   const chat: [ModelRole, ProviderName, string] = ['chat', config.chatProvider, config.chatModel];
   if (evalType === 'retrieval') {
-    return run.rewrite === 'on' ? [embed, chat] : [embed];
+    return needsChat(run) ? [embed, chat] : [embed];
   }
   return [embed, chat, ['judge', config.chatProvider, config.judgeModel]];
 }
@@ -390,7 +401,7 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
             chunkConfig,
             k: run.k,
             runId,
-            pipeline: { search: run.search, rewrite: run.rewrite },
+            pipeline: { search: run.search, rewrite: run.rewrite, expand: run.expand },
             questionId: entry.id,
           }),
         ),

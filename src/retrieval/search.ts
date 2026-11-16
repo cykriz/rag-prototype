@@ -1,6 +1,7 @@
 // One entry point for the three search modes (docs/PLAN.md M14), so the eval, the retriever and the CLIs share the
 // dispatch and the hit shape.
 import type { Sql } from 'postgres';
+import type { EmbeddingProvider } from '../llm/types';
 import { ftsSearch } from './fts';
 import { hybridSearch } from './hybrid';
 import { vectorSearch } from './vector';
@@ -16,7 +17,7 @@ export interface SearchHit {
   content: string;
   /**
    * Higher is better in every mode, comparable only within one mode: vector 1 − cosine distance, fts ts_rank_cd,
-   * hybrid the RRF sum.
+   * hybrid the RRF sum. With query expansion (M16, multiSearch) the RRF sum over the query lists, in every mode.
    */
   score: number;
 }
@@ -32,6 +33,15 @@ export interface SearchQuery {
 
 /** fts runs on the query text alone and makes no embedding call. */
 export const needsEmbedding = (mode: SearchMode): boolean => mode !== 'fts';
+
+/** One `embed(texts, 'query')` call; throws unless the provider returns exactly one vector per text. */
+export async function embedQueries(embedder: EmbeddingProvider, texts: readonly string[]): Promise<number[][]> {
+  const { vectors } = await embedder.embed([...texts], 'query');
+  if (vectors.length !== texts.length) {
+    throw new Error(`Embedding provider returned ${vectors.length} vectors for ${texts.length} queries`);
+  }
+  return vectors;
+}
 
 function requireVector(mode: SearchMode, q: SearchQuery): number[] {
   if (!q.vector) {
