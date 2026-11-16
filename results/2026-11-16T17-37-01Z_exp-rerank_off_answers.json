@@ -1,0 +1,1199 @@
+{
+  "schemaVersion": 5,
+  "experimentId": "exp-rerank",
+  "evalType": "answers",
+  "runId": "eval-answers-4ea5157c-2ed3-46e4-9398-6644f29c3276",
+  "startedAt": "2026-11-16T17:37:01.776Z",
+  "finishedAt": "2026-11-16T17:53:41.324Z",
+  "gitSha": "250accc36a105ef26801b69a912a29719606377a",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "off",
+    "expand": "off",
+    "rerank": "off"
+  },
+  "variedKey": "rerank",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    },
+    "judge": {
+      "provider": "ollama",
+      "name": "gemma3:12b",
+      "tag": "gemma3:12b",
+      "digest": "b92b218582c521ba287f38f1d6057dcd3c6cbff036f13cac97b5d861f5e58ec3"
+    }
+  },
+  "judge": {
+    "temperature": 0,
+    "seed": 42
+  },
+  "shuffleSeed": 3623154837,
+  "counts": {
+    "questions": 30,
+    "answerable": 25,
+    "negative": 5,
+    "judged": 22,
+    "judgeInvalid": 0,
+    "invalidAnswers": 0,
+    "rewriteFallbacks": null,
+    "expandFallbacks": null,
+    "rerankFallbacks": null
+  },
+  "aggregate": {
+    "all": {
+      "nAnswerable": 25,
+      "nNegative": 5,
+      "scored": 22,
+      "accuracy": 4.7727,
+      "completeness": 4.3636,
+      "relevance": 4.8182,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0.12,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "human": {
+      "nAnswerable": 16,
+      "nNegative": 0,
+      "scored": 13,
+      "accuracy": 5,
+      "completeness": 4.7692,
+      "relevance": 5,
+      "abstentionAccuracy": null,
+      "falseAbstentionRate": 0.1875,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "llm": {
+      "nAnswerable": 9,
+      "nNegative": 5,
+      "scored": 9,
+      "accuracy": 4.4444,
+      "completeness": 3.7778,
+      "relevance": 4.5556,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    }
+  },
+  "selfConsistency": {
+    "sampled": 3,
+    "repeatInvalid": 0,
+    "pairs": 3,
+    "identicalShare": 1,
+    "perDimension": {
+      "accuracy": 1,
+      "completeness": 1,
+      "relevance": 1
+    }
+  },
+  "kpis": {
+    "latencyMs": {
+      "p50": 12681,
+      "p95": 19133.55
+    },
+    "calls": [
+      {
+        "operation": "embed",
+        "model": "nomic-embed-text",
+        "calls": 30,
+        "avgInputTokens": 22.3333,
+        "avgOutputTokens": 0,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 20,
+        "latencyP95Ms": 27
+      },
+      {
+        "operation": "generate",
+        "model": "qwen2.5:7b",
+        "calls": 30,
+        "avgInputTokens": 2677.6667,
+        "avgOutputTokens": 46.0333,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 12634.5,
+        "latencyP95Ms": 19096.4
+      },
+      {
+        "operation": "judge",
+        "model": "gemma3:12b",
+        "calls": 25,
+        "avgInputTokens": 3006.2,
+        "avgOutputTokens": 91.88,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0,
+        "latencyP50Ms": 23667,
+        "latencyP95Ms": 33673.8
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "66497718-4724-41d3-a7b7-4f198745cc35",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13898,
+      "answer": "In development, minification is generally avoided to facilitate debugging, while in production, minification is enabled to reduce bundle sizes and improve performance.",
+      "citations": [
+        10195,
+        10189
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10195,
+        10189,
+        10194,
+        10190,
+        10623
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks about the default values for minification in development and production. The provided context states that minification is avoided in development and enabled in production. The assistant's answer accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "85bab8a0-a15b-4a18-9475-e32a377aca9e",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10874,
+      "answer": "Macros run at bundle-time.",
+      "citations": [
+        10186
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10186,
+        12177,
+        11856,
+        11513,
+        10666
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context explicitly states that \"Macros are JavaScript functions that run at bundle-time.\" The assistant's answer accurately reflects this information. It is concise and directly answers the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "1746d0c7-47f9-43b2-94e8-f2c36d6c6c22",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 11091,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10473,
+        10581,
+        11912,
+        10521,
+        11821
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "e09c6f8b-d4fc-4cf9-ab6e-bccc398f5047",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9471,
+      "answer": "The default registry is registry.npmjs.org.",
+      "citations": [
+        11716,
+        10381,
+        11708
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11708,
+        11716,
+        10381,
+        10623,
+        11707
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default registry. The REFERENCE ANSWER states it's registry.npmjs.org. The CONTEXT provides multiple sources confirming this, including chunk 11707, 11716, and 10381. The assistant's answer directly and accurately answers the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default registry. The REFERENCE ANSWER states it's registry.npmjs.org. The CONTEXT provides multiple sources confirming this, including chunk 11707, 11716, and 10381. The assistant's answer directly and accurately answers the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "937994bc-c740-4503-bf2c-dfd1973fcab3",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 4919,
+      "answer": "Bun.readableStreamToArray",
+      "citations": [
+        10443
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10443,
+        10444,
+        12076,
+        10445,
+        10448
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks what reads the contents of a ReadableStream into an array of chunks. The REFERENCE ANSWER explicitly states that Bun.readableStreamToArray does this. The assistant's answer directly matches the reference answer.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "df7389c6-9b3c-4729-aaa2-5aa40e52e551",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5417,
+      "answer": "To convert a stream into a string, you can use the `text()` method on the stream.",
+      "citations": [
+        10441,
+        10448
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10441,
+        10448,
+        10278,
+        10439,
+        10279
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant answer correctly identifies the `text()` method as a way to transform a stream into a string. It is a concise and accurate response, directly addressing the question based on the provided context. The answer could be more complete by mentioning the `Bun.readableStreamToText` function and its deprecation, but it's not a critical omission.",
+        "accuracy": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "6f4f37c7-54a0-4677-9dea-96d1b7966b3a",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10890,
+      "answer": "Yes, mocked functions in tests can accept arguments.",
+      "citations": [
+        10458,
+        12196
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12196,
+        10458,
+        10982,
+        12197,
+        11614
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context includes multiple examples demonstrating that mocked functions can accept arguments. Specifically, the example `const random = mock((multiplier: number) => multiplier * Math.random());` shows a mock function accepting a `number` argument. The answer 'Yes' accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context includes multiple examples demonstrating that mocked functions can accept arguments. Specifically, the example `const random = mock((multiplier: number) => multiplier * Math.random());` shows a mock function accepting a `number` argument. The answer 'Yes' accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "f6c2dfc9-769e-45c9-93c4-ca06a2333871",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8683,
+      "answer": "To skip a test, use the `test.skip` function.",
+      "citations": [
+        10461,
+        10524,
+        11579
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10952,
+        11579,
+        10461,
+        10524,
+        11626
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the function to skip a test. The provided context explicitly states that `test.skip` is the function to use for skipping a test. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "e6f32837-dd15-4953-b7d7-670c83d9919b",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6369,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11796,
+        11768,
+        11514,
+        10364,
+        11975
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "0cec0311-c5c7-465f-b356-57877ad42052",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13991,
+      "answer": "The default region is us-east-1.",
+      "citations": [
+        12008
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12008,
+        12009,
+        12004,
+        12014,
+        12011
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the default S3 region. The provided context states that when you don't specify a region, Bun defaults to `us-east-1`. The assistant's answer directly and accurately states this.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "7076ea5d-e35d-4c01-838e-3e11361bbafb",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 18667,
+      "answer": "You can use `Bun.build` or `bun build` to bundle your fullstack application ahead of time.",
+      "citations": [
+        10143
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10143,
+        10144,
+        10141,
+        10149,
+        10150
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks about how to bundle a fullstack application ahead of time. The REFERENCE ANSWER states that you can use `Bun.build` or `bun build`. The ASSISTANT ANSWER accurately and concisely provides this information, directly addressing the question and aligning with the REFERENCE ANSWER. It does not include any extraneous or unsupported details.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "47626106-02a1-4fe2-bc3d-26f20637c2eb",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6257,
+      "answer": "Use the --bail flag to abort a test run after the first failure.",
+      "citations": [
+        10450
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10450,
+        10466,
+        10459,
+        10571,
+        10461
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly addresses the question and is accurate based on the provided context. It correctly states that the `--bail` flag stops the test run after the first failure. The reference answer provides more detail about allowing a certain number of failures, which the assistant omits, but the core answer is correct.",
+        "accuracy": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer directly addresses the question and is accurate based on the provided context. It correctly states that the `--bail` flag stops the test run after the first failure. The reference answer provides more detail about allowing a certain number of failures, which the assistant omits, but the core answer is correct.",
+        "accuracy": 5,
+        "completeness": 4,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "a0d548e8-85a8-4bd7-9b18-a24b9c93683f",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 15998,
+      "answer": "Use the command `bun build ./index.tsx --outdir ./out --watch` to build with watch mode.",
+      "citations": [
+        10160
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10469,
+        12112,
+        10160,
+        11822,
+        12113
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to build with watch mode. The REFERENCE ANSWER provides the exact command `bun build ./test.tsx --outdir ./out --watch`. The assistant answer correctly provides the command `bun build ./index.tsx --outdir ./out --watch`. While the file names differ, the core instruction and syntax are identical, fulfilling the question's request. The assistant's answer is concise and directly addresses the prompt.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "32ad9082-abf3-4875-a55c-c944a8e09b73",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 19122,
+      "answer": "You can use the `--minify` flag to enable all minification modes, or enable specific modes individually such as `--minify-whitespace`, `--minify-syntax`, and `--minify-identifiers`. Alternatively, you can configure minification through the `minify` option in the JavaScript API.",
+      "citations": [
+        10189
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10189,
+        10173,
+        10139,
+        10195,
+        10158
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies the `--minify` flag as a way to enable minification and mentions the granular control options. It also correctly points out the JavaScript API option. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "e9700f90-5fd7-49cc-8bf1-49aec15c50e9",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 15031,
+      "answer": "Use the `--yarn` flag to generate a Yarn-compatible `yarn.lock` file (in addition to `bun.lock{b}`).",
+      "citations": [
+        10391
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10391,
+        11664,
+        11665,
+        10385,
+        11706
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks how to produce a yarn compatible lock file. The REFERENCE ANSWER directly states `bun install --yarn`. The assistant answer perfectly matches this. The CONTEXT supports this answer by providing the command and explaining its purpose.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "5abf2c9c-9c1c-4238-aad5-a6be4b45aaa3",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 19143,
+      "answer": "When `bun lint` and ESLint 10 disagree about a rule, that's considered a bug. You should open an issue about it.",
+      "citations": [
+        10394
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10394,
+        10392,
+        10510,
+        10924,
+        10507
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks what to do when `bun lint` and ESLint disagree. The REFERENCE ANSWER states that this is a bug and to report it on GitHub. The CONTEXT explicitly states \"If `bun lint` and ESLint 10 disagree about a rule, that's a bug. [Open an issue]https://github.com/oven-sh/bun/issues\". The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "7a1f13e1-c2f8-49be-b851-117aa13595dd",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5845,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10404,
+        10733,
+        10403,
+        10400,
+        10500
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "7ae369a4-674b-4ef0-857d-f1956e130858",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 16311,
+      "answer": "Bun migrates the `pnpm-lock.yaml` to `bun.lock` and uses the isolated installs layout for `node_modules`. ",
+      "citations": [
+        11662,
+        11706
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11706,
+        11662,
+        10390,
+        10382,
+        11701
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies that `bun install` migrates `pnpm-lock.yaml` to `bun.lock` and uses isolated installs. It misses the detail that the original `pnpm-lock.yaml` is kept and that the project gets configVersion 1.",
+        "accuracy": 4,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "c2f39277-5c40-4c53-adce-904a7602d018",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 19805,
+      "answer": "Yes, you can still get one JUnit XML file even when running tests with multiple workers. You need to use the `--reporter=junit` and `--reporter-outfile` flags to specify the output file path for the JUnit XML report. Additionally, you can use `--parallel` to run tests in parallel across multiple workers.",
+      "citations": [
+        12218
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12218,
+        12173,
+        12219,
+        12186,
+        11799
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies that a single JUnit XML file can be generated with multiple workers. It also accurately lists the necessary flags: `--reporter=junit`, `--reporter-outfile`, and `--parallel`. The response is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "cfda5ec7-302b-4826-b9d0-057ba490dc2c",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13744,
+      "answer": "If the environment variable is not set, Bun warns and treats the field as empty. It then uses the credentials .npmrc has for that registry, if any.",
+      "citations": [
+        10381,
+        10388,
+        11707,
+        11716
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11707,
+        10381,
+        10388,
+        11708,
+        11716
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant's answer accurately summarizes the behavior described in the provided context. It correctly states that Bun will warn, treat the field as empty, and fall back to `.npmrc` credentials. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "b206c884-d254-4c03-96aa-90a3ccf8543a",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 14787,
+      "answer": "bun --hot for a Bun.serve app with frontend code enables hot reloading, updating the server code without restarting the process. It detects code changes and updates the internal module cache, allowing the server to reflect the updated code without a full restart.",
+      "citations": [
+        12113,
+        10364
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12113,
+        10364,
+        11791,
+        10153,
+        11920
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly states that `bun --hot` enables hot reloading and avoids restarting the process. It also mentions the updating of the module cache, which aligns with the provided documentation. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "f51a2423-ad27-4efb-9cd7-e0bb11036891",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 13837,
+      "answer": "Bun disables automatic .env file loading with the `--no-env-file` flag or by setting `env = false` in `bunfig.toml`. This is useful in production or CI/CD pipelines where you want to rely solely on system environment variables.",
+      "citations": [
+        10431,
+        11872
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10733,
+        11094,
+        11872,
+        10431,
+        10590
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies the two ways to disable automatic .env loading: `--no-env-file` and `env = false` in `bunfig.toml`. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "e80220f6-970e-4069-9c6f-6ef9bd4860b1",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 11618,
+      "answer": "You can use the `--watch` mode to automatically restart your script whenever you edit and save your code.",
+      "citations": [
+        12112
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11082,
+        11198,
+        12112,
+        12113,
+        10749
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer states that `bun --watch` restarts the whole process on each change. The assistant answer accurately reflects this information, albeit in a more concise manner. It directly addresses the question and provides the correct solution.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "3c170d00-c607-4101-843a-d78379f7be26",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 17338,
+      "answer": "Yes, you can store sensitive credentials like access tokens in your OS password manager using the `Bun.secrets` API.",
+      "citations": [
+        12015
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        12015,
+        12016,
+        12017,
+        11709,
+        11461
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer directly states that you can use `Bun.secrets` to store credentials in your OS password manager. The provided context supports this by describing `Bun.secrets` and its functionality, including how it interacts with Keychain (macOS), libsecret (Linux), and Credential Manager (Windows). The assistant's answer accurately and concisely reflects this information.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "f2e9c94b-5e5c-4470-80eb-83aae4373eab",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 17644,
+      "answer": "To stop a package in your monorepo from silently relying on libraries that only sit in a sibling's dependency list, you should use the `catalog:` protocol to reference versions of dependencies defined in the root `package.json`. This ensures that all packages use the same version of critical dependencies, avoiding silent reliance on sibling packages.",
+      "citations": [
+        11640
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10390,
+        11640,
+        10861,
+        11820,
+        11701
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The reference answer states that using isolated installs, via `bun install --linker isolated` or `linker = \"isolated\"` in `bunfig.toml` will prevent silent reliance on sibling packages. The assistant answer incorrectly states that using the `catalog:` protocol will prevent this. The assistant answer does not address the question and is unsupported by the provided context. Therefore, the assistant answer is inaccurate and irrelevant.",
+        "accuracy": 1,
+        "completeness": 1,
+        "relevance": 1
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q040",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "db38e010-f796-43ae-b740-e2b9a2a7c846",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9815,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        10303,
+        10296,
+        10293,
+        10298,
+        10302
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q041",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "aa2c3da1-0033-4fa3-9450-560e8c3de888",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9558,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11927,
+        11791,
+        10303,
+        11722,
+        11680
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q043",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "88bac501-c13b-4c20-b56b-fb13872f82ae",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6032,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11791,
+        11927,
+        11971,
+        12087,
+        12133
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q044",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "fca33c3a-cc4b-48c3-a09c-bd94749281a1",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 10412,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11927,
+        11971,
+        11791,
+        10368,
+        10365
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q045",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "b9bfec79-25c0-4060-b2ba-3e28e2da6667",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 18255,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        11661,
+        10597,
+        11677,
+        11680,
+        11651
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    }
+  ]
+}

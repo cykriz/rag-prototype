@@ -18,6 +18,8 @@ Next comes query rewriting (`exp-rewrite`), at that config with vector search. B
 
 Then query expansion (`exp-expand`), at the same config with rewriting off. The chat model writes up to three extra search queries for the question, using temperature 0 and seed 42. It may rephrase, use Bun terms and split a question that asks several things, but must keep identifiers exactly as written and must not answer. Retrieval searches the question and every expansion separately, fuses the lists with reciprocal rank fusion (depth max(k, 50) per list) and keeps the top k. Expansions that repeat the question or each other are dropped. If the output is still invalid after two repairs, retrieval uses the question alone; no run needed this. The same rule as for rewriting decides: answers first, retrieval only on a tie, a full tie goes to off. On dev, off wins: accuracy 4.69 against 4.46, well outside 1/13. Retrieval agrees, with Recall@5 0.69 against 0.58. The expansions mostly reword the question, and the fused lists push evidence out of the top 5: four dev questions lost evidence and one gained it. On test, expansion is ahead again (accuracy 4.92 against 4.77, Recall@5 0.76 against 0.72), so the pipeline stays without expansion, as it did for rewriting. The expand call takes 1.1 to 1.7 s at the median. On dev the end-to-end p50 grows by 2.7 s (16994 against 14266 ms); on test it is 1.2 s lower with expansion (8979 against 10184 ms), which is load noise on the laptop rather than a saving. Result files now carry `schemaVersion` 4. Each question records the expansions that were searched, how many duplicates were dropped and whether the stage fell back.
 
+Then LLM reranking (`exp-rerank`), at the same config with rewriting and expansion off. Vector search fetches the top 20 chunks. The chat model scores each of them from 0 to 10 for how much it helps answer the question, using temperature 0 and seed 42. Each chunk is cut to 1200 characters, enough to show 88 % of the dev evidence spans. The five best-scored chunks go into the context. IDs the model invents are ignored, and chunks it leaves out are appended in search order. If the output is still invalid after two repairs, the search order stays; no run needed this. In practice the model scores only a handful of chunks: on average about 16.5 of the 20 are left out and appended. The same rule decides: answers first, retrieval only on a tie, a full tie goes to off. On dev, reranking wins: accuracy 4.85 against 4.69, a gap of 0.15, outside 1/13. The whole gap comes from a single question, which went from 3 to 5. Retrieval agrees, with Recall@5 0.77 against 0.69 and MRR@5 0.71 against 0.40. One dev question gained evidence and none lost any. On test, the answers come out even (accuracy 4.78 against 4.77, completeness 4.43 against 4.36). Retrieval improves again, with Recall@5 0.78 against 0.72 and MRR@5 0.73 against 0.61. Two test questions gained evidence and none lost any, and one of them is now answered instead of abstained (false abstention 0.08 against 0.12). The gain is expensive. The rerank call reads about 5800 input tokens and writes about 80 output tokens, and takes 28.6 s at the median. The end-to-end p50 on test grows by 31 s (43961 against 12681 ms), and tokens per question roughly triple. The dev rule picks reranking, but on test it bought better ranking, not better answers, at about 30 s per question. So the later milestones deliberately depart from the rule and run without reranking; the stage stays available as `--rerank` and `rerank: "on"`. Result files now carry `schemaVersion` 5. Each question records the candidates, the reranked order with the model's scores, the counts of unknown, duplicate and missing IDs, and whether the stage fell back.
+
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
 <!-- results:start -->
@@ -85,6 +87,15 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 10184 | 18987 | 2746 | 0.00 |
 | on | 0.76 | 0.63 | 0.63 | 0.94 | 4.92 | 4.58 | 5.00 | 1.00 | 8979 | 11740 | 3026 | 0.00 |
 
+### exp-rerank: rerank
+
+Fixed: md-1024-128, nomic-embed-text, k=5, vector.
+
+| rerank | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 12681 | 19134 | 2746 | 0.00 |
+| on | 0.78 | 0.73 | 0.72 | 0.92 | 4.78 | 4.43 | 4.83 | 1.00 | 43961 | 53160 | 8716 | 0.00 |
+
 ### KPIs
 
 | Config | In tok/q | Out tok/q | Est. token share | Retry rate | Invalid output rate | False abst. |
@@ -95,6 +106,8 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | exp-rewrite: rewrite=on | 2922 | 64 | 0.00 | 0.00 | 0.00 | 0.12 |
 | exp-expand: expand=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
 | exp-expand: expand=on | 2955 | 71 | 0.00 | 0.00 | 0.00 | 0.04 |
+| exp-rerank: rerank=off | 2700 | 46 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-rerank: rerank=on | 8593 | 122 | 0.00 | 0.00 | 0.00 | 0.08 |
 
 Test split only, latest run per config from a clean checkout. Metrics are the `all` group of each result file (human and llm reference answers are reported separately there); `–` = not run or not recorded. Tokens/q, Cost/100 q and the KPI rates count the answer pipeline without the judge. Dataset `89f4a8a4`, corpus `b6f9cfa0`.
 <!-- results:end -->

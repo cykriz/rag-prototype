@@ -1,0 +1,3126 @@
+{
+  "schemaVersion": 5,
+  "experimentId": "exp-rerank",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-30bebf41-96cd-4573-aeda-c93e22987a35",
+  "startedAt": "2026-11-16T17:25:14.423Z",
+  "finishedAt": "2026-11-16T17:37:01.732Z",
+  "gitSha": "250accc36a105ef26801b69a912a29719606377a",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "off",
+    "expand": "off",
+    "rerank": "on"
+  },
+  "variedKey": "rerank",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    }
+  },
+  "counts": {
+    "questions": 30,
+    "evaluated": 25,
+    "excludedNegative": 5,
+    "rewriteFallbacks": null,
+    "expandFallbacks": null,
+    "rerankFallbacks": 0
+  },
+  "aggregate": {
+    "all": {
+      "n": 25,
+      "recall": 0.78,
+      "mrr": 0.7333,
+      "ndcg": 0.7178,
+      "keywordCoverage": 0.92
+    },
+    "human": {
+      "n": 16,
+      "recall": 0.8125,
+      "mrr": 0.7083,
+      "ndcg": 0.7351,
+      "keywordCoverage": 0.875
+    },
+    "llm": {
+      "n": 9,
+      "recall": 0.7222,
+      "mrr": 0.7778,
+      "ndcg": 0.6871,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 10,
+        "recall": 0.7,
+        "mrr": 0.5333,
+        "ndcg": 0.5762,
+        "keywordCoverage": 0.8
+      },
+      "how_to": {
+        "n": 7,
+        "recall": 1,
+        "mrr": 1,
+        "ndcg": 1,
+        "keywordCoverage": 1
+      },
+      "multi_document": {
+        "n": 5,
+        "recall": 0.7,
+        "mrr": 0.8,
+        "ndcg": 0.6368,
+        "keywordCoverage": 1
+      },
+      "vocabulary_mismatch": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.6667,
+        "ndcg": 0.6667,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10195,
+          10189,
+          10194,
+          10190,
+          10873,
+          10846,
+          10623,
+          11560,
+          10193,
+          11526,
+          10708,
+          12158,
+          10258,
+          11114,
+          11107,
+          10191,
+          11514,
+          10796,
+          11713,
+          11714
+        ],
+        "order": [
+          10189,
+          10195,
+          10194,
+          10190,
+          10873,
+          10846,
+          10623,
+          11560,
+          10193,
+          11526,
+          10708,
+          12158,
+          10258,
+          11114,
+          11107,
+          10191,
+          11514,
+          10796,
+          11713,
+          11714
+        ],
+        "scores": [
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.658032,
+          "covers": []
+        },
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.667575,
+          "covers": []
+        },
+        {
+          "chunkId": 10194,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.644543,
+          "covers": []
+        },
+        {
+          "chunkId": 10190,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.643523,
+          "covers": []
+        },
+        {
+          "chunkId": 10873,
+          "sourcePath": "lint/rules/import/prefer-default-export.mdx",
+          "score": 0.63753,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10186,
+          12177,
+          11856,
+          11513,
+          10666,
+          11110,
+          11430,
+          11526,
+          10227,
+          10401,
+          11854,
+          10631,
+          10208,
+          12212,
+          11553,
+          11726,
+          12158,
+          10469,
+          10278,
+          10726
+        ],
+        "order": [
+          10186,
+          12177,
+          11856,
+          11513,
+          10666,
+          11110,
+          11430,
+          11526,
+          10227,
+          10401,
+          11854,
+          10631,
+          10208,
+          12212,
+          11553,
+          11726,
+          12158,
+          10469,
+          10278,
+          10726
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10186,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.679033,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12177,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.617536,
+          "covers": []
+        },
+        {
+          "chunkId": 11856,
+          "sourcePath": "runtime/cron.mdx",
+          "score": 0.615987,
+          "covers": []
+        },
+        {
+          "chunkId": 11513,
+          "sourcePath": "lint/rules/unicorn/prefer-date-now.mdx",
+          "score": 0.614424,
+          "covers": []
+        },
+        {
+          "chunkId": 10666,
+          "sourcePath": "lint/rules/eslint/no-continue.mdx",
+          "score": 0.613622,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10473,
+          10581,
+          11912,
+          10521,
+          11821,
+          10540,
+          10226,
+          10577,
+          10537,
+          12150,
+          10582,
+          10561,
+          10267,
+          10568,
+          10538,
+          10576,
+          10575,
+          10354,
+          10522,
+          11648
+        ],
+        "order": [
+          10226,
+          10473,
+          10581,
+          11912,
+          10521,
+          11821,
+          10540,
+          10577,
+          10537,
+          12150,
+          10582,
+          10561,
+          10267,
+          10568,
+          10538,
+          10576,
+          10575,
+          10354,
+          10522,
+          11648
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10226,
+          "sourcePath": "compiler/compatibility.mdx",
+          "score": 0.731193,
+          "covers": []
+        },
+        {
+          "chunkId": 10473,
+          "sourcePath": "guides/util/detect-bun.mdx",
+          "score": 0.742751,
+          "covers": []
+        },
+        {
+          "chunkId": 10581,
+          "sourcePath": "lint/rules/bun/fast-check-no-unseeded-random.mdx",
+          "score": 0.740996,
+          "covers": []
+        },
+        {
+          "chunkId": 11912,
+          "sourcePath": "runtime/http/error-handling.mdx",
+          "score": 0.735003,
+          "covers": []
+        },
+        {
+          "chunkId": 10521,
+          "sourcePath": "lint/rules/bun-test/no-conditional-expect.mdx",
+          "score": 0.73463,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11708,
+          11716,
+          10381,
+          10623,
+          11707,
+          11447,
+          11263,
+          11661,
+          11709,
+          10846,
+          10857,
+          10873,
+          11514,
+          11686,
+          11236,
+          10855,
+          10621,
+          11476,
+          11155,
+          10843
+        ],
+        "order": [
+          11708,
+          11716,
+          10381,
+          10623,
+          11707,
+          11447,
+          11263,
+          11661,
+          11709,
+          10846,
+          10857,
+          10873,
+          11514,
+          11686,
+          11236,
+          10855,
+          10621,
+          11476,
+          11155,
+          10843
+        ],
+        "scores": [
+          10,
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 17,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.722709,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.714004,
+          "covers": []
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.676361,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10623,
+          "sourcePath": "lint/rules/eslint/default-param-last.mdx",
+          "score": 0.658668,
+          "covers": []
+        },
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.657925,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10443,
+          10444,
+          12076,
+          10445,
+          10448,
+          10283,
+          10278,
+          10291,
+          10447,
+          10412,
+          10446,
+          10438,
+          10449,
+          10442,
+          12077,
+          10501,
+          10439,
+          10441,
+          11781,
+          10407
+        ],
+        "order": [
+          10443,
+          10444,
+          12076,
+          10445,
+          10448,
+          10283,
+          10278,
+          10291,
+          10447,
+          10412,
+          10446,
+          10438,
+          10449,
+          10442,
+          12077,
+          10501,
+          10439,
+          10441,
+          11781,
+          10407
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10443,
+          "sourcePath": "guides/streams/to-array.mdx",
+          "score": 0.842075,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10444,
+          "sourcePath": "guides/streams/to-arraybuffer.mdx",
+          "score": 0.774392,
+          "covers": []
+        },
+        {
+          "chunkId": 12076,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.761756,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.748117,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.745027,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10441,
+          10448,
+          10278,
+          10439,
+          10279,
+          10283,
+          10284,
+          10440,
+          10442,
+          12076,
+          10445,
+          10282,
+          10438,
+          10447,
+          10286,
+          10272,
+          10291,
+          10412,
+          10446,
+          10443
+        ],
+        "order": [
+          10441,
+          10448,
+          10279,
+          10445,
+          10278,
+          10439,
+          10283,
+          10284,
+          10440,
+          10442,
+          12076,
+          10282,
+          10438,
+          10447,
+          10286,
+          10272,
+          10291,
+          10412,
+          10446,
+          10443
+        ],
+        "scores": [
+          10,
+          10,
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 16,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10441,
+          "sourcePath": "guides/streams/node-readable-to-string.mdx",
+          "score": 0.740904,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.739663,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10279,
+          "sourcePath": "guides/binary/blob-to-string.mdx",
+          "score": 0.70599,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.685319,
+          "covers": []
+        },
+        {
+          "chunkId": 10278,
+          "sourcePath": "guides/binary/blob-to-stream.mdx",
+          "score": 0.721745,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          12196,
+          10458,
+          10982,
+          12197,
+          11614,
+          12198,
+          10570,
+          10985,
+          10972,
+          11600,
+          10543,
+          10556,
+          12206,
+          11630,
+          12207,
+          10977,
+          11590,
+          10962,
+          12202,
+          11588
+        ],
+        "order": [
+          10458,
+          12196,
+          12198,
+          10982,
+          12197,
+          11614,
+          10570,
+          10985,
+          10972,
+          11600,
+          10543,
+          10556,
+          12206,
+          11630,
+          12207,
+          10977,
+          11590,
+          10962,
+          12202,
+          11588
+        ],
+        "scores": [
+          10,
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 17,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10458,
+          "sourcePath": "guides/test/mock-functions.mdx",
+          "score": 0.749104,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12196,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.758777,
+          "covers": []
+        },
+        {
+          "chunkId": 12198,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.714439,
+          "covers": []
+        },
+        {
+          "chunkId": 10982,
+          "sourcePath": "lint/rules/jest/prefer-jest-mocked.mdx",
+          "score": 0.736452,
+          "covers": []
+        },
+        {
+          "chunkId": 12197,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.732837,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10952,
+          11579,
+          10461,
+          10524,
+          11626,
+          10994,
+          10568,
+          12232,
+          10947,
+          12231,
+          11578,
+          10528,
+          10956,
+          10523,
+          11575,
+          11401,
+          10536,
+          12233,
+          11577,
+          11581
+        ],
+        "order": [
+          10461,
+          10524,
+          11626,
+          10952,
+          10568,
+          11579,
+          10994,
+          12232,
+          10947,
+          12231,
+          11578,
+          10528,
+          10956,
+          10523,
+          11575,
+          11401,
+          10536,
+          12233,
+          11577,
+          11581
+        ],
+        "scores": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 15,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.755143,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10524,
+          "sourcePath": "lint/rules/bun-test/no-disabled-tests.mdx",
+          "score": 0.740868,
+          "covers": []
+        },
+        {
+          "chunkId": 11626,
+          "sourcePath": "lint/rules/vitest/prefer-todo.mdx",
+          "score": 0.72195,
+          "covers": []
+        },
+        {
+          "chunkId": 10952,
+          "sourcePath": "lint/rules/jest/no-disabled-tests.mdx",
+          "score": 0.759849,
+          "covers": []
+        },
+        {
+          "chunkId": 10568,
+          "sourcePath": "lint/rules/bun-test/prefer-todo.mdx",
+          "score": 0.695218,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11796,
+          11768,
+          11514,
+          10364,
+          11975,
+          11926,
+          10366,
+          10367,
+          11299,
+          10365,
+          10319,
+          10349,
+          11447,
+          10360,
+          11770,
+          10316,
+          10623,
+          11569,
+          11967,
+          10261
+        ],
+        "order": [
+          11796,
+          11768,
+          10364,
+          11975,
+          11926,
+          10366,
+          10367,
+          10365,
+          10349,
+          10319,
+          10316,
+          10623,
+          11569,
+          11514,
+          11447,
+          11299,
+          10360,
+          11770,
+          11967,
+          10261
+        ],
+        "scores": [
+          10,
+          10,
+          10,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 4,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11796,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.659992,
+          "covers": []
+        },
+        {
+          "chunkId": 11768,
+          "sourcePath": "quickstart.mdx",
+          "score": 0.63681,
+          "covers": []
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.630986,
+          "covers": []
+        },
+        {
+          "chunkId": 11975,
+          "sourcePath": "runtime/networking/fetch.mdx",
+          "score": 0.628706,
+          "covers": []
+        },
+        {
+          "chunkId": 11926,
+          "sourcePath": "runtime/http/tls.mdx",
+          "score": 0.628212,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          12008,
+          12009,
+          12004,
+          12014,
+          12011,
+          12005,
+          12007,
+          12006,
+          12010,
+          12013,
+          11779,
+          10753,
+          12012,
+          10846,
+          11476,
+          11026,
+          11063,
+          11055,
+          10855,
+          10621
+        ],
+        "order": [
+          12004,
+          12009,
+          12008,
+          12014,
+          12011,
+          12005,
+          12007,
+          12006,
+          12010,
+          12013,
+          11779,
+          10753,
+          12012,
+          10846,
+          11476,
+          11026,
+          11063,
+          11055,
+          10855,
+          10621
+        ],
+        "scores": [
+          8,
+          7,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 17,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12004,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.660902,
+          "covers": []
+        },
+        {
+          "chunkId": 12009,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.695578,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12008,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.707841,
+          "covers": []
+        },
+        {
+          "chunkId": 12014,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.654512,
+          "covers": []
+        },
+        {
+          "chunkId": 12011,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.637157,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10143,
+          10144,
+          10141,
+          10149,
+          10150,
+          10146,
+          10145,
+          10342,
+          10142,
+          10158,
+          10298,
+          10324,
+          10173,
+          10237,
+          10227,
+          10348,
+          10147,
+          10337,
+          10205,
+          10450
+        ],
+        "order": [
+          10143,
+          10144,
+          10141,
+          10149,
+          10150,
+          10146,
+          10145,
+          10342,
+          10142,
+          10158,
+          10298,
+          10324,
+          10173,
+          10237,
+          10227,
+          10348,
+          10147,
+          10337,
+          10205,
+          10450
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10143,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.732062,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10144,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.681469,
+          "covers": []
+        },
+        {
+          "chunkId": 10141,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.676303,
+          "covers": []
+        },
+        {
+          "chunkId": 10149,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.673972,
+          "covers": []
+        },
+        {
+          "chunkId": 10150,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.671971,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10450,
+          10466,
+          10459,
+          10571,
+          10461,
+          10568,
+          10575,
+          10467,
+          10528,
+          10525,
+          10469,
+          10547,
+          10460,
+          10542,
+          10520,
+          12187,
+          10522,
+          10552,
+          10577,
+          10539
+        ],
+        "order": [
+          10450,
+          10466,
+          10459,
+          10571,
+          10461,
+          10568,
+          10575,
+          10467,
+          10528,
+          10525,
+          10469,
+          10547,
+          10460,
+          10542,
+          10520,
+          12187,
+          10522,
+          10552,
+          10577,
+          10539
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.787547,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.754408,
+          "covers": []
+        },
+        {
+          "chunkId": 10459,
+          "sourcePath": "guides/test/rerun-each.mdx",
+          "score": 0.725098,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.719944,
+          "covers": []
+        },
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.709536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10469,
+          12112,
+          10160,
+          11822,
+          12113,
+          10340,
+          11757,
+          10415,
+          11756,
+          10349,
+          10143,
+          10352,
+          10417,
+          11760,
+          10334,
+          10416,
+          10158,
+          11762,
+          10236,
+          12145
+        ],
+        "order": [
+          10160,
+          12112,
+          10469,
+          11822,
+          12113,
+          10340,
+          11757,
+          10415,
+          11756,
+          10349,
+          10143,
+          10352,
+          10417,
+          11760,
+          10334,
+          10416,
+          10158,
+          11762,
+          10236,
+          12145
+        ],
+        "scores": [
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10160,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.653346,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.686691,
+          "covers": []
+        },
+        {
+          "chunkId": 10469,
+          "sourcePath": "guides/test/watch-mode.mdx",
+          "score": 0.697865,
+          "covers": []
+        },
+        {
+          "chunkId": 11822,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.6514,
+          "covers": []
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.636718,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10189,
+          10173,
+          10139,
+          10195,
+          10158,
+          10165,
+          10124,
+          10193,
+          10190,
+          10246,
+          10175,
+          10161,
+          10160,
+          10133,
+          10192,
+          10346,
+          10191,
+          10260,
+          10196,
+          12145
+        ],
+        "order": [
+          10189,
+          10195,
+          10192,
+          10193,
+          10190,
+          10173,
+          10139,
+          10158,
+          10165,
+          10124,
+          10246,
+          10175,
+          10161,
+          10160,
+          10133,
+          10346,
+          10191,
+          10260,
+          10196,
+          12145
+        ],
+        "scores": [
+          10,
+          10,
+          8,
+          6,
+          4,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 15,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.760717,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.697206,
+          "covers": []
+        },
+        {
+          "chunkId": 10192,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.662391,
+          "covers": []
+        },
+        {
+          "chunkId": 10193,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.680255,
+          "covers": []
+        },
+        {
+          "chunkId": 10190,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.678072,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10391,
+          11664,
+          11665,
+          10385,
+          11706,
+          11653,
+          11666,
+          10904,
+          12158,
+          11681,
+          12153,
+          12152,
+          11662,
+          11649,
+          10940,
+          12015,
+          11657,
+          11721,
+          11677,
+          11766
+        ],
+        "order": [
+          10391,
+          11664,
+          11665,
+          10385,
+          11706,
+          11653,
+          11666,
+          10904,
+          12158,
+          11681,
+          12153,
+          12152,
+          11662,
+          11649,
+          10940,
+          12015,
+          11657,
+          11721,
+          11677,
+          11766
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10391,
+          "sourcePath": "guides/install/yarnlock.mdx",
+          "score": 0.813244,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11664,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.702121,
+          "covers": []
+        },
+        {
+          "chunkId": 11665,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.674106,
+          "covers": []
+        },
+        {
+          "chunkId": 10385,
+          "sourcePath": "guides/install/git-diff-bun-lockfile.mdx",
+          "score": 0.660325,
+          "covers": []
+        },
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.653375,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10394,
+          10392,
+          10510,
+          10924,
+          10507,
+          10393,
+          10509,
+          10875,
+          10580,
+          10885,
+          10508,
+          10886,
+          10877,
+          10396,
+          10511,
+          10397,
+          10881,
+          10925,
+          12154,
+          10882
+        ],
+        "order": [
+          10394,
+          10392,
+          10510,
+          10924,
+          10507,
+          10393,
+          10509,
+          10875,
+          10580,
+          10885,
+          10508,
+          10886,
+          10877,
+          10396,
+          10511,
+          10397,
+          10881,
+          10925,
+          12154,
+          10882
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10394,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.811899,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10392,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.798892,
+          "covers": []
+        },
+        {
+          "chunkId": 10510,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.77012,
+          "covers": []
+        },
+        {
+          "chunkId": 10924,
+          "sourcePath": "lint/rules/index.mdx",
+          "score": 0.768163,
+          "covers": []
+        },
+        {
+          "chunkId": 10507,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.760485,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10404,
+          10733,
+          10403,
+          10400,
+          10500,
+          10405,
+          10501,
+          11094,
+          10499,
+          11827,
+          10734,
+          11095,
+          10406,
+          10399,
+          11978,
+          11477,
+          12079,
+          10430,
+          10586,
+          10402
+        ],
+        "order": [
+          11827,
+          10404,
+          10733,
+          10403,
+          10400,
+          10500,
+          10405,
+          10501,
+          11094,
+          10499,
+          10734,
+          11095,
+          10406,
+          10399,
+          11978,
+          11477,
+          12079,
+          10430,
+          10586,
+          10402
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11827,
+          "sourcePath": "runtime/child-process.mdx",
+          "score": 0.636198,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10404,
+          "sourcePath": "guides/process/spawn-stdout.mdx",
+          "score": 0.676111,
+          "covers": []
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.662584,
+          "covers": []
+        },
+        {
+          "chunkId": 10403,
+          "sourcePath": "guides/process/spawn-stderr.mdx",
+          "score": 0.652021,
+          "covers": []
+        },
+        {
+          "chunkId": 10400,
+          "sourcePath": "guides/process/ipc.mdx",
+          "score": 0.650236,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11706,
+          11662,
+          10390,
+          10382,
+          11701,
+          11684,
+          11703,
+          11653,
+          11711,
+          10384,
+          11661,
+          11961,
+          11663,
+          11659,
+          11660,
+          11777,
+          11699,
+          11657,
+          11674,
+          11651
+        ],
+        "order": [
+          11662,
+          11706,
+          10390,
+          11651,
+          11663,
+          11660,
+          11657,
+          11674,
+          11653,
+          11659,
+          11661,
+          11961,
+          11684,
+          11711,
+          11703,
+          10382,
+          11701,
+          10384,
+          11777,
+          11699
+        ],
+        "scores": [
+          10,
+          10,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 1,
+        "missing": 5,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11662,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.741198,
+          "covers": []
+        },
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.742063,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.728988,
+          "covers": []
+        },
+        {
+          "chunkId": 11651,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.693855,
+          "covers": []
+        },
+        {
+          "chunkId": 11663,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.708404,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          12218,
+          12173,
+          12219,
+          12186,
+          11799,
+          12224,
+          12163,
+          10455,
+          10450,
+          12133,
+          11813,
+          11818,
+          10306,
+          10460,
+          11791,
+          11938,
+          12216,
+          12190,
+          12220,
+          12154
+        ],
+        "order": [
+          12218,
+          12173,
+          12219,
+          12186,
+          11799,
+          12224,
+          12163,
+          10455,
+          10450,
+          12133,
+          11813,
+          11818,
+          10306,
+          10460,
+          11791,
+          11938,
+          12216,
+          12190,
+          12220,
+          12154
+        ],
+        "scores": [
+          10,
+          8,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12218,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.755587,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 12173,
+          "sourcePath": "test/configuration.mdx",
+          "score": 0.718972,
+          "covers": []
+        },
+        {
+          "chunkId": 12219,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.716068,
+          "covers": []
+        },
+        {
+          "chunkId": 12186,
+          "sourcePath": "test/index.mdx",
+          "score": 0.703645,
+          "covers": []
+        },
+        {
+          "chunkId": 11799,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.700757,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.9197,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11707,
+          10381,
+          10388,
+          11708,
+          11716,
+          11709,
+          11657,
+          11794,
+          10386,
+          11661,
+          10590,
+          11809,
+          11656,
+          11796,
+          10534,
+          11795,
+          11807,
+          11711,
+          11710,
+          12175
+        ],
+        "order": [
+          11707,
+          11709,
+          11716,
+          11794,
+          11710,
+          11711,
+          11796,
+          11795,
+          11708,
+          10381,
+          10388,
+          11657,
+          10386,
+          11661,
+          10590,
+          11809,
+          11656,
+          10534,
+          11807,
+          12175
+        ],
+        "scores": [
+          8,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 1,
+        "duplicates": 0,
+        "missing": 11,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.831759,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 11709,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.767173,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.78368,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11794,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.763927,
+          "covers": []
+        },
+        {
+          "chunkId": 11710,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.722794,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          12113,
+          10364,
+          11791,
+          10153,
+          11920,
+          10334,
+          10151,
+          11911,
+          11938,
+          12112,
+          10143,
+          11912,
+          10360,
+          11927,
+          12114,
+          10145,
+          10368,
+          11992,
+          11914,
+          10324
+        ],
+        "order": [
+          10364,
+          12113,
+          11791,
+          10153,
+          11920,
+          10334,
+          10151,
+          11911,
+          11938,
+          12112,
+          10143,
+          11912,
+          10360,
+          11927,
+          12114,
+          10145,
+          10368,
+          11992,
+          11914,
+          10324
+        ],
+        "scores": [
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.795542,
+          "covers": []
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.808516,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 11791,
+          "sourcePath": "runtime/bun-apis.mdx",
+          "score": 0.738477,
+          "covers": []
+        },
+        {
+          "chunkId": 10153,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.737118,
+          "covers": []
+        },
+        {
+          "chunkId": 11920,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.734143,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.8772,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10733,
+          11094,
+          11872,
+          10431,
+          10590,
+          10430,
+          10227,
+          11120,
+          12175,
+          10224,
+          10204,
+          12146,
+          10207,
+          12147,
+          10256,
+          11838,
+          10239,
+          10233,
+          10215,
+          10237
+        ],
+        "order": [
+          11872,
+          10430,
+          10431,
+          10239,
+          10733,
+          11094,
+          10590,
+          10227,
+          11120,
+          12175,
+          10224,
+          10204,
+          12146,
+          10207,
+          12147,
+          10256,
+          11838,
+          10233,
+          10215,
+          10237
+        ],
+        "scores": [
+          8,
+          7,
+          7,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 16,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.712843,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10430,
+          "sourcePath": "guides/runtime/read-env.mdx",
+          "score": 0.681181,
+          "covers": []
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.690319,
+          "covers": []
+        },
+        {
+          "chunkId": 10239,
+          "sourcePath": "compiler/executables.mdx",
+          "score": 0.63727,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.7389,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11082,
+          11198,
+          12112,
+          12113,
+          10749,
+          12003,
+          10649,
+          11595,
+          11095,
+          11268,
+          11251,
+          10970,
+          11067,
+          11246,
+          12065,
+          10668,
+          10419,
+          11159,
+          10794,
+          11828
+        ],
+        "order": [
+          12112,
+          12113,
+          11082,
+          11198,
+          10749,
+          12003,
+          10649,
+          11595,
+          11095,
+          11268,
+          11251,
+          10970,
+          11067,
+          11246,
+          12065,
+          10668,
+          10419,
+          11159,
+          10794,
+          11828
+        ],
+        "scores": [
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.62826,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.625021,
+          "covers": []
+        },
+        {
+          "chunkId": 11082,
+          "sourcePath": "lint/rules/nextjs/no-sync-scripts.mdx",
+          "score": 0.644322,
+          "covers": []
+        },
+        {
+          "chunkId": 11198,
+          "sourcePath": "lint/rules/react/jsx-no-duplicate-props.mdx",
+          "score": 0.632355,
+          "covers": []
+        },
+        {
+          "chunkId": 10749,
+          "sourcePath": "lint/rules/eslint/no-self-assign.mdx",
+          "score": 0.61776,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          11029,
+          12015,
+          12016,
+          12017,
+          11709,
+          11047,
+          12065,
+          11461,
+          11646,
+          10379,
+          10386,
+          11063,
+          10904,
+          11017,
+          10419,
+          10728,
+          11530,
+          10725,
+          11008,
+          11547
+        ],
+        "order": [
+          12015,
+          11029,
+          12016,
+          12017,
+          11709,
+          11047,
+          12065,
+          11461,
+          11646,
+          10379,
+          10386,
+          11063,
+          10904,
+          11017,
+          10419,
+          10728,
+          11530,
+          10725,
+          11008,
+          11547
+        ],
+        "scores": [
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 19,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 12015,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.636062,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11029,
+          "sourcePath": "lint/rules/jsx-a11y/no-access-key.mdx",
+          "score": 0.638922,
+          "covers": []
+        },
+        {
+          "chunkId": 12016,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.63424,
+          "covers": []
+        },
+        {
+          "chunkId": 12017,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.630335,
+          "covers": []
+        },
+        {
+          "chunkId": 11709,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.613399,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": {
+        "candidates": [
+          10390,
+          11640,
+          10861,
+          11820,
+          11701,
+          11692,
+          11719,
+          11644,
+          10851,
+          11699,
+          11659,
+          12158,
+          11721,
+          11698,
+          11715,
+          11654,
+          11711,
+          10389,
+          11234,
+          11649
+        ],
+        "order": [
+          10851,
+          10861,
+          10390,
+          11640,
+          11820,
+          11701,
+          11692,
+          11719,
+          11644,
+          11699,
+          11659,
+          12158,
+          11721,
+          11698,
+          11715,
+          11654,
+          11711,
+          10389,
+          11234,
+          11649
+        ],
+        "scores": [
+          10,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "unknown": 0,
+        "duplicates": 0,
+        "missing": 18,
+        "fallback": false
+      },
+      "retrieved": [
+        {
+          "chunkId": 10851,
+          "sourcePath": "lint/rules/import/no-extraneous-dependencies.mdx",
+          "score": 0.667616,
+          "covers": []
+        },
+        {
+          "chunkId": 10861,
+          "sourcePath": "lint/rules/import/no-relative-packages.mdx",
+          "score": 0.7159,
+          "covers": []
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.724498,
+          "covers": []
+        },
+        {
+          "chunkId": 11640,
+          "sourcePath": "pm/catalogs.mdx",
+          "score": 0.71768,
+          "covers": []
+        },
+        {
+          "chunkId": 11820,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.688898,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}
