@@ -58,6 +58,7 @@ const CONFIG: RunConfig = {
   rewrite: 'off',
   expand: 'off',
   rerank: 'off',
+  pipeline: 'baseline',
 };
 
 async function run(split: RunConfig['split'] = 'test') {
@@ -346,7 +347,7 @@ describe('buildResult', () => {
       'rerank',
       'retrieved',
     ]);
-    expect(out.schemaVersion).toBe(5);
+    expect(out.schemaVersion).toBe(6);
     expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);
     expect(out.counts.rewriteFallbacks).toBeNull();
     expect(out.config.rewrite).toBe('off');

@@ -96,6 +96,18 @@ Fixed: md-1024-128, nomic-embed-text, k=5, vector.
 | off | 0.72 | 0.61 | 0.60 | 0.90 | 4.77 | 4.36 | 4.82 | 1.00 | 12681 | 19134 | 2746 | 0.00 |
 | on | 0.78 | 0.73 | 0.72 | 0.92 | 4.78 | 4.43 | 4.83 | 1.00 | 43961 | 53160 | 8716 | 0.00 |
 
+### Phase 2 deltas vs. baseline
+
+| Technique | Baseline | Δ Recall@k | Δ nDCG@k | Δ Accuracy | Δ Completeness | Δ Abstention acc. | Δ p50 ms | Δ Tokens/q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| exp-search-mode: search=fts | exp-search-mode: search=vector | -0.24 | -0.21 | – | – | – | – | – |
+| exp-search-mode: search=hybrid | exp-search-mode: search=vector | +0.08 | +0.09 | – | – | – | – | – |
+| exp-rewrite: rewrite=on | exp-rewrite: rewrite=off | +0.04 | +0.09 | +0.14 | +0.18 | +0.00 | +1394 | +240 |
+| exp-expand: expand=on | exp-expand: expand=off | +0.04 | +0.04 | +0.14 | +0.22 | +0.00 | -1205 | +280 |
+| exp-rerank: rerank=on | exp-rerank: rerank=off | +0.06 | +0.12 | +0.01 | +0.07 | +0.00 | +31280 | +5970 |
+
+Each row minus its baseline: the same experiment with the technique off, or else the newest run of the same config with it off (named in the Baseline column).
+
 ### KPIs
 
 | Config | In tok/q | Out tok/q | Est. token share | Retry rate | Invalid output rate | False abst. |

@@ -28,9 +28,10 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
   ingest and Ollama with chat and judge model); both write `results/<timestamp>_<experiment>_<type>.json`
 - Experiment matrix: `bun run experiment experiments/<file>.json [--split dev] [--seed <n>]` (every `vary` value ×
   `evals`, in process; pre-flight checks every ingest and model first; writes
-  `results/<timestamp>_<experiment>_<variant>_<type>.json`)
+  `results/<timestamp>_<experiment>_<variant>_<type>.json`). `pipeline: agent` runs the agent in the answers eval
+  (answers only; no rewrite/expand/rerank, `k` ≤ 10)
 - README results: `bun run report` (tables between `<!-- results:start -->`/`<!-- results:end -->` from test-split,
-  clean result files) and `bun run report --check` (exit 1 when README differs; also runs in CI)
+  clean result files, incl. the phase 2 delta table) and `bun run report --check` (exit 1 when README differs; also runs in CI)
 - Validate golden dataset: `bun run eval:validate [--strict]` (schema, spans against the fetched corpus, §6 counts;
   `--strict` makes count deviations errors)
 - Test: `bun run test` — Vitest projects `unit` and `integration` (`bun --bun vitest run`) plus the Claude hook

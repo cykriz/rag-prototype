@@ -2,6 +2,7 @@
 // shuffled order, re-judges a 10 % sample and builds the result file of §7. Pure apart from the injected answer
 // and judge functions, so unit tests need neither database nor model.
 
+import type { AgentResult } from '../agent/graph';
 import type { ChatProvider } from '../llm/types';
 import type { AnswerResult } from '../rag/answer';
 import type { Category, GoldenEntry } from './dataset';
@@ -35,7 +36,33 @@ import {
 
 export interface AnsweredEntry {
   entry: GoldenEntry;
+  /** An AgentResult with the agent pipeline (M19); isAgentResult tells them apart. */
   result: AnswerResult;
+}
+
+/** True for a result of runAgent; type-only import, so this module does not load LangGraph. */
+export const isAgentResult = (r: AnswerResult): r is AgentResult => 'trace' in r;
+
+/** questions[].agent of the result file: the agent's own record, null for the baseline pipeline. */
+const agentRecord = (r: AnswerResult) =>
+  isAgentResult(r)
+    ? {
+        trace: r.trace,
+        toolCalls: r.toolCalls,
+        skippedToolCalls: r.skippedToolCalls,
+        stoppedAtLimit: r.stoppedAtLimit,
+        answerFallback: r.answerFallback,
+      }
+    : null;
+
+/** Agent counts of the result file; null for a baseline run, like the stage fallbacks with a stage off. */
+function agentCounts(results: readonly AnswerResult[], config: Pick<RunConfig, 'pipeline'>) {
+  const agent = config.pipeline === 'agent' ? results.filter(isAgentResult) : null;
+  return {
+    agentToolCalls: agent === null ? null : agent.reduce((s, r) => s + r.toolCalls, 0),
+    agentStoppedAtLimit: agent === null ? null : agent.filter((r) => r.stoppedAtLimit).length,
+    agentAnswerFallbacks: agent === null ? null : agent.filter((r) => r.answerFallback).length,
+  };
 }
 
 /** Every entry of the split, sorted by id, answered one after the other. */
@@ -202,6 +229,10 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
         qs.map((q) => q.result),
         meta.config,
       ),
+      ...agentCounts(
+        qs.map((q) => q.result),
+        meta.config,
+      ),
     },
     aggregate: { all: roundMetrics(agg.all), human: roundMetrics(agg.human), llm: roundMetrics(agg.llm) },
     selfConsistency: {
@@ -248,6 +279,7 @@ export function buildAnswerResult(meta: AnswerResultMeta, run: JudgedRun, kpis: 
       rewrite: q.result.rewrite,
       expand: q.result.expand,
       rerank: q.result.rerank,
+      agent: agentRecord(q.result),
       citationValid: q.citationValid,
       judge: verdict(q.judge),
       judgeRepeat: verdict(q.judgeRepeat),
@@ -292,6 +324,15 @@ export function formatAnswerSummary(result: AnswerEvalResult): string {
       `rel ${fmt(sc.perDimension.relevance)})`,
     `latency p50 ${kpis.latencyMs.p50 ?? '-'} ms, p95 ${kpis.latencyMs.p95 ?? '-'} ms`,
   );
+  if (counts.agentToolCalls !== null) {
+    const step = kpis.calls.find((c) => c.operation === 'agent_step');
+    const perQ = counts.questions === 0 ? '-' : (counts.agentToolCalls / counts.questions).toFixed(2);
+    lines.push(
+      `agent: ${perQ} tool calls/question, limit ${counts.agentStoppedAtLimit}/${counts.questions}, ` +
+        `answer fallback ${counts.agentAnswerFallbacks}/${counts.questions}, ` +
+        `agent_step p50 ${step?.latencyP50Ms ?? '-'} ms, p95 ${step?.latencyP95Ms ?? '-'} ms`,
+    );
+  }
   for (const { stage, fallbacks } of activeFallbacks(counts)) {
     const call = kpis.calls.find((c) => c.operation === stage);
     lines.push(

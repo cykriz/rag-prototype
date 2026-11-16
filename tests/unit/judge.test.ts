@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
+import type { AgentResult } from '../../src/agent/graph';
 import {
   type AnsweredEntry,
   answerAll,
   buildAnswerResult,
   formatAnswerSummary,
+  isAgentResult,
   judgeAll,
 } from '../../src/eval/answers';
 import type { GoldenEntry } from '../../src/eval/dataset';
@@ -285,6 +287,7 @@ const CONFIG: RunConfig = {
   rewrite: 'off',
   expand: 'off',
   rerank: 'off',
+  pipeline: 'baseline',
 };
 const fake = (name: string) => ({ provider: 'fake', name, tag: null, digest: null });
 const META = {
@@ -359,6 +362,9 @@ describe('buildAnswerResult', () => {
       rewriteFallbacks: null,
       expandFallbacks: null,
       rerankFallbacks: null,
+      agentToolCalls: null,
+      agentStoppedAtLimit: null,
+      agentAnswerFallbacks: null,
     });
     expect(out.aggregate.all).toMatchObject({ citationValidity: 0.6667, invalidAnswerRate: 0.1667 });
     expect(out.aggregate.human).toEqual({
@@ -401,10 +407,12 @@ describe('buildAnswerResult', () => {
       'rewrite',
       'expand',
       'rerank',
+      'agent',
       'citationValid',
       'judge',
       'judgeRepeat',
     ]);
+    expect(out.questions.every((q) => q.agent === null)).toBe(true);
     expect(out.questions[0]?.judge).toEqual({
       status: 'ok',
       repairs: 0,
@@ -423,5 +431,88 @@ describe('buildAnswerResult', () => {
     expect(lines.slice(2, 5).map((l) => l.split(/\s+/)[0])).toEqual(['all', 'human', 'llm']);
     expect(lines[5]).toMatch(/^self-consistency: 1 sampled, 1 pairs/);
     expect(lines[6]).toBe('latency p50 350 ms, p95 587.1235 ms');
+  });
+});
+
+describe('buildAnswerResult with the agent pipeline (M19)', () => {
+  const agentResult = (
+    found: boolean | null,
+    over: Partial<AgentResult> & Pick<AgentResult, 'toolCalls'>,
+  ): AgentResult => ({
+    ...result(found),
+    trace: Array.from({ length: over.toolCalls }, (_, i) => ({
+      query: `query ${i + 1}`,
+      kRequested: null,
+      k: 5,
+      chunkIds: [1, 2],
+      error: null,
+    })),
+    skippedToolCalls: 0,
+    stoppedAtLimit: false,
+    answerFallback: false,
+    ...over,
+  });
+  const answered: AnsweredEntry[] = [
+    { entry: entry({ id: 'q001' }), result: agentResult(true, { toolCalls: 1 }) },
+    {
+      entry: entry({ id: 'q002' }),
+      result: agentResult(true, {
+        toolCalls: 4,
+        skippedToolCalls: 1,
+        stoppedAtLimit: true,
+        answerFallback: true,
+      }),
+    },
+    { entry: negative('q005'), result: agentResult(false, { toolCalls: 2, answerFallback: true }) },
+  ];
+  const kpis = {
+    latencyMs: { p50: 9000, p95: 20000 },
+    calls: [
+      ...KPIS.calls,
+      { ...KPIS.calls[0], operation: 'agent_step', model: 'chat-model', calls: 7, latencyP50Ms: 4000 },
+      { ...KPIS.calls[0], operation: 'embed', model: 'nomic-embed-text', calls: 7 },
+    ] as typeof KPIS.calls,
+  };
+
+  async function build() {
+    const { judge } = routedJudge({
+      'question q001': [scores(5, 5, 5), scores(5, 5, 5)],
+      'question q002': [scores(4, 3, 5), scores(4, 3, 5)],
+    });
+    const meta = { ...META, experimentId: 'exp-agent', config: { ...CONFIG, pipeline: 'agent' as const } };
+    return buildAnswerResult(meta, await judgeAll({ answered, judge, seed: 7 }), kpis);
+  }
+
+  it('tells agent results from baseline results', () => {
+    expect(isAgentResult(answered[0]?.result as AnswerResult)).toBe(true);
+    expect(isAgentResult(result(true))).toBe(false);
+  });
+
+  it('records the agent per question, its counts and the agent_step KPI row', async () => {
+    const out = await build();
+    expect(out.config.pipeline).toBe('agent');
+    expect(out.counts).toMatchObject({ agentToolCalls: 7, agentStoppedAtLimit: 1, agentAnswerFallbacks: 2 });
+    expect(out.questions[1]?.agent).toEqual({
+      trace: (answered[1]?.result as AgentResult | undefined)?.trace,
+      toolCalls: 4,
+      skippedToolCalls: 1,
+      stoppedAtLimit: true,
+      answerFallback: true,
+    });
+    expect(out.questions[0]?.agent).toMatchObject({
+      toolCalls: 1,
+      stoppedAtLimit: false,
+      answerFallback: false,
+    });
+    expect(out.kpis.calls.map((c) => c.operation)).toEqual(['judge', 'agent_step', 'embed']);
+    expect(out.kpis.calls[1]).toMatchObject({ calls: 7, latencyP50Ms: 4000 });
+  });
+
+  it('prints one agent line in the summary', async () => {
+    const summary = formatAnswerSummary(await build());
+    expect(summary).toContain('k=5, vector, agent, dev split');
+    expect(summary).toContain(
+      'agent: 2.33 tool calls/question, limit 1/3, answer fallback 2/3, agent_step p50 4000 ms, p95 1234.5679 ms',
+    );
   });
 });

@@ -15,8 +15,8 @@ const BASELINE = join(import.meta.dirname, '../../experiments/baseline.json');
 
 const parse = (raw: unknown) => ExperimentFile.parse(raw);
 const BASE = { chunkConfig: 'md-512-64', embed: 'nomic-embed-text', k: 5, search: 'vector', split: 'test' };
-/** BASE as a parsed RunConfig: rewrite, expand and rerank default to off. */
-const RUN = { ...BASE, rewrite: 'off', expand: 'off', rerank: 'off' };
+/** BASE as a parsed RunConfig: rewrite, expand and rerank default to off, pipeline to baseline. */
+const RUN = { ...BASE, rewrite: 'off', expand: 'off', rerank: 'off', pipeline: 'baseline' };
 
 describe('experiment files', () => {
   it('experiments/baseline.json is one retrieval config on the test split', async () => {
@@ -73,6 +73,44 @@ describe('experiment files', () => {
       { run: { ...RUN, chunkConfig: 'md-1024-128', rewrite: 'on' }, variedKey: 'rewrite', label: 'on' },
     ]);
     expect(exp.evals).toEqual(['retrieval', 'answers']);
+  });
+
+  it('experiments/exp-agent.json is the agent arm alone, answers only, at the M17 config', async () => {
+    const exp = await loadExperiment(join(import.meta.dirname, '../../experiments/exp-agent.json'));
+    expect(expandExperiment(exp)).toEqual([
+      {
+        run: { ...RUN, chunkConfig: 'md-1024-128', pipeline: 'agent' },
+        variedKey: 'pipeline',
+        label: 'agent',
+      },
+    ]);
+    expect(exp.evals).toEqual(['answers']);
+  });
+
+  it('reads a config without pipeline as baseline and refuses stages or a large k with the agent', () => {
+    const { pipeline: _, ...withoutPipeline } = RUN;
+    expect(RunConfig.parse(withoutPipeline).pipeline).toBe('baseline');
+    const agent = { ...RUN, pipeline: 'agent' };
+    expect(RunConfig.safeParse({ ...agent, k: 10 }).success).toBe(true);
+    for (const stage of ['rewrite', 'expand', 'rerank']) {
+      const parsed = RunConfig.safeParse({ ...agent, [stage]: 'on' });
+      expect(parsed.error?.issues[0]?.message).toMatch(/does not combine with rewrite, expand or rerank/);
+    }
+    expect(RunConfig.safeParse({ ...agent, k: 11 }).error?.issues[0]?.message).toMatch(/at most 10/);
+    expect(RunConfig.safeParse({ ...RUN, rerank: 'on', k: 11 }).success).toBe(true);
+  });
+
+  it('refuses a retrieval eval of the agent, in base or in vary', () => {
+    const file = (over: Record<string, unknown>) =>
+      ExperimentFile.safeParse({ id: 'x', base: BASE, ...over });
+    expect(file({ base: { ...BASE, pipeline: 'agent' }, evals: ['answers'] }).success).toBe(true);
+    expect(file({ base: { ...BASE, pipeline: 'agent' }, evals: ['retrieval'] }).error?.message).toMatch(
+      /no retrieval eval/,
+    );
+    expect(file({ vary: { pipeline: ['baseline', 'agent'] }, evals: ['retrieval', 'answers'] }).success).toBe(
+      false,
+    );
+    expect(file({ vary: { pipeline: ['baseline'] }, evals: ['retrieval'] }).success).toBe(true);
   });
 
   it('accepts the §7 matrix format, but singleConfig refuses a vary', () => {

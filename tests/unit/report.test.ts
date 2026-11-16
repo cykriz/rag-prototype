@@ -232,6 +232,73 @@ describe('rerank (M17)', () => {
   });
 });
 
+describe('pipeline and deltas (M19)', () => {
+  async function answersBase() {
+    const all = await loadResults(FIXTURES);
+    const base = all.find((r) => r.file.includes('baseline_answers') && !r.data.gitDirty);
+    if (base?.data.evalType !== 'answers') {
+      throw new Error('fixture missing');
+    }
+    return base.data;
+  }
+
+  it('reads result files without config.pipeline as baseline', async () => {
+    const all = await loadResults(FIXTURES);
+    expect(all.every((r) => r.data.config.pipeline === 'baseline')).toBe(true);
+  });
+
+  it('pairs a technique with its own off row, else with the newest same-config run, and renders the deltas', async () => {
+    const base = await answersBase();
+    const run = (
+      experimentId: string,
+      startedAt: string,
+      over: Partial<typeof base.config>,
+      variedKey: 'rerank' | 'pipeline' | null,
+      metrics: { accuracy: number; p50: number },
+    ) => ({
+      file: `${startedAt}_${experimentId}_answers.json`,
+      data: {
+        ...base,
+        experimentId,
+        startedAt,
+        variedKey,
+        config: { ...base.config, ...over },
+        aggregate: { all: { ...base.aggregate.all, accuracy: metrics.accuracy } },
+        kpis: { ...base.kpis, latencyMs: { ...base.kpis.latencyMs, p50: metrics.p50 } },
+      },
+    });
+    const block = renderBlock(
+      selectResults([
+        // The fixture baseline (2026-01-02, accuracy 4.25) has the same config but is older than exp-rerank off.
+        ...(await loadResults(FIXTURES)),
+        run('exp-rerank', '2026-02-01T10:00:00.000Z', { rerank: 'off' }, 'rerank', {
+          accuracy: 4.5,
+          p50: 2000,
+        }),
+        run('exp-rerank', '2026-02-01T10:00:01.000Z', { rerank: 'on' }, 'rerank', {
+          accuracy: 4.6,
+          p50: 9000,
+        }),
+        run('exp-agent', '2026-02-02T10:00:00.000Z', { pipeline: 'agent' }, 'pipeline', {
+          accuracy: 4.25,
+          p50: 7000,
+        }),
+      ]),
+    );
+    expect(block).toContain('### exp-agent: pipeline');
+    expect(block).toMatch(/\| agent \| – \| – \| – \| – \| 4\.25 \|/);
+    expect(block).toContain('| exp-agent: pipeline=agent | ');
+    const deltas = block.slice(block.indexOf('### Phase 2 deltas'), block.indexOf('### KPIs'));
+    expect(deltas).toMatchSnapshot();
+    expect(deltas).toContain('| exp-rerank: rerank=on | exp-rerank: rerank=off | – | – | +0.10 |');
+    expect(deltas).toContain('| exp-agent: pipeline=agent | exp-rerank: rerank=off | – | – | -0.25 |');
+  });
+
+  it('renders no delta table without a varied technique', async () => {
+    expect(renderBlock(await selection())).not.toContain('Phase 2 deltas');
+  });
+});
+
 describe('replaceBlock', () => {
   it('replaces only the text between the markers', () => {
     const readme = `# Title\n\n${START}\nold\n${END}\n\nTail\n`;

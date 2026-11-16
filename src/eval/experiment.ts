@@ -5,7 +5,10 @@ import { z } from 'zod';
 import { models } from '../config';
 import { parseChunkConfigKey } from '../ingest/chunk';
 import {
+  ANSWER_PIPELINES,
+  agentConflict,
   DEFAULT_EXPAND,
+  DEFAULT_PIPELINE,
   DEFAULT_RERANK,
   DEFAULT_REWRITE,
   EXPAND_MODES,
@@ -35,6 +38,7 @@ const Split = z.enum(SPLITS);
 const Rewrite = z.enum(REWRITE_MODES);
 const Expand = z.enum(EXPAND_MODES);
 const Rerank = z.enum(RERANK_MODES);
+const Pipeline = z.enum(ANSWER_PIPELINES);
 
 const RUN_FIELDS = {
   chunkConfig: ChunkConfigKey,
@@ -45,11 +49,14 @@ const RUN_FIELDS = {
   rewrite: Rewrite,
   expand: Expand,
   rerank: Rerank,
+  pipeline: Pipeline,
 };
 
 /**
- * `rewrite` (M15), `expand` (M16) and `rerank` (M17) default to off, so result files written before them still
- * parse, read as off. Rewrite and expand both on is refused (assertPipeline); rerank combines with either.
+ * `rewrite` (M15), `expand` (M16) and `rerank` (M17) default to off and `pipeline` (M19) to baseline, so result
+ * files written before them still parse, read as off and baseline. Rewrite and expand both on is refused
+ * (assertPipeline); rerank combines with either. The agent refuses every stage and a k above its tool limit
+ * (agentConflict); an agent retrieval eval is refused by ExperimentFile.
  */
 export const RunConfig = z
   .strictObject({
@@ -57,8 +64,15 @@ export const RunConfig = z
     rewrite: Rewrite.default(DEFAULT_REWRITE),
     expand: Expand.default(DEFAULT_EXPAND),
     rerank: Rerank.default(DEFAULT_RERANK),
+    pipeline: Pipeline.default(DEFAULT_PIPELINE),
   })
-  .refine((c) => !stagesConflict(c), { message: STAGE_CONFLICT, path: ['expand'] });
+  .refine((c) => !stagesConflict(c), { message: STAGE_CONFLICT, path: ['expand'] })
+  .superRefine((c, ctx) => {
+    const conflict = agentConflict(c);
+    if (conflict !== null) {
+      ctx.addIssue({ code: 'custom', message: conflict, path: ['pipeline'] });
+    }
+  });
 export type RunConfig = z.infer<typeof RunConfig>;
 
 export const VARY_KEYS = [
@@ -70,6 +84,7 @@ export const VARY_KEYS = [
   'rewrite',
   'expand',
   'rerank',
+  'pipeline',
 ] as const;
 export type VaryKey = (typeof VARY_KEYS)[number];
 
@@ -78,7 +93,7 @@ const unique = <T>(values: readonly T[]) => new Set(values).size === values.leng
 export const ExperimentFile = z
   .strictObject({
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
-    // Without the rewrite/expand/rerank defaults: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
+    // Without the rewrite/expand/rerank/pipeline defaults: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
     // trip the base-vs-vary check below. expandExperiment applies the default.
     base: z.strictObject(RUN_FIELDS).partial(),
     vary: z
@@ -91,6 +106,7 @@ export const ExperimentFile = z
         rewrite: z.array(Rewrite).min(1).refine(unique, 'values must be unique'),
         expand: z.array(Expand).min(1).refine(unique, 'values must be unique'),
         rerank: z.array(Rerank).min(1).refine(unique, 'values must be unique'),
+        pipeline: z.array(Pipeline).min(1).refine(unique, 'values must be unique'),
       })
       .partial()
       .default({}),
@@ -104,6 +120,15 @@ export const ExperimentFile = z
         code: 'custom',
         path: ['vary'],
         message: `one variable per file (§7), got ${keys.join(', ')}`,
+      });
+    }
+    // A retrieval eval of the agent is not defined: its retrieval is whatever its tool calls return (M19).
+    const agent = exp.base.pipeline === 'agent' || exp.vary.pipeline?.includes('agent') === true;
+    if (agent && exp.evals.includes('retrieval')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['evals'],
+        message: 'the agent pipeline has no retrieval eval: use "evals": ["answers"]',
       });
     }
     for (const key of keys) {

@@ -11,6 +11,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import type { Sql } from 'postgres';
 import { z } from 'zod';
+import { buildAgentDeps, runAgent } from '../agent/graph';
 import type { Config, ProviderName } from '../config';
 import { connect } from '../db/client';
 import { answerAll, buildAnswerResult, formatAnswerSummary, judgeAll } from '../eval/answers';
@@ -395,17 +396,34 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
     answered = await answerAll({
       entries: p.entries,
       split: run.split,
+      // M19: the agent with the run's search mode as its tool and k as the tool's default k.
       answer: (entry) =>
-        answer(
-          entry.question,
-          buildAnswerDeps(sql, config, {
-            chunkConfig,
-            k: run.k,
-            runId,
-            pipeline: { search: run.search, rewrite: run.rewrite, expand: run.expand, rerank: run.rerank },
-            questionId: entry.id,
-          }),
-        ),
+        run.pipeline === 'agent'
+          ? runAgent(
+              entry.question,
+              buildAgentDeps(sql, config, {
+                chunkConfig,
+                k: run.k,
+                search: run.search,
+                runId,
+                questionId: entry.id,
+              }),
+            )
+          : answer(
+              entry.question,
+              buildAnswerDeps(sql, config, {
+                chunkConfig,
+                k: run.k,
+                runId,
+                pipeline: {
+                  search: run.search,
+                  rewrite: run.rewrite,
+                  expand: run.expand,
+                  rerank: run.rerank,
+                },
+                questionId: entry.id,
+              }),
+            ),
     });
   } catch (err) {
     console.error(await answerErrorMessage(err, config, sql));

@@ -30,8 +30,11 @@ import { coverage } from './relevance';
  * duplicates, missing, fallback }` or null; `scores` are the model's, aligned to `order`, null for appended
  * candidates), `counts.rerankFallbacks` (null with rerank off); with rerank on, `retrieved` is in rerank order and
  * `retrieved[].score` stays the search score, so it is no longer descending.
+ * 6 (M19): `config.pipeline` (`baseline` or `agent`); answers files carry `questions[].agent` (`{ trace, toolCalls,
+ * skippedToolCalls, stoppedAtLimit, answerFallback }` or null) and `counts.agentToolCalls`/`agentStoppedAtLimit`/
+ * `agentAnswerFallbacks` (null for baseline); with the agent, `retrievedIds` is the union of its tool results.
  */
-export const RESULT_SCHEMA_VERSION = 5;
+export const RESULT_SCHEMA_VERSION = 6;
 
 /**
  * Top `depth` hits per question, in the order of `queries`: one query list per question (the question alone, or the
@@ -289,6 +292,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       rewrite: meta.config.rewrite,
       expand: meta.config.expand,
       rerank: meta.config.rerank,
+      pipeline: meta.config.pipeline,
     },
     variedKey: meta.variedKey,
   };
@@ -386,7 +390,10 @@ export function resultFileName(
   return `${stamp}_${experimentId}${middle}_${evalType}.json`;
 }
 
-/** `md-512-64 / nomic-embed-text, k=5, vector, rerank, test split` for the console summaries; stages only when on. */
+/**
+ * `md-512-64 / nomic-embed-text, k=5, vector, rerank, test split` for the console summaries; stages only when on,
+ * `agent` only with the agent pipeline.
+ */
 export function describeRunConfig(config: RunConfig): string {
   const stages = activeStages(config);
   return [
@@ -394,6 +401,7 @@ export function describeRunConfig(config: RunConfig): string {
     `k=${config.k}`,
     config.search,
     ...stages,
+    ...(config.pipeline === 'agent' ? ['agent'] : []),
     `${config.split} split`,
   ].join(', ');
 }

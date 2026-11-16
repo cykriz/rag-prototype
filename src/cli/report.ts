@@ -10,6 +10,8 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { RunConfig, VARY_KEYS, type VaryKey } from '../eval/experiment';
+import { DEFAULT_EXPAND, DEFAULT_PIPELINE, DEFAULT_RERANK, DEFAULT_REWRITE } from '../rag/pipeline';
+import { DEFAULT_SEARCH } from '../retrieval/search';
 
 export const START = '<!-- results:start -->';
 export const END = '<!-- results:end -->';
@@ -261,12 +263,19 @@ const METRIC_HEADERS = [
   'Cost/100 q',
 ];
 
+/** Input plus output tokens per question of the answer pipeline (Tokens/q); null when not recorded. */
+function tokensPerQ(a: AnswersFile | null): number | null {
+  const k = a ? pipelineKpis(a) : null;
+  return k?.inputTokensPerQ == null || k.outputTokensPerQ == null
+    ? null
+    : k.inputTokensPerQ + k.outputTokensPerQ;
+}
+
 function metricCells(row: Row): string[] {
   const r = row.retrieval?.aggregate.all;
   const a = row.answers?.aggregate.all;
   const k = row.answers ? pipelineKpis(row.answers) : null;
-  const tokens =
-    k?.inputTokensPerQ == null || k.outputTokensPerQ == null ? null : k.inputTokensPerQ + k.outputTokensPerQ;
+  const tokens = tokensPerQ(row.answers);
   return [
     fixed2(r?.recall),
     fixed2(r?.mrr),
@@ -298,12 +307,112 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
     skip !== 'expand' && c.expand === 'on' && 'expand=on',
     // Likewise for M17: rows of runs before it read as rerank off.
     skip !== 'rerank' && c.rerank === 'on' && 'rerank=on',
+    // Likewise for M19: rows of runs before it read as the baseline pipeline.
+    skip !== 'pipeline' && c.pipeline === 'agent' && 'pipeline=agent',
   ]
     .filter(Boolean)
     .join(', ');
 
 const rowLabel = (e: Experiment, row: Row) =>
   e.variedKey === null ? `${e.id} (${describe(row.config)})` : `${e.id}: ${e.variedKey}=${row.variant}`;
+
+/** The phase 2 techniques (M14–M19) with the value that means "off"; a varied technique gets a delta row. */
+const TECHNIQUE_DEFAULTS: Partial<Record<VaryKey, string>> = {
+  search: DEFAULT_SEARCH,
+  rewrite: DEFAULT_REWRITE,
+  expand: DEFAULT_EXPAND,
+  rerank: DEFAULT_RERANK,
+  pipeline: DEFAULT_PIPELINE,
+};
+
+/** Config as a key independent of property order. */
+const configKey = (c: Config) => JSON.stringify(Object.entries(c).sort(([a], [b]) => a.localeCompare(b)));
+
+interface Paired<T> {
+  label: string;
+  file: T;
+}
+
+/**
+ * The baseline of `row` (a technique value other than its default) for one eval type: the experiment's own default
+ * row when it has that eval, otherwise the newest selected run of any experiment whose config equals the row's with
+ * the technique at its default (M19: the agent arm is compared with an existing baseline run, not a new one).
+ */
+function pairBaseline<T extends 'retrieval' | 'answers'>(
+  sel: Selection,
+  e: Experiment,
+  row: Row,
+  type: T,
+): Paired<NonNullable<Row[T]>> | null {
+  const key = e.variedKey as VaryKey;
+  const off = TECHNIQUE_DEFAULTS[key];
+  const own = e.rows.find((r) => r.variant === off && r[type] !== null);
+  if (own) {
+    return { label: rowLabel(e, own), file: own[type] as NonNullable<Row[T]> };
+  }
+  const target = configKey({ ...row.config, [key]: off });
+  let best: Paired<NonNullable<Row[T]>> | null = null;
+  for (const other of sel.experiments) {
+    for (const r of other.rows) {
+      const file = r[type];
+      if (file === null || configKey(file.config) !== target) {
+        continue;
+      }
+      const label = rowLabel(other, r);
+      const newer =
+        best === null ||
+        file.startedAt > best.file.startedAt ||
+        (file.startedAt === best.file.startedAt && label < best.label);
+      if (newer) {
+        best = { label, file: file as NonNullable<Row[T]> };
+      }
+    }
+  }
+  return best;
+}
+
+const signed = (x: number | null | undefined, digits: number) =>
+  x === null || x === undefined ? PLACEHOLDER : `${x >= 0 ? '+' : ''}${x.toFixed(digits)}`;
+const diff = (a: number | null | undefined, b: number | null | undefined) =>
+  a === null || a === undefined || b === null || b === undefined ? null : a - b;
+
+/** One row per technique value other than its default, with the deltas against its paired baseline. */
+function deltaRows(sel: Selection): string[][] {
+  const out: string[][] = [];
+  for (const e of sel.experiments) {
+    const key = e.variedKey;
+    if (key === null || TECHNIQUE_DEFAULTS[key] === undefined) {
+      continue;
+    }
+    for (const row of e.rows) {
+      if (row.variant === TECHNIQUE_DEFAULTS[key]) {
+        continue;
+      }
+      const rb = row.retrieval ? pairBaseline(sel, e, row, 'retrieval') : null;
+      const ab = row.answers ? pairBaseline(sel, e, row, 'answers') : null;
+      if (rb === null && ab === null) {
+        continue;
+      }
+      const r = row.retrieval?.aggregate.all;
+      const rBase = rb?.file.aggregate.all;
+      const a = row.answers?.aggregate.all;
+      const aBase = ab?.file.aggregate.all;
+      const labels = [...new Set([rb?.label, ab?.label].filter((l) => l !== undefined))];
+      out.push([
+        rowLabel(e, row),
+        labels.join(' / '),
+        signed(diff(r?.recall, rBase?.recall), 2),
+        signed(diff(r?.ndcg, rBase?.ndcg), 2),
+        signed(diff(a?.accuracy, aBase?.accuracy), 2),
+        signed(diff(a?.completeness, aBase?.completeness), 2),
+        signed(diff(a?.abstentionAccuracy, aBase?.abstentionAccuracy), 2),
+        signed(diff(row.answers?.kpis.latencyMs.p50, ab?.file.kpis.latencyMs.p50), 0),
+        signed(diff(tokensPerQ(row.answers), ab ? tokensPerQ(ab.file) : null), 0),
+      ]);
+    }
+  }
+  return out;
+}
 
 /** The text between the markers, starting and ending with a newline; pure, so --check compares exact strings. */
 export function renderBlock(sel: Selection): string {
@@ -332,6 +441,28 @@ export function renderBlock(sel: Selection): string {
         [key, ...METRIC_HEADERS],
         e.rows.map((row) => [row.variant ?? PLACEHOLDER, ...metricCells(row)]),
       ),
+    );
+  }
+  const deltas = deltaRows(sel);
+  if (deltas.length > 0) {
+    parts.push(
+      '### Phase 2 deltas vs. baseline',
+      table(
+        [
+          'Technique',
+          'Baseline',
+          'Δ Recall@k',
+          'Δ nDCG@k',
+          'Δ Accuracy',
+          'Δ Completeness',
+          'Δ Abstention acc.',
+          'Δ p50 ms',
+          'Δ Tokens/q',
+        ],
+        deltas,
+      ),
+      'Each row minus its baseline: the same experiment with the technique off, or else the newest run of the ' +
+        'same config with it off (named in the Baseline column).',
     );
   }
   parts.push('### KPIs');

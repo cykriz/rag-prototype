@@ -86,6 +86,30 @@ export const MAX_TOOL_CALLS = 4;
  */
 export const MAX_TOOL_K = 10;
 
+/** The answer pipelines (M18b `ask --pipeline`, M19 `RunConfig.pipeline`): retrieve-then-answer or the agent. */
+export const ANSWER_PIPELINES = ['baseline', 'agent'] as const;
+export type AnswerPipeline = (typeof ANSWER_PIPELINES)[number];
+export const DEFAULT_PIPELINE: AnswerPipeline = 'baseline';
+
+/**
+ * Why a config cannot run with the agent, or null when it can; the one rule behind ask --pipeline agent and
+ * RunConfig. The query stages and rerank are not evaluated together with the agent; k is the default k of its tool.
+ */
+export function agentConflict(
+  c: { pipeline: AnswerPipeline; k: number } & Pick<PipelineConfig, ChatStage>,
+): string | null {
+  if (c.pipeline !== 'agent') {
+    return null;
+  }
+  if (activeStages(c).length > 0) {
+    return 'the agent pipeline does not combine with rewrite, expand or rerank (not evaluated together)';
+  }
+  if (c.k > MAX_TOOL_K) {
+    return `k must be at most ${MAX_TOOL_K} with the agent pipeline, got ${c.k}`;
+  }
+  return null;
+}
+
 /** rag_requests.pipeline of the agent (M18): `agent` with vector search as the tool, `<search>+agent` otherwise. */
 export const agentPipelineName = (search: SearchMode): string =>
   search === 'vector' ? 'agent' : `${search}+agent`;

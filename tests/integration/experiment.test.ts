@@ -1,4 +1,7 @@
 // bun run experiment in process against the test database with fake providers: pre-flight and result files.
+// The fake chat provider is created inside the registry; the mock below gives every instance without a script one
+// shared queue, so a test can script an answers run end to end (agent turns, then the judge) through the real
+// logging wrapper.
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,7 +14,18 @@ import { ensureEmbeddingTables } from '../../src/db/embeddingTables';
 import { migrate } from '../../src/db/migrate';
 import { parseChunkConfigKey } from '../../src/ingest/chunk';
 import { sha256 } from '../../src/ingest/hash';
-import { fakeEmbedding } from '../../src/llm/fake';
+import { fakeEmbedding, type ScriptedReply } from '../../src/llm/fake';
+
+const chatScript = vi.hoisted((): ScriptedReply[] => []);
+vi.mock('../../src/llm/fake', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../../src/llm/fake')>();
+  class SharedScriptChatProvider extends original.FakeChatProvider {
+    constructor(script?: ScriptedReply[]) {
+      super(script ?? chatScript);
+    }
+  }
+  return { ...original, FakeChatProvider: SharedScriptChatProvider };
+});
 
 const CORPUS = 'corpus-sha-experiment';
 const SOURCE = 'guides/widget.md';
@@ -86,6 +100,7 @@ beforeEach(async () => {
   vi.stubEnv('CHAT_PROVIDER', 'fake');
   vi.stubEnv('CORPUS_SHA', CORPUS);
   errors.length = 0;
+  chatScript.length = 0;
   vi.spyOn(console, 'error').mockImplementation((msg: string) => {
     errors.push(msg);
   });
@@ -129,5 +144,66 @@ describe('bun run experiment', () => {
       expect(name).toContain(`_${result.config.chunkConfig}_`);
       expect(result.aggregate.all.recall).toBe(1);
     }
+  });
+});
+
+describe('bun run experiment with the agent pipeline (M19)', () => {
+  it('runs the agent for every question and records its trace, counts and agent_step calls', async () => {
+    const [chunk] = await sql<{ id: string }[]>`SELECT id FROM chunks WHERE chunk_config = 'md-1024-128'`;
+    const chunkId = Number(chunk?.id);
+    const judgeReply = JSON.stringify({ reasoning: 'ok', accuracy: 5, completeness: 4, relevance: 5 });
+    chatScript.push(
+      { toolCalls: [{ name: 'search_docs', arguments: { query: 'widget start' } }] },
+      JSON.stringify({ found: true, answer: 'Run widget start.', citations: [chunkId] }),
+      // First judge pass, then the self-consistency repeat (sampleSize(1) = 1).
+      judgeReply,
+      judgeReply,
+    );
+    const path = join(dir, 'exp-agent.json');
+    await writeFile(
+      path,
+      JSON.stringify({
+        id: 'exp-agent',
+        base: {
+          chunkConfig: 'md-1024-128',
+          embed: 'nomic-embed-text',
+          k: 1,
+          search: 'vector',
+          split: 'test',
+        },
+        vary: { pipeline: ['agent'] },
+        evals: ['answers'],
+      }),
+    );
+    expect(await run(path)).toBe(0);
+    expect(chatScript).toEqual([]);
+    const names = await readdir(join(dir, 'results'));
+    expect(names).toEqual([expect.stringMatching(/_exp-agent_agent_answers\.json$/)]);
+    const result = JSON.parse(await readFile(join(dir, 'results', names[0] ?? ''), 'utf8'));
+    expect(result).toMatchObject({
+      schemaVersion: 6,
+      config: { pipeline: 'agent', rerank: 'off' },
+      variedKey: 'pipeline',
+      counts: { questions: 1, judged: 1, agentToolCalls: 1, agentStoppedAtLimit: 0, agentAnswerFallbacks: 0 },
+    });
+    expect(result.questions[0]).toMatchObject({
+      found: true,
+      citations: [chunkId],
+      retrievedIds: [chunkId],
+      agent: {
+        trace: [{ query: 'widget start', kRequested: null, k: 1, chunkIds: [chunkId], error: null }],
+        toolCalls: 1,
+        skippedToolCalls: 0,
+        stoppedAtLimit: false,
+        answerFallback: false,
+      },
+      judge: { status: 'ok', accuracy: 5 },
+    });
+    const ops = Object.fromEntries(
+      result.kpis.calls.map((c: { operation: string; calls: number }) => [c.operation, c.calls]),
+    );
+    expect(ops).toEqual({ agent_step: 2, embed: 1, judge: 2 });
+    const [req] = await sql`SELECT pipeline FROM rag_requests WHERE run_id = ${result.runId}`;
+    expect(req?.pipeline).toBe('agent');
   });
 });

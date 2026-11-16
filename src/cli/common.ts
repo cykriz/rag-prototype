@@ -6,11 +6,13 @@ import { connect, databaseUrl } from '../db/client';
 import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { isConnectionError } from '../llm/retry';
 import {
+  ANSWER_PIPELINES,
+  agentConflict,
   assertPipeline,
   DEFAULT_EXPAND,
+  DEFAULT_PIPELINE,
   DEFAULT_RERANK,
   DEFAULT_REWRITE,
-  MAX_TOOL_K,
   type PipelineConfig,
 } from '../rag/pipeline';
 import { DEFAULT_SEARCH, SEARCH_MODES, type SearchMode } from '../retrieval/search';
@@ -22,8 +24,8 @@ export const DEFAULT_K = 5;
 /** Flags shared by retrieve and ask, for their usage lines. */
 export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
 
-/** Values of ask's --pipeline (M18b): the retrieve-then-answer pipeline or the agent. */
-export const ANSWER_PIPELINES = ['baseline', 'agent'] as const;
+/** Values of ask's --pipeline (M18b); the list lives in rag/pipeline.ts, shared with RunConfig (M19). */
+export { ANSWER_PIPELINES };
 
 /** Options of parseQuestionArgs/runQuestionCli; only ask takes --pipeline, so retrieve keeps rejecting it. */
 export interface QuestionArgsOptions {
@@ -82,19 +84,15 @@ export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}
     rerank: values.rerank ? 'on' : 'off',
   };
   assertPipeline(pipeline);
-  const mode = 'pipeline' in values ? values.pipeline : 'baseline';
+  const mode = 'pipeline' in values ? values.pipeline : DEFAULT_PIPELINE;
   if (!(ANSWER_PIPELINES as readonly unknown[]).includes(mode)) {
     throw new Error(`--pipeline must be one of ${ANSWER_PIPELINES.join(', ')}, got "${mode}"`);
   }
   const agent = mode === 'agent';
-  if (agent) {
-    // Not evaluated together with the agent; --search stays, it picks the agent's search mode.
-    if (values.rewrite || values.expand || values.rerank) {
-      throw new Error('--pipeline agent does not combine with --rewrite, --expand or --rerank');
-    }
-    if (k > MAX_TOOL_K) {
-      throw new Error(`--k must be at most ${MAX_TOOL_K} with --pipeline agent, got ${k}`);
-    }
+  // --search stays with the agent: it picks the search mode of its tool.
+  const conflict = agentConflict({ pipeline: agent ? 'agent' : 'baseline', k, ...pipeline });
+  if (conflict !== null) {
+    throw new Error(`--pipeline agent: ${conflict}`);
   }
   return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline, agent };
 }
