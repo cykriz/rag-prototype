@@ -341,10 +341,10 @@ interface Paired<T> {
 function pairBaseline<T extends 'retrieval' | 'answers'>(
   sel: Selection,
   e: Experiment,
+  key: VaryKey,
   row: Row,
   type: T,
 ): Paired<NonNullable<Row[T]>> | null {
-  const key = e.variedKey as VaryKey;
   const off = TECHNIQUE_DEFAULTS[key];
   const own = e.rows.find((r) => r.variant === off && r[type] !== null);
   if (own) {
@@ -388,8 +388,8 @@ function deltaRows(sel: Selection): string[][] {
       if (row.variant === TECHNIQUE_DEFAULTS[key]) {
         continue;
       }
-      const rb = row.retrieval ? pairBaseline(sel, e, row, 'retrieval') : null;
-      const ab = row.answers ? pairBaseline(sel, e, row, 'answers') : null;
+      const rb = row.retrieval ? pairBaseline(sel, e, key, row, 'retrieval') : null;
+      const ab = row.answers ? pairBaseline(sel, e, key, row, 'answers') : null;
       if (rb === null && ab === null) {
         continue;
       }

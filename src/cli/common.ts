@@ -24,9 +24,6 @@ export const DEFAULT_K = 5;
 /** Flags shared by retrieve and ask, for their usage lines. */
 export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
 
-/** Values of ask's --pipeline (M18b); the list lives in rag/pipeline.ts, shared with RunConfig (M19). */
-export { ANSWER_PIPELINES };
-
 /** Options of parseQuestionArgs/runQuestionCli; only ask takes --pipeline, so retrieve keeps rejecting it. */
 export interface QuestionArgsOptions {
   pipelineFlag?: boolean;

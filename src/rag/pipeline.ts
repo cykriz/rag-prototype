@@ -88,7 +88,7 @@ export const MAX_TOOL_K = 10;
 
 /** The answer pipelines (M18b `ask --pipeline`, M19 `RunConfig.pipeline`): retrieve-then-answer or the agent. */
 export const ANSWER_PIPELINES = ['baseline', 'agent'] as const;
-export type AnswerPipeline = (typeof ANSWER_PIPELINES)[number];
+type AnswerPipeline = (typeof ANSWER_PIPELINES)[number];
 export const DEFAULT_PIPELINE: AnswerPipeline = 'baseline';
 
 /**

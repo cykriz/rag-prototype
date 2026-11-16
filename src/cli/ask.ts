@@ -7,9 +7,9 @@ import type { Sql } from 'postgres';
 import { type AgentResult, buildAgentDeps, runAgent } from '../agent/graph';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
-import { MAX_TOOL_CALLS } from '../rag/pipeline';
+import { ANSWER_PIPELINES, MAX_TOOL_CALLS } from '../rag/pipeline';
 import { sourceLabel } from '../retrieval/pgRetriever';
-import { ANSWER_PIPELINES, QUESTION_FLAGS, runQuestionCli } from './common';
+import { QUESTION_FLAGS, runQuestionCli } from './common';
 import { DB_DOWN, describeError, isDatabaseDown, unwrapStageError } from './errors';
 
 const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS} [--pipeline ${ANSWER_PIPELINES.join('|')}]`;
