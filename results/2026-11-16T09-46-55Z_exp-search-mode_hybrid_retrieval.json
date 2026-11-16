@@ -1,0 +1,1264 @@
+{
+  "schemaVersion": 2,
+  "experimentId": "exp-search-mode",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-ddf56ce5-769d-4756-a7b1-6e0174dce467",
+  "startedAt": "2026-11-16T09:46:55.910Z",
+  "finishedAt": "2026-11-16T09:46:56.355Z",
+  "gitSha": "4603316e54cb73b3b949cb7c669b0b570f972a54",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "hybrid",
+    "split": "test"
+  },
+  "variedKey": "search",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    }
+  },
+  "counts": {
+    "questions": 30,
+    "evaluated": 25,
+    "excludedNegative": 5
+  },
+  "aggregate": {
+    "all": {
+      "n": 25,
+      "recall": 0.8,
+      "mrr": 0.7067,
+      "ndcg": 0.6903,
+      "keywordCoverage": 0.98
+    },
+    "human": {
+      "n": 16,
+      "recall": 0.875,
+      "mrr": 0.7188,
+      "ndcg": 0.7582,
+      "keywordCoverage": 0.9688
+    },
+    "llm": {
+      "n": 9,
+      "recall": 0.6667,
+      "mrr": 0.6852,
+      "ndcg": 0.5697,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 10,
+        "recall": 0.8,
+        "mrr": 0.6167,
+        "ndcg": 0.6631,
+        "keywordCoverage": 0.95
+      },
+      "how_to": {
+        "n": 7,
+        "recall": 1,
+        "mrr": 0.9048,
+        "ndcg": 0.9286,
+        "keywordCoverage": 1
+      },
+      "multi_document": {
+        "n": 5,
+        "recall": 0.6,
+        "mrr": 0.8667,
+        "ndcg": 0.5993,
+        "keywordCoverage": 1
+      },
+      "vocabulary_mismatch": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.2778,
+        "ndcg": 0.377,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10195,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10194,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10190,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10873,
+          "sourcePath": "lint/rules/import/prefer-default-export.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10186,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10187,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.027673,
+          "covers": []
+        },
+        {
+          "chunkId": 10263,
+          "sourcePath": "compiler/troubleshooting.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 12177,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11856,
+          "sourcePath": "runtime/cron.mdx",
+          "score": 0.015873,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10473,
+          "sourcePath": "guides/util/detect-bun.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 10581,
+          "sourcePath": "lint/rules/bun/fast-check-no-unseeded-random.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11912,
+          "sourcePath": "runtime/http/error-handling.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10521,
+          "sourcePath": "lint/rules/bun-test/no-conditional-expect.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11821,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.031754,
+          "covers": []
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.031746,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.03009,
+          "covers": []
+        },
+        {
+          "chunkId": 11686,
+          "sourcePath": "pm/cli/publish.mdx",
+          "score": 0.028898,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10443,
+          "sourcePath": "guides/streams/to-array.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10444,
+          "sourcePath": "guides/streams/to-arraybuffer.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 12076,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10445,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10441,
+          "sourcePath": "guides/streams/node-readable-to-string.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11910,
+          "sourcePath": "runtime/html-rewriter.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 10448,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.016129,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11908,
+          "sourcePath": "runtime/html-rewriter.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10278,
+          "sourcePath": "guides/binary/blob-to-stream.mdx",
+          "score": 0.015873,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10458,
+          "sourcePath": "guides/test/mock-functions.mdx",
+          "score": 0.032522,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10570,
+          "sourcePath": "lint/rules/bun-test/require-mock-type-parameters.mdx",
+          "score": 0.031054,
+          "covers": []
+        },
+        {
+          "chunkId": 12196,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 10982,
+          "sourcePath": "lint/rules/jest/prefer-jest-mocked.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 12197,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.015625,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.031258,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11579,
+          "sourcePath": "lint/rules/vitest/no-disabled-tests.mdx",
+          "score": 0.030835,
+          "covers": []
+        },
+        {
+          "chunkId": 10952,
+          "sourcePath": "lint/rules/jest/no-disabled-tests.mdx",
+          "score": 0.030478,
+          "covers": []
+        },
+        {
+          "chunkId": 10524,
+          "sourcePath": "lint/rules/bun-test/no-disabled-tests.mdx",
+          "score": 0.029324,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.025522,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11918,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.026882,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11796,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11923,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11768,
+          "sourcePath": "quickstart.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11514,
+          "sourcePath": "lint/rules/unicorn/prefer-default-parameters.mdx",
+          "score": 0.015873,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 12008,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.032787,
+          "covers": []
+        },
+        {
+          "chunkId": 12009,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.032258,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12010,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.030366,
+          "covers": []
+        },
+        {
+          "chunkId": 12004,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 11971,
+          "sourcePath": "runtime/networking/fetch.mdx",
+          "score": 0.015625,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10143,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10144,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10141,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10149,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10150,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10450,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.016393,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10459,
+          "sourcePath": "guides/test/rerun-each.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10461,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.032258,
+          "covers": []
+        },
+        {
+          "chunkId": 11822,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.031498,
+          "covers": []
+        },
+        {
+          "chunkId": 10160,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.031258,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.030536,
+          "covers": []
+        },
+        {
+          "chunkId": 11938,
+          "sourcePath": "runtime/index.mdx",
+          "score": 0.026688,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10189,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10173,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.031754,
+          "covers": []
+        },
+        {
+          "chunkId": 10124,
+          "sourcePath": "bundler/css.mdx",
+          "score": 0.031054,
+          "covers": []
+        },
+        {
+          "chunkId": 12145,
+          "sourcePath": "snippets/cli/build.mdx",
+          "score": 0.028373,
+          "covers": []
+        },
+        {
+          "chunkId": 10167,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.026879,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10391,
+          "sourcePath": "guides/install/yarnlock.mdx",
+          "score": 0.016393,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11664,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11665,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10385,
+          "sourcePath": "guides/install/git-diff-bun-lockfile.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10394,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.032787,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10392,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10510,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10924,
+          "sourcePath": "lint/rules/index.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10507,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11827,
+          "sourcePath": "runtime/child-process.mdx",
+          "score": 0.030679,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11832,
+          "sourcePath": "runtime/child-process.mdx",
+          "score": 0.025563,
+          "covers": []
+        },
+        {
+          "chunkId": 10404,
+          "sourcePath": "guides/process/spawn-stdout.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10403,
+          "sourcePath": "guides/process/spawn-stderr.mdx",
+          "score": 0.015873,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11706,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.016393,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11662,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10382,
+          "sourcePath": "guides/install/from-npm-install-to-bun-install.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 12218,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.016393,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 12173,
+          "sourcePath": "test/configuration.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 12219,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 12186,
+          "sourcePath": "test/index.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11799,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.8503,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11707,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.016393,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10381,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10388,
+          "sourcePath": "guides/install/registry-scope.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 11708,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11716,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.015385,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.016393,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10364,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11791,
+          "sourcePath": "runtime/bun-apis.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 10153,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11920,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.3066,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11094,
+          "sourcePath": "lint/rules/node/no-process-env.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.015873,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10590,
+          "sourcePath": "lint/rules/bun/no-env-at-module-scope.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11082,
+          "sourcePath": "lint/rules/nextjs/no-sync-scripts.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11198,
+          "sourcePath": "lint/rules/react/jsx-no-duplicate-props.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.015873,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12113,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 10749,
+          "sourcePath": "lint/rules/eslint/no-self-assign.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11029,
+          "sourcePath": "lint/rules/jsx-a11y/no-access-key.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 12015,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.016129,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12016,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 12017,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11709,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.016393,
+          "covers": []
+        },
+        {
+          "chunkId": 11640,
+          "sourcePath": "pm/catalogs.mdx",
+          "score": 0.016129,
+          "covers": []
+        },
+        {
+          "chunkId": 10861,
+          "sourcePath": "lint/rules/import/no-relative-packages.mdx",
+          "score": 0.015873,
+          "covers": []
+        },
+        {
+          "chunkId": 11820,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.015625,
+          "covers": []
+        },
+        {
+          "chunkId": 11701,
+          "sourcePath": "pm/isolated-installs.mdx",
+          "score": 0.015385,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}

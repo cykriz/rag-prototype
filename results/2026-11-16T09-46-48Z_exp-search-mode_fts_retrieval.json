@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 2,
+  "experimentId": "exp-search-mode",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-4280f671-06dd-4407-9f66-dd67d68a6c07",
+  "startedAt": "2026-11-16T09:46:48.298Z",
+  "finishedAt": "2026-11-16T09:46:48.332Z",
+  "gitSha": "4603316e54cb73b3b949cb7c669b0b570f972a54",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "fts",
+    "split": "dev"
+  },
+  "variedKey": "search",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    }
+  },
+  "counts": {
+    "questions": 15,
+    "evaluated": 13,
+    "excludedNegative": 2
+  },
+  "aggregate": {
+    "all": {
+      "n": 13,
+      "recall": 0.1923,
+      "mrr": 0.2308,
+      "ndcg": 0.201,
+      "keywordCoverage": 0.3077
+    },
+    "human": {
+      "n": 9,
+      "recall": 0.2222,
+      "mrr": 0.2222,
+      "ndcg": 0.2222,
+      "keywordCoverage": 0.3333
+    },
+    "llm": {
+      "n": 4,
+      "recall": 0.125,
+      "mrr": 0.25,
+      "ndcg": 0.1533,
+      "keywordCoverage": 0.25
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 5,
+        "recall": 0.4,
+        "mrr": 0.4,
+        "ndcg": 0.4,
+        "keywordCoverage": 0.4
+      },
+      "how_to": {
+        "n": 3,
+        "recall": 0,
+        "mrr": 0,
+        "ndcg": 0,
+        "keywordCoverage": 0.3333
+      },
+      "multi_document": {
+        "n": 3,
+        "recall": 0.1667,
+        "mrr": 0.3333,
+        "ndcg": 0.2044,
+        "keywordCoverage": 0.3333
+      },
+      "vocabulary_mismatch": {
+        "n": 2,
+        "recall": 0,
+        "mrr": 0,
+        "ndcg": 0,
+        "keywordCoverage": 0
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q004",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q007",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10437,
+          "sourcePath": "guides/runtime/web-debugger.mdx",
+          "score": 0.006431,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11867,
+          "sourcePath": "runtime/debugger.mdx",
+          "score": 0.003214,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q010",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10457,
+          "sourcePath": "guides/test/mock-clock.mdx",
+          "score": 0.123333,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12177,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.018882,
+          "covers": []
+        },
+        {
+          "chunkId": 10433,
+          "sourcePath": "guides/runtime/timezone.mdx",
+          "score": 0.013333,
+          "covers": []
+        },
+        {
+          "chunkId": 12176,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.004545,
+          "covers": []
+        },
+        {
+          "chunkId": 12112,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.000625,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q013",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q016",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q019",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.002439,
+          "covers": []
+        },
+        {
+          "chunkId": 10417,
+          "sourcePath": "guides/runtime/build-time-constants.mdx",
+          "score": 0.000971,
+          "covers": []
+        },
+        {
+          "chunkId": 12016,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.000391,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q022",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q026",
+      "category": "multi_document",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q029",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false,
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q032",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11640,
+          "sourcePath": "pm/catalogs.mdx",
+          "score": 0.001905,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q034",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    },
+    {
+      "id": "q037",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": []
+    }
+  ]
+}

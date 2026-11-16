@@ -12,7 +12,7 @@ License, checked on 2026-11-15 at commit `b6f9cfa0e820b025916e50651b377ee1dff4d1
 
 Method: phase 1 varies one setting at a time in a fixed greedy order: chunk size, then k, then the embedding model. At each step the winner is chosen on the dev split, and the tables below show the test split only. Dev has 15 questions, 13 of them answerable. The selection rule ranks by Recall@k first and MRR@k second. A difference of at most one dev question (1/13) on a metric counts as a tie, and a tie goes to the cheaper option: smaller chunks, smaller k, the default embedding model. With so few dev questions this choice is noisy. For example, md-1024-128 won on dev but scores below md-512-64 on test. The selected phase 1 config is md-1024-128 with nomic-embed-text, k=5 and vector search: the `exp-k-answers` row.
 
-Phase 2 starts with the search mode (`exp-search-mode`) at that config: vector search, full text search (`websearch_to_tsquery('english', …)` ranked by `ts_rank_cd`) and hybrid search, which fuses the top max(k, 50) of both with reciprocal rank fusion (k = 60) in SQL. The selection rule is the same; for ties the cost order is fts < vector < hybrid, because full text search needs no embedding call and hybrid needs both. From this step on every result file carries `schemaVersion` 2; only the retrieval layout changed: each hit stores a `score`, higher is better within one mode (vector: 1 − cosine distance), instead of the vector `distance`.
+Phase 2 starts with the search mode (`exp-search-mode`) at that config: vector search, full text search (`websearch_to_tsquery('english', …)` ranked by `ts_rank_cd`) and hybrid search, which fuses the top max(k, 50) of both with reciprocal rank fusion (k = 60) in SQL. The selection rule is the same; for ties the cost order is fts < vector < hybrid, because full text search needs no embedding call and hybrid needs both. On dev, vector and hybrid tie (Recall@5 0.69 for both; hybrid's MRR@5 lead of 0.05 is within 1/13), so vector search stays. On test, hybrid is ahead (Recall@5 0.80 against 0.72): the same small dev split problem as above. Full text search alone falls far behind because `websearch_to_tsquery` joins every word of a question with AND: 8 of 13 dev questions and 12 of 25 test questions match no chunk at all. From this step on every result file carries `schemaVersion` 2; only the retrieval layout changed: each hit stores a `score`, higher is better within one mode (vector: 1 − cosine distance), instead of the vector `distance`.
 
 Latency numbers come from a single Apple M-series laptop (10 cores, 32 GB unified memory) running Ollama on the GPU, with models loaded and one warm-up request per model.
 
@@ -52,6 +52,16 @@ Fixed: md-256-32, k=5, vector.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mxbai-embed-large | 0.72 | 0.51 | 0.54 | 0.92 | – | – | – | – | – | – | – | – |
 | nomic-embed-text | 0.74 | 0.52 | 0.55 | 0.84 | – | – | – | – | – | – | – | – |
+
+### exp-search-mode: search
+
+Fixed: md-1024-128, nomic-embed-text, k=5.
+
+| search | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| fts | 0.48 | 0.35 | 0.38 | 0.52 | – | – | – | – | – | – | – | – |
+| hybrid | 0.80 | 0.71 | 0.69 | 0.98 | – | – | – | – | – | – | – | – |
+| vector | 0.72 | 0.61 | 0.60 | 0.90 | – | – | – | – | – | – | – | – |
 
 ### KPIs
 
