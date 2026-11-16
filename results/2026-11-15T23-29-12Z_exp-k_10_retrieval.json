@@ -1,0 +1,1090 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "exp-k",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-74f70c90-9f97-45e9-b801-03631a4dd09d",
+  "startedAt": "2026-11-15T23:29:12.333Z",
+  "finishedAt": "2026-11-15T23:29:12.623Z",
+  "gitSha": "d0b95aa0d8d396621431c3d0d4033b60dfb2dc0f",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 10,
+    "search": "vector",
+    "split": "dev"
+  },
+  "variedKey": "k",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    }
+  },
+  "counts": {
+    "questions": 15,
+    "evaluated": 13,
+    "excludedNegative": 2
+  },
+  "aggregate": {
+    "all": {
+      "n": 13,
+      "recall": 0.7692,
+      "mrr": 0.4122,
+      "ndcg": 0.4921,
+      "keywordCoverage": 0.9615
+    },
+    "human": {
+      "n": 9,
+      "recall": 0.7222,
+      "mrr": 0.4435,
+      "ndcg": 0.501,
+      "keywordCoverage": 0.9444
+    },
+    "llm": {
+      "n": 4,
+      "recall": 0.875,
+      "mrr": 0.3417,
+      "ndcg": 0.472,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 5,
+        "recall": 0.6,
+        "mrr": 0.4667,
+        "ndcg": 0.5,
+        "keywordCoverage": 1
+      },
+      "how_to": {
+        "n": 3,
+        "recall": 1,
+        "mrr": 0.4417,
+        "ndcg": 0.5674,
+        "keywordCoverage": 1
+      },
+      "multi_document": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.3444,
+        "ndcg": 0.3982,
+        "keywordCoverage": 0.8333
+      },
+      "vocabulary_mismatch": {
+        "n": 2,
+        "recall": 1,
+        "mrr": 0.3333,
+        "ndcg": 0.5,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11877,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "distance": 0.240729,
+          "covers": []
+        },
+        {
+          "chunkId": 12091,
+          "sourcePath": "runtime/transpiler.mdx",
+          "distance": 0.244623,
+          "covers": []
+        },
+        {
+          "chunkId": 10124,
+          "sourcePath": "bundler/css.mdx",
+          "distance": 0.247491,
+          "covers": []
+        },
+        {
+          "chunkId": 10133,
+          "sourcePath": "bundler/esbuild.mdx",
+          "distance": 0.266428,
+          "covers": []
+        },
+        {
+          "chunkId": 12093,
+          "sourcePath": "runtime/typescript.mdx",
+          "distance": 0.269301,
+          "covers": []
+        },
+        {
+          "chunkId": 11927,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.270585,
+          "covers": []
+        },
+        {
+          "chunkId": 11791,
+          "sourcePath": "runtime/bun-apis.mdx",
+          "distance": 0.271245,
+          "covers": []
+        },
+        {
+          "chunkId": 10215,
+          "sourcePath": "compiler/compatibility.mdx",
+          "distance": 0.273828,
+          "covers": []
+        },
+        {
+          "chunkId": 11813,
+          "sourcePath": "runtime/c-compiler.mdx",
+          "distance": 0.27482,
+          "covers": []
+        },
+        {
+          "chunkId": 10235,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.281398,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q004",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10236,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.218301,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10416,
+          "sourcePath": "guides/runtime/build-time-constants.mdx",
+          "distance": 0.293699,
+          "covers": []
+        },
+        {
+          "chunkId": 10239,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.335193,
+          "covers": []
+        },
+        {
+          "chunkId": 12147,
+          "sourcePath": "snippets/cli/build.mdx",
+          "distance": 0.33589,
+          "covers": []
+        },
+        {
+          "chunkId": 10207,
+          "sourcePath": "compiler/aot.mdx",
+          "distance": 0.341021,
+          "covers": []
+        },
+        {
+          "chunkId": 10417,
+          "sourcePath": "guides/runtime/build-time-constants.mdx",
+          "distance": 0.341896,
+          "covers": []
+        },
+        {
+          "chunkId": 12224,
+          "sourcePath": "test/runtime-behavior.mdx",
+          "distance": 0.345961,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.350011,
+          "covers": []
+        },
+        {
+          "chunkId": 10134,
+          "sourcePath": "bundler/esbuild.mdx",
+          "distance": 0.350684,
+          "covers": []
+        },
+        {
+          "chunkId": 10206,
+          "sourcePath": "compiler/aot.mdx",
+          "distance": 0.350866,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q007",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11868,
+          "sourcePath": "runtime/debugger.mdx",
+          "distance": 0.271033,
+          "covers": []
+        },
+        {
+          "chunkId": 11867,
+          "sourcePath": "runtime/debugger.mdx",
+          "distance": 0.285211,
+          "covers": []
+        },
+        {
+          "chunkId": 10437,
+          "sourcePath": "guides/runtime/web-debugger.mdx",
+          "distance": 0.286994,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11933,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.295029,
+          "covers": []
+        },
+        {
+          "chunkId": 11934,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.302055,
+          "covers": []
+        },
+        {
+          "chunkId": 10492,
+          "sourcePath": "guides/websocket/simple.mdx",
+          "distance": 0.302243,
+          "covers": []
+        },
+        {
+          "chunkId": 11928,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.307357,
+          "covers": []
+        },
+        {
+          "chunkId": 11927,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.324029,
+          "covers": []
+        },
+        {
+          "chunkId": 11931,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.330442,
+          "covers": []
+        },
+        {
+          "chunkId": 11932,
+          "sourcePath": "runtime/http/websockets.mdx",
+          "distance": 0.333699,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q010",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10457,
+          "sourcePath": "guides/test/mock-clock.mdx",
+          "distance": 0.197169,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12176,
+          "sourcePath": "test/dates-times.mdx",
+          "distance": 0.262548,
+          "covers": []
+        },
+        {
+          "chunkId": 12179,
+          "sourcePath": "test/dates-times.mdx",
+          "distance": 0.297964,
+          "covers": []
+        },
+        {
+          "chunkId": 11631,
+          "sourcePath": "lint/rules/vitest/require-test-timeout.mdx",
+          "distance": 0.305475,
+          "covers": []
+        },
+        {
+          "chunkId": 10466,
+          "sourcePath": "guides/test/timeout.mdx",
+          "distance": 0.308645,
+          "covers": []
+        },
+        {
+          "chunkId": 10433,
+          "sourcePath": "guides/runtime/timezone.mdx",
+          "distance": 0.318819,
+          "covers": []
+        },
+        {
+          "chunkId": 10571,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "distance": 0.324635,
+          "covers": []
+        },
+        {
+          "chunkId": 12177,
+          "sourcePath": "test/dates-times.mdx",
+          "distance": 0.335497,
+          "covers": []
+        },
+        {
+          "chunkId": 10950,
+          "sourcePath": "lint/rules/jest/no-confusing-set-timeout.mdx",
+          "distance": 0.350931,
+          "covers": []
+        },
+        {
+          "chunkId": 10401,
+          "sourcePath": "guides/process/nanoseconds.mdx",
+          "distance": 0.3578,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q013",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10179,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.255702,
+          "covers": []
+        },
+        {
+          "chunkId": 10158,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.288588,
+          "covers": []
+        },
+        {
+          "chunkId": 10133,
+          "sourcePath": "bundler/esbuild.mdx",
+          "distance": 0.296491,
+          "covers": []
+        },
+        {
+          "chunkId": 10173,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.301981,
+          "covers": []
+        },
+        {
+          "chunkId": 10160,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.30283,
+          "covers": []
+        },
+        {
+          "chunkId": 10176,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.304378,
+          "covers": []
+        },
+        {
+          "chunkId": 10212,
+          "sourcePath": "compiler/bytecode.mdx",
+          "distance": 0.305036,
+          "covers": []
+        },
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.30576,
+          "covers": []
+        },
+        {
+          "chunkId": 10124,
+          "sourcePath": "bundler/css.mdx",
+          "distance": 0.308745,
+          "covers": []
+        },
+        {
+          "chunkId": 10238,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.310833,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q016",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.2,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 5,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10150,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.297818,
+          "covers": []
+        },
+        {
+          "chunkId": 10141,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.316481,
+          "covers": []
+        },
+        {
+          "chunkId": 10167,
+          "sourcePath": "bundler/index.mdx",
+          "distance": 0.323114,
+          "covers": []
+        },
+        {
+          "chunkId": 10143,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.338265,
+          "covers": []
+        },
+        {
+          "chunkId": 10144,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.342676,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11916,
+          "sourcePath": "runtime/http/routing.mdx",
+          "distance": 0.360736,
+          "covers": []
+        },
+        {
+          "chunkId": 10145,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.363787,
+          "covers": []
+        },
+        {
+          "chunkId": 10149,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.371415,
+          "covers": []
+        },
+        {
+          "chunkId": 10146,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.373754,
+          "covers": []
+        },
+        {
+          "chunkId": 10142,
+          "sourcePath": "bundler/fullstack.mdx",
+          "distance": 0.377469,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q019",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10430,
+          "sourcePath": "guides/runtime/read-env.mdx",
+          "distance": 0.294743,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10431,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "distance": 0.299733,
+          "covers": []
+        },
+        {
+          "chunkId": 10733,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "distance": 0.316491,
+          "covers": []
+        },
+        {
+          "chunkId": 11319,
+          "sourcePath": "lint/rules/typescript/no-duplicate-enum-values.mdx",
+          "distance": 0.344894,
+          "covers": []
+        },
+        {
+          "chunkId": 11094,
+          "sourcePath": "lint/rules/node/no-process-env.mdx",
+          "distance": 0.35475,
+          "covers": []
+        },
+        {
+          "chunkId": 11872,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "distance": 0.357782,
+          "covers": []
+        },
+        {
+          "chunkId": 10590,
+          "sourcePath": "lint/rules/bun/no-env-at-module-scope.mdx",
+          "distance": 0.361963,
+          "covers": []
+        },
+        {
+          "chunkId": 12175,
+          "sourcePath": "test/configuration.mdx",
+          "distance": 0.369382,
+          "covers": []
+        },
+        {
+          "chunkId": 11393,
+          "sourcePath": "lint/rules/typescript/prefer-enum-initializers.mdx",
+          "distance": 0.371502,
+          "covers": []
+        },
+        {
+          "chunkId": 10204,
+          "sourcePath": "bundler/standalone-html.mdx",
+          "distance": 0.372178,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q022",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.125,
+      "ndcg": 0.3155,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 8,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.333048,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.355085,
+          "covers": []
+        },
+        {
+          "chunkId": 10249,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.357313,
+          "covers": []
+        },
+        {
+          "chunkId": 11838,
+          "sourcePath": "runtime/code-generation-from-strings.mdx",
+          "distance": 0.357779,
+          "covers": []
+        },
+        {
+          "chunkId": 10419,
+          "sourcePath": "guides/runtime/codesign-macos-executable.mdx",
+          "distance": 0.359377,
+          "covers": []
+        },
+        {
+          "chunkId": 12146,
+          "sourcePath": "snippets/cli/build.mdx",
+          "distance": 0.36168,
+          "covers": []
+        },
+        {
+          "chunkId": 10241,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.366981,
+          "covers": []
+        },
+        {
+          "chunkId": 10253,
+          "sourcePath": "compiler/index.mdx",
+          "distance": 0.367722,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10239,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.369759,
+          "covers": []
+        },
+        {
+          "chunkId": 10238,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.372781,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q026",
+      "category": "multi_document",
+      "origin": "human",
+      "recall": 0.5,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.3066,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 12042,
+          "sourcePath": "runtime/sql.mdx",
+          "distance": 0.285538,
+          "covers": []
+        },
+        {
+          "chunkId": 12027,
+          "sourcePath": "runtime/sql.mdx",
+          "distance": 0.290338,
+          "covers": []
+        },
+        {
+          "chunkId": 12063,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.304702,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 12064,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.316313,
+          "covers": []
+        },
+        {
+          "chunkId": 12065,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.321865,
+          "covers": []
+        },
+        {
+          "chunkId": 12073,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.323848,
+          "covers": []
+        },
+        {
+          "chunkId": 12062,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.324939,
+          "covers": []
+        },
+        {
+          "chunkId": 12070,
+          "sourcePath": "runtime/sqlite.mdx",
+          "distance": 0.326818,
+          "covers": []
+        },
+        {
+          "chunkId": 12024,
+          "sourcePath": "runtime/sql.mdx",
+          "distance": 0.329522,
+          "covers": []
+        },
+        {
+          "chunkId": 12056,
+          "sourcePath": "runtime/sql.mdx",
+          "distance": 0.334175,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q029",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.2,
+      "ndcg": 0.2372,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 5,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10506,
+          "sourcePath": "installation.mdx",
+          "distance": 0.356798,
+          "covers": []
+        },
+        {
+          "chunkId": 10259,
+          "sourcePath": "compiler/size.mdx",
+          "distance": 0.382372,
+          "covers": []
+        },
+        {
+          "chunkId": 11758,
+          "sourcePath": "project/building-windows.mdx",
+          "distance": 0.384126,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.389075,
+          "covers": []
+        },
+        {
+          "chunkId": 10235,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.391859,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 10238,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.3996,
+          "covers": []
+        },
+        {
+          "chunkId": 11759,
+          "sourcePath": "project/contributing.mdx",
+          "distance": 0.400906,
+          "covers": []
+        },
+        {
+          "chunkId": 11938,
+          "sourcePath": "runtime/index.mdx",
+          "distance": 0.405149,
+          "covers": []
+        },
+        {
+          "chunkId": 11696,
+          "sourcePath": "pm/global-store.mdx",
+          "distance": 0.409047,
+          "covers": []
+        },
+        {
+          "chunkId": 10419,
+          "sourcePath": "guides/runtime/codesign-macos-executable.mdx",
+          "distance": 0.410379,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q032",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6509,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11720,
+          "sourcePath": "pm/workspaces.mdx",
+          "distance": 0.26795,
+          "covers": []
+        },
+        {
+          "chunkId": 11640,
+          "sourcePath": "pm/catalogs.mdx",
+          "distance": 0.275342,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11721,
+          "sourcePath": "pm/workspaces.mdx",
+          "distance": 0.299197,
+          "covers": []
+        },
+        {
+          "chunkId": 11719,
+          "sourcePath": "pm/workspaces.mdx",
+          "distance": 0.306476,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 10390,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "distance": 0.308225,
+          "covers": []
+        },
+        {
+          "chunkId": 11246,
+          "sourcePath": "lint/rules/react/no-unsafe.mdx",
+          "distance": 0.312984,
+          "covers": []
+        },
+        {
+          "chunkId": 11234,
+          "sourcePath": "lint/rules/react/no-multi-comp.mdx",
+          "distance": 0.315097,
+          "covers": []
+        },
+        {
+          "chunkId": 11690,
+          "sourcePath": "pm/cli/update.mdx",
+          "distance": 0.320635,
+          "covers": []
+        },
+        {
+          "chunkId": 11649,
+          "sourcePath": "pm/cli/dedupe.mdx",
+          "distance": 0.326969,
+          "covers": []
+        },
+        {
+          "chunkId": 11238,
+          "sourcePath": "lint/rules/react/no-redundant-should-component-update.mdx",
+          "distance": 0.32795,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q034",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 11772,
+          "sourcePath": "runtime/archive.mdx",
+          "distance": 0.223467,
+          "covers": []
+        },
+        {
+          "chunkId": 11682,
+          "sourcePath": "pm/cli/pm.mdx",
+          "distance": 0.229086,
+          "covers": []
+        },
+        {
+          "chunkId": 11694,
+          "sourcePath": "pm/global-cache.mdx",
+          "distance": 0.241055,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11649,
+          "sourcePath": "pm/cli/dedupe.mdx",
+          "distance": 0.254336,
+          "covers": []
+        },
+        {
+          "chunkId": 11660,
+          "sourcePath": "pm/cli/install.mdx",
+          "distance": 0.2583,
+          "covers": []
+        },
+        {
+          "chunkId": 11688,
+          "sourcePath": "pm/cli/update.mdx",
+          "distance": 0.259783,
+          "covers": []
+        },
+        {
+          "chunkId": 11661,
+          "sourcePath": "pm/cli/install.mdx",
+          "distance": 0.263505,
+          "covers": []
+        },
+        {
+          "chunkId": 11670,
+          "sourcePath": "pm/cli/outdated.mdx",
+          "distance": 0.263532,
+          "covers": []
+        },
+        {
+          "chunkId": 11659,
+          "sourcePath": "pm/cli/install.mdx",
+          "distance": 0.264119,
+          "covers": []
+        },
+        {
+          "chunkId": 11667,
+          "sourcePath": "pm/cli/outdated.mdx",
+          "distance": 0.26435,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q037",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "retrieved": [
+        {
+          "chunkId": 10597,
+          "sourcePath": "lint/rules/bun/no-unportable-commands.mdx",
+          "distance": 0.286461,
+          "covers": []
+        },
+        {
+          "chunkId": 10240,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.292746,
+          "covers": []
+        },
+        {
+          "chunkId": 10234,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.303083,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 11771,
+          "sourcePath": "quickstart.mdx",
+          "distance": 0.305102,
+          "covers": []
+        },
+        {
+          "chunkId": 10349,
+          "sourcePath": "guides/ecosystem/tanstack-start.mdx",
+          "distance": 0.305535,
+          "covers": []
+        },
+        {
+          "chunkId": 10237,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.308496,
+          "covers": []
+        },
+        {
+          "chunkId": 10201,
+          "sourcePath": "bundler/standalone-html.mdx",
+          "distance": 0.312627,
+          "covers": []
+        },
+        {
+          "chunkId": 11939,
+          "sourcePath": "runtime/index.mdx",
+          "distance": 0.313005,
+          "covers": []
+        },
+        {
+          "chunkId": 11693,
+          "sourcePath": "pm/filter.mdx",
+          "distance": 0.315294,
+          "covers": []
+        },
+        {
+          "chunkId": 10241,
+          "sourcePath": "compiler/executables.mdx",
+          "distance": 0.32168,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}

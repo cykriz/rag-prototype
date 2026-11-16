@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "baseline",
+  "evalType": "answers",
+  "runId": "eval-answers-6673cb7d-3232-4ef7-bb8d-c84bbb982bfb",
+  "startedAt": "2026-11-15T23:29:34.384Z",
+  "finishedAt": "2026-11-15T23:35:22.216Z",
+  "gitSha": "d0b95aa0d8d396621431c3d0d4033b60dfb2dc0f",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "md-512-64",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "dev"
+  },
+  "variedKey": null,
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    },
+    "chat": {
+      "provider": "ollama",
+      "name": "qwen2.5:7b",
+      "tag": "qwen2.5:7b",
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e"
+    },
+    "judge": {
+      "provider": "ollama",
+      "name": "gemma3:12b",
+      "tag": "gemma3:12b",
+      "digest": "b92b218582c521ba287f38f1d6057dcd3c6cbff036f13cac97b5d861f5e58ec3"
+    }
+  },
+  "judge": {
+    "temperature": 0,
+    "seed": 42
+  },
+  "shuffleSeed": 3623154837,
+  "counts": {
+    "questions": 15,
+    "answerable": 13,
+    "negative": 2,
+    "judged": 11,
+    "judgeInvalid": 0,
+    "invalidAnswers": 0
+  },
+  "aggregate": {
+    "all": {
+      "nAnswerable": 13,
+      "nNegative": 2,
+      "scored": 11,
+      "accuracy": 4.8182,
+      "completeness": 4.2727,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0.1538,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "human": {
+      "nAnswerable": 9,
+      "nNegative": 0,
+      "scored": 8,
+      "accuracy": 4.75,
+      "completeness": 4.25,
+      "relevance": 5,
+      "abstentionAccuracy": null,
+      "falseAbstentionRate": 0.1111,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    },
+    "llm": {
+      "nAnswerable": 4,
+      "nNegative": 2,
+      "scored": 3,
+      "accuracy": 5,
+      "completeness": 4.3333,
+      "relevance": 5,
+      "abstentionAccuracy": 1,
+      "falseAbstentionRate": 0.25,
+      "citationValidity": 1,
+      "invalidAnswerRate": 0
+    }
+  },
+  "selfConsistency": {
+    "sampled": 2,
+    "repeatInvalid": 0,
+    "pairs": 2,
+    "identicalShare": 1,
+    "perDimension": {
+      "accuracy": 1,
+      "completeness": 1,
+      "relevance": 1
+    }
+  },
+  "kpis": {
+    "latencyMs": {
+      "p50": 7118,
+      "p95": 11272
+    },
+    "calls": [
+      {
+        "operation": "embed",
+        "model": "nomic-embed-text",
+        "calls": 15,
+        "avgInputTokens": 23.6,
+        "avgOutputTokens": 0,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0
+      },
+      {
+        "operation": "generate",
+        "model": "qwen2.5:7b",
+        "calls": 15,
+        "avgInputTokens": 2063,
+        "avgOutputTokens": 45.6,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0
+      },
+      {
+        "operation": "judge",
+        "model": "gemma3:12b",
+        "calls": 13,
+        "avgInputTokens": 2357.9231,
+        "avgOutputTokens": 90.3846,
+        "estimatedTokenShare": 0,
+        "retryRate": 0,
+        "invalidOutputRate": 0,
+        "costUsd": 0
+      }
+    ]
+  },
+  "questions": [
+    {
+      "id": "q001",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "a6b03b5b-358e-47e8-8869-db32d30eca17",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5816,
+      "answer": "bun's transpiler natively implements TypeScript and JavaScript/ECMAScript code transpilation.",
+      "citations": [
+        2891
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        2891,
+        3562,
+        3240,
+        3132,
+        3674
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER states that Bun's transpiler natively implements JavaScript, TypeScript, and JSX support. The provided CONTEXT mentions transpilation of TypeScript (`tsx` loader), JavaScript (`js` loader), and JSX. The assistant's answer only mentions TypeScript and JavaScript, omitting JSX. Therefore, the assistant's answer is incomplete.",
+        "accuracy": 3,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q004",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "ce82db71-e9ec-4ae4-a076-8c941abe6c02",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6136,
+      "answer": "--define",
+      "citations": [
+        3262,
+        3339,
+        3340
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        3262,
+        3339,
+        3340,
+        3268,
+        3264
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the flag needed to insert build-time values into an executable. The REFERENCE ANSWER states that it is the `--define` flag. The CONTEXT provides multiple examples of using the `--define` flag to inject build-time constants into executables. The ASSISTANT ANSWER correctly identifies the flag.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q007",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "49307232-83a6-45e8-8520-9ca4727ed379",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7293,
+      "answer": "6499",
+      "citations": [
+        452
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        452,
+        2450,
+        2560,
+        2448,
+        2559
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the port used by the websocket server when debugging with the web debugger. The provided context states that when using the `--inspect` flag, Bun starts a WebSocket server on port `6499` by default. The context also mentions that you can specify a different port using `--inspect=<port>`. Therefore, the answer is 6499.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks for the port used by the websocket server when debugging with the web debugger. The provided context states that when using the `--inspect` flag, Bun starts a WebSocket server on port `6499` by default. The context also mentions that you can specify a different port using `--inspect=<port>`. Therefore, the answer is 6499.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q010",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "3497c7ee-176b-4d4a-b8b9-298020b7cf32",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 9457,
+      "answer": "To set the system time in a test, use the `setSystemTime` function from `bun:test`. You can call it in a `beforeAll` hook or directly in a test case.",
+      "citations": [
+        476,
+        3696
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        476,
+        3696,
+        3697,
+        3704,
+        2006
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies `setSystemTime` as the function to use for setting the system time in tests, and mentions its location in `bun:test`. It also correctly notes that it can be used in a `beforeAll` hook or directly in a test case. This aligns with the reference answer.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q013",
+      "category": "direct_fact",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "1ec00e63-b43a-49f0-afdb-a3c2cbc90a01",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7793,
+      "answer": "The default output format when using --bytecode and not specifying --format is CommonJS.",
+      "citations": [
+        3195
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        3195,
+        3199,
+        3151,
+        3162,
+        3184
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The provided context explicitly states, \"Without an explicit `format`, bytecode defaults to CommonJS.\" The assistant's answer accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q016",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "751331a4-af4b-4604-a200-1dcf95ee42e1",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 8016,
+      "answer": "You can change the sourcemaps by setting the `sourcemap` option in your `bunfig.toml`. For example, to generate linked sourcemaps, you can set `sourcemap = ",
+      "citations": [
+        3173
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        101,
+        91,
+        3173,
+        85,
+        94
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies that the `sourcemap` option in `bunfig.toml` controls sourcemap generation. It provides a concise and accurate answer directly supported by the provided context. The answer is complete and relevant to the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q019",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "a6c002a6-5283-4448-a459-d7564f2cc9d5",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6836,
+      "answer": "You can access the current environment variables using `process.env` or `Bun.env`.",
+      "citations": [
+        444,
+        445
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        444,
+        445,
+        3555,
+        834,
+        3556
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies `process.env` and `Bun.env` as ways to access environment variables, which aligns with the reference answer and the provided context. The answer is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q022",
+      "category": "how_to",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "4e916089-fdcb-4b4b-a553-1aefeca90df9",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 15507,
+      "answer": "You can generate a single executable file in machine code for a TypeScript program by using the `bun build` command with the `--compile` flag. Here is an example of how to do it:\n\n```bash\nbun build --compile --minify --sourcemap ./path/to/my/app.ts --outfile myapp\n```\n\nOr using the API:\n\n```ts\nawait Bun.build({\n  entrypoints: ['./path/to/my/app.ts'],\n  compile: {\n    outfile: './myapp',\n  },\n  minify: true,\n  sourcemap: 'linked',\n});\n```",
+      "citations": [
+        3263,
+        3550
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        3292,
+        3258,
+        3550,
+        3263,
+        3650
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies the `bun build --compile` command as the method to generate a single executable file. It also provides the API usage example. The answer is concise and directly addresses the question, referencing the provided context.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The assistant correctly identifies the `bun build --compile` command as the method to generate a single executable file. It also provides the API usage example. The answer is concise and directly addresses the question, referencing the provided context.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      }
+    },
+    {
+      "id": "q026",
+      "category": "multi_document",
+      "origin": "human",
+      "answerable": true,
+      "requestId": "5ca11afa-b78a-4a1f-91cd-e0dba165ce91",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6795,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        2843,
+        2761,
+        2760,
+        2792,
+        2837
+      ],
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q029",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "52c35f5e-f1fe-43de-8ffa-46308bef9f37",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5771,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        3260,
+        537,
+        3312,
+        3261,
+        3443
+      ],
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q032",
+      "category": "multi_document",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "476cd2d5-5d63-4361-9d9d-03fee37b4f44",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7967,
+      "answer": "You define one React version in the root `package.json` and reference it with the `catalog:` protocol throughout your project.",
+      "citations": [
+        2021
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        2021,
+        2186,
+        2187,
+        2025,
+        3367
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The response accurately identifies the core mechanism for defining and using shared versions in a Bun monorepo: defining versions in the root `package.json` and referencing them with the `catalog:` protocol. It is concise and directly answers the question. It does not include any extraneous information.",
+        "accuracy": 5,
+        "completeness": 3,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q034",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "bc803d63-8b7d-4c19-adec-4f14fb2b7cb5",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7118,
+      "answer": "~/.bun/install/cache",
+      "citations": [
+        2134
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        3464,
+        2106,
+        2134,
+        2121,
+        2060
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The question asks about where Bun stores package archives. The provided context includes a section on the global cache which explicitly states that Bun stores packages in `~/.bun/install/cache` or the path set by `BUN_INSTALL_CACHE_DIR`. The assistant's answer directly and accurately reflects this information.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q037",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "answerable": true,
+      "requestId": "fd808ece-db4d-4b40-815d-882c2c3ca566",
+      "found": true,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 7589,
+      "answer": "You can use the `--compile` flag to generate a standalone binary from a TypeScript or JavaScript file.",
+      "citations": [
+        2582,
+        3258
+      ],
+      "droppedCitations": [],
+      "retrievedIds": [
+        664,
+        665,
+        2582,
+        3258,
+        2133
+      ],
+      "citationValid": true,
+      "judge": {
+        "status": "ok",
+        "repairs": 0,
+        "reasoning": "The REFERENCE ANSWER correctly states that `bun build --compile` creates a single runnable file. The ASSISTANT ANSWER accurately reflects this information. The ASSISTANT ANSWER is concise and directly addresses the question.",
+        "accuracy": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "judgeRepeat": null
+    },
+    {
+      "id": "q039",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "949598c5-579f-4adb-ae10-e1e083f2946a",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 5061,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        2558,
+        2546,
+        3457,
+        2059,
+        2301
+      ],
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    },
+    {
+      "id": "q042",
+      "category": "negative",
+      "origin": "llm",
+      "answerable": false,
+      "requestId": "ca01421b-30f8-427c-a1d7-530fcfb2e368",
+      "found": false,
+      "status": "ok",
+      "repairs": 0,
+      "latencyMs": 6106,
+      "answer": "NOT_FOUND",
+      "citations": [],
+      "droppedCitations": [],
+      "retrievedIds": [
+        2711,
+        2718,
+        2720,
+        2301,
+        2721
+      ],
+      "citationValid": null,
+      "judge": null,
+      "judgeRepeat": null
+    }
+  ]
+}

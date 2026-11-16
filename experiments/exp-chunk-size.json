@@ -1,0 +1,6 @@
+{
+  "id": "exp-chunk-size",
+  "base": { "embed": "nomic-embed-text", "k": 5, "search": "vector", "split": "test" },
+  "vary": { "chunkConfig": ["md-256-32", "md-512-64", "md-1024-128"] },
+  "evals": ["retrieval"]
+}

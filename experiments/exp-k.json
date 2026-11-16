@@ -1,0 +1,6 @@
+{
+  "id": "exp-k",
+  "base": { "chunkConfig": "md-1024-128", "embed": "nomic-embed-text", "search": "vector", "split": "test" },
+  "vary": { "k": [3, 5, 10] },
+  "evals": ["retrieval"]
+}

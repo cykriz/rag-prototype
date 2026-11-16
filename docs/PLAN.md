@@ -398,9 +398,9 @@ Every milestone ends with the generic gate `bun run lint && bun run typecheck &&
 - Acceptance command: `bun --bun vitest run tests/unit/report.test.ts`
 
 **M13b. Run phase 1 experiments (1.5 h, me, mostly compute time)**
-- Tasks: run `exp-chunk-size`, `exp-k`, `exp-embed-model` on the test split; regenerate README.
-- Acceptance: one result file per configuration; README table generated, not hand typed.
-- Acceptance command: `bun run experiment experiments/exp-chunk-size.json && bun run experiment experiments/exp-k.json && bun run experiment experiments/exp-embed-model.json && bun run report && bun run report --check`
+- Tasks: for each step in order (`exp-chunk-size`, `exp-k`, `exp-embed-model`), run the file with `--split dev`, pick the winner, then write the next file from it. Selection rule: Recall@k first, MRR@k second. A difference of at most one dev question (1/13) is a tie, and a tie goes to the cheaper option (smaller chunks, smaller k, the default model). Answers for best and baseline: `experiments/baseline.json` via `eval:answers`, and the answers-only file `experiments/exp-k-answers.json` (best config, no `vary`). Both run with the same `--seed`, on dev first as a check. After every selection, run all files on test and regenerate the README. The README states the method, the hardware and the limitations by hand, outside the markers.
+- Acceptance: one test result file per configuration; README table generated, not hand typed; dev result files of the selection committed alongside.
+- Acceptance command (test runs, after the dev selection): `bun run experiment experiments/exp-chunk-size.json && bun run experiment experiments/exp-k.json && bun run experiment experiments/exp-embed-model.json && bun run eval:answers --config experiments/baseline.json --seed <n> && bun run experiment experiments/exp-k-answers.json --seed <n> && bun run report && bun run report --check`
 
 ### Phase 2: Advanced retrieval and agent, still local (about 12 h, 1.5 days)
 
@@ -568,14 +568,14 @@ export const JudgeResult = z.object({
 
 ## 7. Experiment matrix
 
-Fixed for all runs unless varied: test split, generator `qwen2.5:7b`, judge `gemma3:12b`, temperature 0, dataset hash, corpus SHA.
+Each step's winner is chosen on the dev split; the README reports the test split (§6, M13b). Fixed for all runs unless varied: generator `qwen2.5:7b`, judge `gemma3:12b`, temperature 0, dataset hash, corpus SHA.
 
 | Order | Experiment | Variable | Values | Fixed | Eval type |
 |---|---|---|---|---|---|
 | 1 | exp-chunk-size | chunk size (cl100k tokens), overlap 12.5 percent | 256, 512, 1024 | nomic, k=5, vector | retrieval |
-| 2 | exp-k | top k | 3, 5, 10 | best chunk size, nomic | retrieval, then answers for best and baseline |
-| 3 | exp-embed-model | embedding model | nomic-embed-text, mxbai-embed-large | chunk size 256 or 512 only (mxbai context is 512 tokens), best k | retrieval |
-| 4 | exp-baseline-answers | none | best phase 1 config | | answers |
+| 2 | exp-k | top k | 3, 5, 10 | best chunk size, nomic | retrieval, then answers for best (`exp-k-answers`, no `vary`) and baseline (`baseline`) |
+| 3 | exp-embed-model | embedding model | nomic-embed-text, mxbai-embed-large | chunk size 256 or 512 only (mxbai context is 512 tokens; the better of the two if the best chunk size is 1024), best k | retrieval |
+| 4 | exp-baseline-answers | none | best phase 1 config | | answers; only needed if row 3 changes the config, otherwise `exp-k-answers` is the phase 1 best (as in M13b) |
 | 5 | exp-search-mode | search | vector, fts, hybrid (RRF) | best phase 1 config | retrieval |
 | 6 | exp-rewrite | query rewrite | off, on | best search mode | retrieval + answers |
 | 7 | exp-expand | query expansion | off, 3 queries | best search mode | retrieval + answers |
