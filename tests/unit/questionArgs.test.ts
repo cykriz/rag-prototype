@@ -92,8 +92,13 @@ describe('parseQuestionArgs --style (M19c)', () => {
     expect(parseQuestionArgs(['q'])).toMatchObject({ answerStyle: 'concise' });
   });
 
-  it('defaults to concise and takes complete with the stages', () => {
-    expect(parseQuestionArgs(['q'], ask)).toMatchObject({ answerStyle: 'concise' });
+  it('defaults to complete for ask, concise for the agent, and takes either explicitly', () => {
+    expect(parseQuestionArgs(['q'], ask)).toMatchObject({ answerStyle: 'complete' });
+    expect(parseQuestionArgs(['q', '--pipeline', 'agent'], ask)).toMatchObject({
+      agent: true,
+      answerStyle: 'concise',
+    });
+    expect(parseQuestionArgs(['q', '--style', 'concise'], ask)).toMatchObject({ answerStyle: 'concise' });
     expect(parseQuestionArgs(['q', '--style', 'complete', '--rerank'], ask)).toMatchObject({
       answerStyle: 'complete',
       agent: false,

@@ -33,7 +33,7 @@ The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do n
 - `--rewrite` or `--expand` (not both): rewrite the question, or search extra generated queries.
 - `--rerank`: LLM reranking of the top 20 (about 30 s slower per question, see below).
 - `--pipeline agent`: the model calls a search tool itself, up to four times, and prints its trace first.
-- `--style complete`: a fuller answer that combines every relevant chunk instead of a concise one (not with `--pipeline agent`).
+- `--style concise`: a short answer instead of the default complete one, which combines every relevant chunk (the agent always answers concisely).
 
 `bun run retrieve "<question>"` shows only the retrieved chunks with their scores, which helps to debug a poor answer.
 
@@ -72,6 +72,8 @@ Then LLM reranking (`exp-rerank`), at the same config with rewriting and expansi
 Last, the agent (`exp-agent`), a LangGraph loop around the same chat model. Instead of one fixed search, the model gets a `search_docs(query, k)` tool backed by vector search at the same config (md-1024-128, k = 5 by default, at most 10). It may call the tool up to four times before it has to answer. Its final reply must be a valid cited answer over the chunks its searches returned. Otherwise one structured answer call with the normal answer prompt runs over those chunks (the answer fallback). The judge sees exactly those chunks as context. Only the agent arm ran, on test. It is compared with the newest run of the same config without the agent (the rerank-off row, same shuffle seed), so there is no dev selection here. The agent is slightly worse: accuracy 4.65 against 4.77 and completeness 4.30 against 4.36. Abstention accuracy drops from 1.00 to 0.80, because it answered one of the five unanswerable questions. In exchange it abstained wrongly a little less often (false abstention 0.08 against 0.12). The agent never used its freedom. It searched exactly once on every question, mostly with k = 5, and never reached the limit. 6 of 30 answers (20 %) needed the answer fallback. In effect it is the baseline with an extra model turn. That turn costs 3.0 s at the median (15634 against 12681 ms; `exp-k-answers` measured the same baseline at 6879 ms, so the latency gap is noisy) and 42 % more tokens per question (3913 against 2746). The agent is therefore not adopted. Result files now carry `schemaVersion` 6, with each question's tool call trace, the tool call count, whether the limit was reached and whether the answer fell back.
 
 After phase 2, the frontmatter description (`exp-frontmatter`). Ingest used to drop each page's frontmatter, so a summary such as "Bun is an all-in-one toolkit for developing modern JavaScript/TypeScript applications.", which exists only in the `description` of the intro page, could not be found: "What is bun for?" returned roadmap and API pages. The chunk config mdfm-1024-128 is md-1024-128 with the description (1199 of 1406 pages have one, about 15 tokens) as the first paragraph of each page's first chunk, so it counts toward the chunk size. Only that chunk gets it: the title is already in every chunk's heading path, and one copy makes the summary searchable. Pages without a description get the same chunks as md-1024-128. Only the new arm ran, on test, compared with the rerank-off row (same config and shuffle seed). The intro page is now rank 1 for "What is bun for?". Retrieval is about even (Recall@5 +0.02, nDCG +0.01). The golden evidence spans lie in the page bodies, so these metrics cannot credit a hit on a description. Answers are not worse and slightly better: accuracy 4.91 against 4.77, relevance 5.00 against 4.82, completeness and abstention accuracy unchanged. It costs about 2 % more tokens per question (2810 against 2746) and no extra call. The median latency dropped by 6 s, which is noise between runs, as with the agent. With no dev run, the +0.14 is as weak a signal as the test gains of rewriting and expansion. mdfm-1024-128 becomes the default all the same, because it is not worse, costs almost nothing and fixes a concrete miss.
+
+Then the answer prompt (`exp-answer-style`). With the concise prompt the model usually answers in one sentence, often from the first chunk alone. The `complete` prompt combines every relevant chunk and includes commands or code from the context, explained in the model's own words, while every factual claim must still come from the context. Only the new arm ran, on test, compared with the mdfm-1024-128 row (same config and shuffle seed). Accuracy is unchanged (4.91; no question scored lower or higher) and completeness rises from 4.36 to 4.55 (4 questions higher, 2 lower). Answers are about 70 % longer (195 against 113 characters, 60 against 43 output tokens), which costs 93 tokens per question and 3 s at p50. In the spot checks the model sometimes left out the citation for a chunk it used, which citation validity cannot see. `ask` now answers in the complete style by default (`--style concise` for the old one); the agent keeps the concise prompt.
 
 ### What did not help
 
@@ -173,6 +175,14 @@ Fixed: nomic-embed-text, k=5, vector.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mdfm-1024-128 | 0.74 | 0.60 | 0.60 | 0.90 | 4.91 | 4.36 | 5.00 | 1.00 | 6677 | 11428 | 2810 | 0.00 |
 
+### exp-answer-style: answerStyle
+
+Fixed: mdfm-1024-128, nomic-embed-text, k=5, vector.
+
+| answerStyle | Recall@k | MRR@k | nDCG@k | KW cov. | Accuracy | Completeness | Relevance | Abstention acc. | p50 ms | p95 ms | Tokens/q | Cost/100 q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| complete | – | – | – | – | 4.91 | 4.55 | 5.00 | 1.00 | 9740 | 15960 | 2903 | 0.00 |
+
 ### Phase 2 deltas vs. baseline
 
 | Technique | Baseline | Δ Recall@k | Δ nDCG@k | Δ Accuracy | Δ Completeness | Δ Abstention acc. | Δ p50 ms | Δ Tokens/q |
@@ -184,6 +194,7 @@ Fixed: nomic-embed-text, k=5, vector.
 | exp-rerank: rerank=on | exp-rerank: rerank=off | +0.06 | +0.12 | +0.01 | +0.07 | +0.00 | +31280 | +5970 |
 | exp-agent: pipeline=agent | exp-rerank: rerank=off | – | – | -0.12 | -0.06 | -0.20 | +2953 | +1167 |
 | exp-frontmatter: chunkConfig=mdfm-1024-128 | exp-rerank: rerank=off | +0.02 | +0.01 | +0.14 | +0.00 | +0.00 | -6005 | +64 |
+| exp-answer-style: answerStyle=complete | exp-frontmatter: chunkConfig=mdfm-1024-128 | – | – | +0.00 | +0.18 | +0.00 | +3063 | +93 |
 
 Each row minus its baseline: the same experiment with the technique off, or else the newest run of the same config with it off (named in the Baseline column).
 
@@ -201,6 +212,7 @@ Each row minus its baseline: the same experiment with the technique off, or else
 | exp-rerank: rerank=on | 8593 | 122 | 0.00 | 0.00 | 0.00 | 0.08 |
 | exp-agent: pipeline=agent | 3820 | 93 | 0.00 | 0.00 | 0.00 | 0.08 |
 | exp-frontmatter: chunkConfig=mdfm-1024-128 | 2767 | 43 | 0.00 | 0.00 | 0.00 | 0.12 |
+| exp-answer-style: answerStyle=complete | 2843 | 60 | 0.00 | 0.00 | 0.00 | 0.12 |
 
 Test split only, latest run per config from a clean checkout. Metrics are the `all` group of each result file (human and llm reference answers are reported separately there); `–` = not run or not recorded. Tokens/q, Cost/100 q and the KPI rates count the answer pipeline without the judge. Dataset `89f4a8a4`, corpus `b6f9cfa0`.
 <!-- results:end -->

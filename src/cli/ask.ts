@@ -2,7 +2,7 @@
 //   [--rewrite | --expand] [--rerank] [--pipeline baseline|agent] [--style concise|complete]
 // Retrieves (reranked with --rerank, M17), answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 // --pipeline agent (M18b): the LangGraph agent searches itself; its tool-call trace is printed before the answer.
-// --style complete (M19c): the answer prompt that combines every relevant chunk; not with the agent.
+// --style (M19c): complete (default; combines every relevant chunk, not with the agent) or concise (the agent's default).
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
 import { type AgentResult, buildAgentDeps, runAgent } from '../agent/graph';

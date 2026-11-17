@@ -23,6 +23,11 @@ import { assertK, requireEmbeddings } from '../retrieval/vector';
 import { DB_DOWN } from './errors';
 
 export const DEFAULT_K = 5;
+/**
+ * ask's answer style without --style (M19c, exp-answer-style on test: accuracy unchanged, completeness up). RunConfig
+ * and the report keep DEFAULT_ANSWER_STYLE (concise), since it defines how older result files read.
+ */
+export const ASK_DEFAULT_ANSWER_STYLE: AnswerStyle = 'complete';
 
 /** Flags shared by retrieve and ask, for their usage lines. */
 export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
@@ -47,7 +52,7 @@ export type QuestionArgs =
       pipeline: PipelineConfig;
       /** --pipeline agent (ask only, M18b): the agent searches with pipeline.search; the other stages are off. */
       agent: boolean;
-      /** --style (ask only, M19c): the answer prompt; concise without the flag. */
+      /** --style (ask only, M19c): the answer prompt; without the flag ASK_DEFAULT_ANSWER_STYLE, concise for the agent. */
       answerStyle: AnswerStyle;
     };
 
@@ -68,7 +73,7 @@ export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}
       help: { type: 'boolean', short: 'h', default: false },
       ...(opts.askFlags && {
         pipeline: { type: 'string', default: DEFAULT_PIPELINE },
-        style: { type: 'string', default: DEFAULT_ANSWER_STYLE },
+        style: { type: 'string' },
       }),
     },
   });
@@ -96,12 +101,18 @@ export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}
   if (!(ANSWER_PIPELINES as readonly unknown[]).includes(mode)) {
     throw new Error(`--pipeline must be one of ${ANSWER_PIPELINES.join(', ')}, got "${mode}"`);
   }
-  const style = 'style' in values ? values.style : DEFAULT_ANSWER_STYLE;
+  const agent = mode === 'agent';
+  // Without --style: complete for ask's baseline pipeline (M19c), concise for the agent, which refuses complete.
+  const style =
+    'style' in values && values.style !== undefined
+      ? values.style
+      : opts.askFlags && !agent
+        ? ASK_DEFAULT_ANSWER_STYLE
+        : DEFAULT_ANSWER_STYLE;
   if (!(ANSWER_STYLES as readonly unknown[]).includes(style)) {
     throw new Error(`--style must be one of ${ANSWER_STYLES.join(', ')}, got "${style}"`);
   }
   const answerStyle = style as AnswerStyle;
-  const agent = mode === 'agent';
   // --search stays with the agent: it picks the search mode of its tool.
   const conflict = agentConflict({ pipeline: agent ? 'agent' : 'baseline', k, answerStyle, ...pipeline });
   if (conflict !== null) {
