@@ -53,6 +53,8 @@ Development: `bun run lint`, `bun run typecheck` and `bun run test`. The integra
 
 ## Corpus and license
 
+The code in this repository is MIT-licensed (see `LICENSE`). The corpus is not part of it and keeps its own license, below.
+
 The corpus is the Bun documentation (`docs/` in [oven-sh/bun](https://github.com/oven-sh/bun)) at the commit pinned as `CORPUS_SHA` in `.env.example`. `./scripts/fetch-corpus.sh` downloads it into `corpus/`, which is gitignored; this repository contains no corpus files.
 
 License, checked on 2026-11-15 at commit `b6f9cfa0e820b025916e50651b377ee1dff4d173` (main, 2026-11-14, after tag `bun-v1.4.4`): `LICENSE.md` states "Bun itself is MIT-licensed." It names no separate license for the documentation, neither do `docs/README.md` and `docs/project/license.mdx`, and GitHub reports the repository license as "Other". Assumption: the documentation is covered by that MIT statement. Copyright remains with the Bun authors. The corpus is used locally only; the evaluation dataset quotes short spans from it, each with its source path.
