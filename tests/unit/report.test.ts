@@ -297,6 +297,65 @@ describe('pipeline and deltas (M19)', () => {
   it('renders no delta table without a varied technique', async () => {
     expect(renderBlock(await selection())).not.toContain('Phase 2 deltas');
   });
+
+  it('pairs an mdfm chunk config with the same md config from another experiment (M19b)', async () => {
+    const all = await loadResults(FIXTURES);
+    const retrieval = all.find((r) => r.file.includes('baseline_retrieval') && !r.data.gitDirty)?.data;
+    const answers = await answersBase();
+    if (retrieval?.evalType !== 'retrieval') {
+      throw new Error('fixture missing');
+    }
+    const md = answers.config.chunkConfig;
+    const mdfm = md.replace(/^md-/, 'mdfm-');
+    const runs = [
+      {
+        id: 'exp-rerank',
+        variedKey: 'rerank' as const,
+        variant: 'off',
+        at: '2026-02-01T10:00:0',
+        recall: 0.7,
+        acc: 4,
+      },
+      {
+        id: 'exp-frontmatter',
+        variedKey: 'chunkConfig' as const,
+        variant: mdfm,
+        at: '2026-02-03T10:00:0',
+        recall: 0.75,
+        acc: 4.2,
+      },
+    ].flatMap((r) => [
+      {
+        file: `${r.at}0Z_${r.id}_${r.variant}_retrieval.json`,
+        data: {
+          ...retrieval,
+          experimentId: r.id,
+          startedAt: `${r.at}0.000Z`,
+          variedKey: r.variedKey,
+          config: { ...retrieval.config, chunkConfig: r.variedKey === 'chunkConfig' ? mdfm : md },
+          aggregate: { all: { ...retrieval.aggregate.all, recall: r.recall } },
+        },
+      },
+      {
+        file: `${r.at}1Z_${r.id}_${r.variant}_answers.json`,
+        data: {
+          ...answers,
+          experimentId: r.id,
+          startedAt: `${r.at}1.000Z`,
+          variedKey: r.variedKey,
+          config: { ...answers.config, chunkConfig: r.variedKey === 'chunkConfig' ? mdfm : md },
+          aggregate: { all: { ...answers.aggregate.all, accuracy: r.acc } },
+        },
+      },
+    ]);
+    const block = renderBlock(selectResults([...all, ...runs]));
+    expect(block).toContain('### exp-frontmatter: chunkConfig');
+    const deltas = block.slice(block.indexOf('### Phase 2 deltas'), block.indexOf('### KPIs'));
+    expect(deltas).toMatchSnapshot();
+    expect(deltas).toContain(`| exp-frontmatter: chunkConfig=${mdfm} | exp-rerank: rerank=off | +0.05 |`);
+    // md-only chunk sizes are no technique: exp-chunk-size (fixture) gets no delta row.
+    expect(deltas).not.toContain('exp-chunk-size');
+  });
 });
 
 describe('replaceBlock', () => {

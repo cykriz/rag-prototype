@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { chunkMarkdown, parseChunkConfigKey } from '../../src/ingest/chunk';
+import { chunkDocument, chunkMarkdown, parseChunkConfigKey, plainChunkKey } from '../../src/ingest/chunk';
 import { findFences, findHeadings } from '../../src/ingest/fences';
 import { parseMarkdown } from '../../src/ingest/loadMarkdown';
 import { countTokens } from '../../src/llm/tokens';
@@ -20,8 +20,32 @@ describe('parseChunkConfigKey', () => {
     });
   });
 
-  it.each(['md-0-0', 'txt-512-64', 'md-512', 'md-512-64-1'])('rejects %s', (key) => {
-    expect(() => parseChunkConfigKey(key)).toThrow();
+  it('parses an mdfm key as the frontmatter splitter (M19b)', () => {
+    expect(parseChunkConfigKey('mdfm-1024-128')).toEqual({
+      key: 'mdfm-1024-128',
+      chunkSize: 1024,
+      chunkOverlap: 128,
+      splitter: 'markdown-frontmatter',
+    });
+  });
+
+  it.each([
+    'md-0-0',
+    'txt-512-64',
+    'md-512',
+    'md-512-64-1',
+    'fm-1024-128',
+    'mdfm-1024',
+    'mdfm-0-0',
+    'MDFM-64-8',
+  ])('rejects %s', (key) => {
+    expect(() => parseChunkConfigKey(key)).toThrow(/expected md-<size>-<overlap> or mdfm-<size>-<overlap>/);
+  });
+
+  it('maps an mdfm key to its md key, anything else to null', () => {
+    expect(plainChunkKey('mdfm-1024-128')).toBe('md-1024-128');
+    expect(plainChunkKey('md-1024-128')).toBeNull();
+    expect(plainChunkKey('mdfm-1024')).toBeNull();
   });
 
   it('leaves overlap >= size to the splitter', async () => {
@@ -168,5 +192,47 @@ describe('chunkMarkdown edge cases', () => {
   it('lets an H1 replace the title as root', async () => {
     const chunks = await chunkMarkdown('# Real Title\n\nText.', 'Fallback', md64);
     expect(chunks[0]?.headingPath).toBe('Real Title');
+  });
+});
+
+describe('chunkDocument (M19b)', () => {
+  const description = 'Widget is a fictional tool for synthetic tests.';
+  const paragraphs = Array.from(
+    { length: 12 },
+    (_, i) => `Paragraph ${i} explains one more synthetic widget detail in plain words.`,
+  );
+  const doc = { title: 'Widget', body: `# Widget\n\n${paragraphs.join('\n\n')}`, description };
+  const mdfm64 = parseChunkConfigKey('mdfm-64-8');
+
+  it('opens chunk 0 with the description, and no other chunk', async () => {
+    const chunks = await chunkDocument(doc, mdfm64);
+    expect(chunks.length).toBeGreaterThan(2);
+    expect(chunks[0]?.content.startsWith(`${description}\n\n# Widget`)).toBe(true);
+    expect(chunks[0]?.headingPath).toBe('Widget');
+    expect(chunks.slice(1).some((c) => c.content.includes(description))).toBe(false);
+  });
+
+  it('counts the description toward the chunk size', async () => {
+    // Several sizes, so the description lands both in a chunk with room and in one it pushes text out of; every chunk
+    // stays within the limit and no text is lost or duplicated (overlap 0).
+    for (const size of [64, 96, 128]) {
+      const config = parseChunkConfigKey(`mdfm-${size}-0`);
+      const chunks = await chunkDocument(doc, config);
+      for (const c of chunks) {
+        expect(c.tokenCount).toBeLessThanOrEqual(size);
+        expect(countTokens(c.content)).toBe(c.tokenCount);
+      }
+      const plain = await chunkDocument(doc, parseChunkConfigKey(`md-${size}-0`));
+      expect(chunks.map((c) => c.content).join('\n\n')).toBe(
+        `${description}\n\n${plain.map((c) => c.content).join('\n\n')}`,
+      );
+    }
+  });
+
+  it('equals the md chunks without a description, and ignores it for md keys', async () => {
+    const plain = await chunkDocument(doc, md64);
+    expect(await chunkDocument({ ...doc, description: undefined }, mdfm64)).toEqual(plain);
+    expect(await chunkDocument({ ...doc, description: '' }, mdfm64)).toEqual(plain);
+    expect(plain).toEqual(await chunkMarkdown(doc.body, doc.title, md64));
   });
 });

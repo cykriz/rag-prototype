@@ -6,11 +6,13 @@ export function sha256(data: string | Uint8Array): string {
 }
 
 /**
- * documents.content_hash: the parsed title and body, not the raw file. Everything stored derives from these two,
- * so a frontmatter edit outside the title changes nothing, while a loader change that alters the body does.
+ * documents.content_hash: the parsed title, body and description, not the raw file. Everything stored derives from
+ * these, so other frontmatter edits change nothing, while a loader change that alters the body does. Without a
+ * description the hash is that of title and body alone, as before M19b.
  */
-export function documentHash(doc: { title: string; body: string }): string {
-  return sha256(`${doc.title}\0${doc.body}`);
+export function documentHash(doc: { title: string; body: string; description?: string }): string {
+  const base = `${doc.title}\0${doc.body}`;
+  return sha256(doc.description === undefined ? base : `${base}\0${doc.description}`);
 }
 
 /**

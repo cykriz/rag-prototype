@@ -6,6 +6,8 @@ import { findFences, findHeadings } from './fences';
 export interface ParsedMarkdown {
   title: string;
   body: string;
+  /** Frontmatter `description` (M19b); absent when missing or empty. Indexed only by `mdfm-*` chunk configs. */
+  description?: string;
 }
 
 export interface LoadedDocument extends ParsedMarkdown {
@@ -23,6 +25,7 @@ export const MARKDOWN_FILE = /\.mdx?$/i;
 
 const FRONTMATTER = /^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/;
 const FM_TITLE = /^title:[ \t]*(.+?)[ \t]*$/m;
+const FM_DESCRIPTION = /^description:[ \t]*(.*?)[ \t]*$/m;
 const MDX_COMMENT = /\{\/\*[\s\S]*?\*\/\}/g;
 // MDX ESM lines only (import ... from '...', side-effect imports, export declarations), never prose.
 const MDX_ESM =
@@ -38,6 +41,22 @@ const INLINE_CODE = /(`+)(?:(?!\n[ \t]*\n)[\s\S])*?[^`]\1(?!`)/g;
 function unquote(value: string): string {
   const q = value[0];
   return (q === '"' || q === "'") && value.endsWith(q) && value.length >= 2 ? value.slice(1, -1) : value;
+}
+
+/**
+ * A single-line YAML scalar: quotes removed, plus the \" and \\ escapes in a double-quoted one and '' in a
+ * single-quoted one. A block scalar
+ * indicator (`|`, `>`) yields '' (not used by the corpus frontmatter).
+ */
+function yamlScalar(value: string): string {
+  if (/^[|>][-+]?$/.test(value)) {
+    return '';
+  }
+  const v = unquote(value);
+  if (v === value) {
+    return v;
+  }
+  return value.startsWith('"') ? v.replace(/\\(["\\])/g, '$1') : v.replaceAll("''", "'");
 }
 
 function stripMdx(prose: string): string {
@@ -63,10 +82,13 @@ function stripMdx(prose: string): string {
 export function parseMarkdown(raw: string, fallbackTitle: string): ParsedMarkdown {
   let text = raw.replace(/\r\n?/g, '\n');
   let fmTitle: string | undefined;
+  let description: string | undefined;
   const fm = FRONTMATTER.exec(text);
   if (fm) {
     const t = FM_TITLE.exec(fm[1] ?? '')?.[1];
     fmTitle = t === undefined ? undefined : unquote(t);
+    const d = FM_DESCRIPTION.exec(fm[1] ?? '')?.[1];
+    description = d === undefined ? undefined : yamlScalar(d).trim() || undefined;
     text = text.slice(fm[0].length);
   }
 
@@ -80,7 +102,8 @@ export function parseMarkdown(raw: string, fallbackTitle: string): ParsedMarkdow
   body = (body + stripMdx(text.slice(last))).trim();
 
   const h1 = findHeadings(body).find((h) => h.level === 1)?.text;
-  return { title: fmTitle || h1 || fallbackTitle, body };
+  const title = fmTitle || h1 || fallbackTitle;
+  return description === undefined ? { title, body } : { title, body, description };
 }
 
 export async function loadMarkdown(root: string, sourcePath: string): Promise<LoadedDocument> {

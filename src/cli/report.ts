@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { RunConfig, VARY_KEYS, type VaryKey } from '../eval/experiment';
+import { plainChunkKey } from '../ingest/chunk';
 import { DEFAULT_EXPAND, DEFAULT_PIPELINE, DEFAULT_RERANK, DEFAULT_REWRITE } from '../rag/pipeline';
 import { DEFAULT_SEARCH } from '../retrieval/search';
 
@@ -316,7 +317,7 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
 const rowLabel = (e: Experiment, row: Row) =>
   e.variedKey === null ? `${e.id} (${describe(row.config)})` : `${e.id}: ${e.variedKey}=${row.variant}`;
 
-/** The phase 2 techniques (M14–M19) with the value that means "off"; a varied technique gets a delta row. */
+/** The value that means "off" for the M14–M19 techniques; techniqueOff decides which variants get a delta row. */
 const TECHNIQUE_DEFAULTS: Partial<Record<VaryKey, string>> = {
   search: DEFAULT_SEARCH,
   rewrite: DEFAULT_REWRITE,
@@ -324,6 +325,18 @@ const TECHNIQUE_DEFAULTS: Partial<Record<VaryKey, string>> = {
   rerank: DEFAULT_RERANK,
   pipeline: DEFAULT_PIPELINE,
 };
+
+/**
+ * The "off" value of a varied value that is a technique, or null (the default itself, or no technique). M19b:
+ * `mdfm-<size>-<overlap>` is `md-<size>-<overlap>` plus the frontmatter description; plain `md-*` sizes are none.
+ */
+function techniqueOff(key: VaryKey, variant: string | null): string | null {
+  if (key === 'chunkConfig') {
+    return variant === null ? null : plainChunkKey(variant);
+  }
+  const off = TECHNIQUE_DEFAULTS[key];
+  return off === undefined || variant === off ? null : off;
+}
 
 /** Config as a key independent of property order. */
 const configKey = (c: Config) => JSON.stringify(Object.entries(c).sort(([a], [b]) => a.localeCompare(b)));
@@ -334,7 +347,7 @@ interface Paired<T> {
 }
 
 /**
- * The baseline of `row` (a technique value other than its default) for one eval type: the experiment's own default
+ * The baseline of `row` (a technique value, `off` its off value) for one eval type: the experiment's own off
  * row when it has that eval, otherwise the newest selected run of any experiment whose config equals the row's with
  * the technique at its default (M19: the agent arm is compared with an existing baseline run, not a new one).
  */
@@ -342,10 +355,10 @@ function pairBaseline<T extends 'retrieval' | 'answers'>(
   sel: Selection,
   e: Experiment,
   key: VaryKey,
+  off: string,
   row: Row,
   type: T,
 ): Paired<NonNullable<Row[T]>> | null {
-  const off = TECHNIQUE_DEFAULTS[key];
   const own = e.rows.find((r) => r.variant === off && r[type] !== null);
   if (own) {
     return { label: rowLabel(e, own), file: own[type] as NonNullable<Row[T]> };
@@ -376,20 +389,21 @@ const signed = (x: number | null | undefined, digits: number) =>
 const diff = (a: number | null | undefined, b: number | null | undefined) =>
   a === null || a === undefined || b === null || b === undefined ? null : a - b;
 
-/** One row per technique value other than its default, with the deltas against its paired baseline. */
+/** One row per technique value other than its off value, with the deltas against its paired baseline. */
 function deltaRows(sel: Selection): string[][] {
   const out: string[][] = [];
   for (const e of sel.experiments) {
     const key = e.variedKey;
-    if (key === null || TECHNIQUE_DEFAULTS[key] === undefined) {
+    if (key === null) {
       continue;
     }
     for (const row of e.rows) {
-      if (row.variant === TECHNIQUE_DEFAULTS[key]) {
+      const off = techniqueOff(key, row.variant);
+      if (off === null) {
         continue;
       }
-      const rb = row.retrieval ? pairBaseline(sel, e, key, row, 'retrieval') : null;
-      const ab = row.answers ? pairBaseline(sel, e, key, row, 'answers') : null;
+      const rb = row.retrieval ? pairBaseline(sel, e, key, off, row, 'retrieval') : null;
+      const ab = row.answers ? pairBaseline(sel, e, key, off, row, 'answers') : null;
       if (rb === null && ab === null) {
         continue;
       }

@@ -17,7 +17,8 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
 - Database: `docker compose up -d`, then `bun run db:migrate && bun run db:embeddings` (idempotent);
   `DATABASE_URL` as in `.env.example`
 - Ingest: `./scripts/fetch-corpus.sh`, then `bun run ingest [--chunk md-1024-128] [--embed <model>] [--force] [--prune]`
-  (idempotent; needs `CORPUS_SHA` in `.env`)
+  (idempotent; needs `CORPUS_SHA` in `.env`). Chunk keys: `md-<size>-<overlap>`, or `mdfm-<size>-<overlap>`, which
+  also indexes the frontmatter `description` in each page's first chunk (M19b)
 - Retrieve: `bun run retrieve "<question>" [--k 5] [--chunk md-1024-128] [--embed <model>] [--search vector|fts|hybrid] [--rewrite | --expand] [--rerank]`
   (top k chunks with scores, higher is better; needs an ingest of that config and model)
 - Ask: `bun run ask "<question>" [--k 5] [--chunk md-1024-128] [--embed <model>] [--search vector|fts|hybrid] [--rewrite | --expand] [--rerank]` (answer with chunk citations

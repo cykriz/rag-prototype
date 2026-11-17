@@ -9,7 +9,7 @@ import { type Config, loadConfig } from '../../src/config';
 import { connect } from '../../src/db/client';
 import { ensureEmbeddingTables } from '../../src/db/embeddingTables';
 import { migrate } from '../../src/db/migrate';
-import { type ChunkConfig, chunkMarkdown, parseChunkConfigKey } from '../../src/ingest/chunk';
+import { type ChunkConfig, chunkDocument, parseChunkConfigKey } from '../../src/ingest/chunk';
 import { EMBED_BATCH_SIZE, type IngestOptions, ingest } from '../../src/ingest/ingest';
 import { listMarkdownFiles, loadMarkdown } from '../../src/ingest/loadMarkdown';
 import { createEmbeddingProvider } from '../../src/llm/registry';
@@ -86,7 +86,7 @@ async function expectedChunks(config: ChunkConfig): Promise<Map<string, number>>
   const counts = new Map<string, number>();
   for (const path of await listMarkdownFiles(root)) {
     const doc = await loadMarkdown(root, path);
-    counts.set(path, (await chunkMarkdown(doc.body, doc.title, config)).length);
+    counts.set(path, (await chunkDocument(doc, config)).length);
   }
   return counts;
 }
@@ -201,6 +201,25 @@ describe('ingest', () => {
     expect(await embeddingCount('emb_nomic_embed_text', LARGE)).toBe(sum(expected));
     expect(await chunkRows(SMALL)).toEqual(small);
     expect(await documents()).toEqual(docsBefore);
+  });
+
+  it('an mdfm config opens each described page with its description and reuses md vectors elsewhere (M19b)', async () => {
+    const fm = parseChunkConfigKey('mdfm-64-0');
+    const small = await chunkRows(SMALL);
+    const expected = await expectedChunks(fm);
+
+    const { stats } = await run({ chunkConfig: fm });
+
+    // 8, not 7: the frontmatter-only stub has no body but a description, which mdfm indexes as its one chunk.
+    expect(stats.documents).toMatchObject({ configAdded: 8, skipped: 0, replaced: 0 });
+    expect(await chunkRows(fm, 'empty-stub.mdx')).toHaveLength(1);
+    expect(await chunkRows(fm)).toHaveLength(sum(expected));
+    expect(stats.embeddingsComputed).toBeLessThan(sum(expected));
+    const [first] = await sql<{ content: string }[]>`
+      SELECT c.content FROM chunks c JOIN documents d ON d.id = c.document_id
+      WHERE c.chunk_config = ${fm.key} AND d.source_path = 'widget-guide.mdx' AND c.ordinal = 0`;
+    expect(first?.content.startsWith('Synthetic fixture for the loader and chunker tests\n\n')).toBe(true);
+    expect(await chunkRows(SMALL)).toEqual(small);
   });
 
   it('a new embedding model backfills vectors for the existing chunks', async () => {

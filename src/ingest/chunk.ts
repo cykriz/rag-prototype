@@ -14,7 +14,8 @@ export interface ChunkConfig {
   key: string;
   chunkSize: number;
   chunkOverlap: number;
-  splitter: 'markdown';
+  /** `markdown-frontmatter` (M19b): the frontmatter description opens the first chunk, see chunkDocument. */
+  splitter: 'markdown' | 'markdown-frontmatter';
 }
 
 export interface Chunk {
@@ -25,16 +26,44 @@ export interface Chunk {
   tokenCount: number;
 }
 
+const CHUNK_KEY = /^(md|mdfm)-([1-9]\d*)-(\d+)$/;
+
+/** For an `mdfm` key the `md` key with the same size and overlap (the config without the description), else null. */
+export function plainChunkKey(key: string): string | null {
+  const m = CHUNK_KEY.exec(key);
+  return m?.[1] === 'mdfm' ? `md-${m[2]}-${m[3]}` : null;
+}
+
 /**
- * Parses `md-<size>-<overlap>`. Value ranges are enforced by the chunk_configs CHECKs (migrations/001_init.sql)
- * at insert, and overlap >= size by the splitter itself.
+ * Parses `md-<size>-<overlap>` and `mdfm-<size>-<overlap>` (M19b: with the frontmatter description). Value ranges
+ * are enforced by the chunk_configs CHECKs (migrations/001_init.sql) at insert, and overlap >= size by the splitter.
  */
 export function parseChunkConfigKey(key: string): ChunkConfig {
-  const m = /^md-([1-9]\d*)-(\d+)$/.exec(key);
+  const m = CHUNK_KEY.exec(key);
   if (!m) {
-    throw new Error(`Invalid chunk config key "${key}", expected md-<size>-<overlap>`);
+    throw new Error(
+      `Invalid chunk config key "${key}", expected md-<size>-<overlap> or mdfm-<size>-<overlap>`,
+    );
   }
-  return { key, chunkSize: Number(m[1]), chunkOverlap: Number(m[2]), splitter: 'markdown' };
+  return {
+    key,
+    chunkSize: Number(m[2]),
+    chunkOverlap: Number(m[3]),
+    splitter: m[1] === 'mdfm' ? 'markdown-frontmatter' : 'markdown',
+  };
+}
+
+/**
+ * Chunks a parsed document per config. `markdown-frontmatter` puts the description as first paragraph in front of
+ * the body, so it opens chunk 0 and counts toward its token limit; without a description both splitters agree.
+ */
+export function chunkDocument(
+  doc: { title: string; body: string; description?: string },
+  config: ChunkConfig,
+): Promise<Chunk[]> {
+  const prefix =
+    config.splitter === 'markdown-frontmatter' && doc.description ? `${doc.description}\n\n` : '';
+  return chunkMarkdown(prefix + doc.body, doc.title, config);
 }
 
 // Private-use characters with no whitespace: the splitter only cuts such a run at character level, which it never

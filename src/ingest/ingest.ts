@@ -14,7 +14,7 @@ import type { EmbeddingModelConfig } from '../config';
 import { tableName } from '../db/embeddingTables';
 import { countTokens } from '../llm/tokens';
 import type { EmbeddingProvider } from '../llm/types';
-import { type ChunkConfig, chunkMarkdown } from './chunk';
+import { type ChunkConfig, chunkDocument } from './chunk';
 import { chunkHash, documentHash, embedText } from './hash';
 import { listCorpus, loadMarkdown } from './loadMarkdown';
 
@@ -155,14 +155,14 @@ export async function ingest(opts: IngestOptions): Promise<IngestStats> {
 
   // Phase 1: plan every document, no writes.
   const planned: Planned[] = [];
-  const toChunkRows = async (title: string, body: string): Promise<ChunkRow[]> =>
-    (await chunkMarkdown(body, title, chunkConfig)).map((c) => ({ ...c, contentHash: chunkHash(c) }));
+  const toChunkRows = async (doc: Parameters<typeof chunkDocument>[0]): Promise<ChunkRow[]> =>
+    (await chunkDocument(doc, chunkConfig)).map((c) => ({ ...c, contentHash: chunkHash(c) }));
   for (const sourcePath of files) {
     const doc = await loadMarkdown(root, sourcePath);
     const contentHash = documentHash(doc);
     const s = state.get(sourcePath);
     if (!s || s.contentHash !== contentHash) {
-      const chunks = await toChunkRows(doc.title, doc.body);
+      const chunks = await toChunkRows(doc);
       planned.push({
         action: 'replace',
         documentId: s?.id,
@@ -176,10 +176,10 @@ export async function ingest(opts: IngestOptions): Promise<IngestStats> {
         action: 'rechunk',
         sourcePath,
         documentId: s.id,
-        chunks: await toChunkRows(doc.title, doc.body),
+        chunks: await toChunkRows(doc),
       });
     } else if (s.chunks === 0) {
-      const chunks = await toChunkRows(doc.title, doc.body);
+      const chunks = await toChunkRows(doc);
       planned.push(
         chunks.length > 0
           ? { action: 'addConfig', sourcePath, documentId: s.id, chunks }

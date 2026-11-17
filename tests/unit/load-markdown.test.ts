@@ -15,6 +15,20 @@ describe('parseMarkdown', () => {
     expect(parseMarkdown('```sh\n# comment, not a title\n```\n', 'stem').title).toBe('stem');
   });
 
+  it('reads the frontmatter description (M19b): quoted, escaped, empty or missing', () => {
+    const desc = (line: string) => parseMarkdown(`---\ntitle: T\n${line}\n---\nText\n`, 's').description;
+    expect(desc('description: Plain words.')).toBe('Plain words.');
+    expect(desc('description: "Use `a[\\"b\\"]` or C:\\\\tmp"')).toBe('Use `a["b"]` or C:\\tmp');
+    expect(desc("description: 'It''s single'")).toBe("It's single");
+    expect(desc("description: It''s plain")).toBe("It''s plain");
+    expect(desc('description:')).toBeUndefined();
+    expect(desc('description: ""')).toBeUndefined();
+    expect(desc('description: |')).toBeUndefined();
+    expect(desc('mode: center')).toBeUndefined();
+    expect(parseMarkdown('No frontmatter\n', 's')).toEqual({ title: 's', body: 'No frontmatter' });
+    expect(parseMarkdown('---\ndescription: D\n---\nText\n', 's').body).toBe('Text');
+  });
+
   it('removes frontmatter and normalizes CRLF', () => {
     const { body } = parseMarkdown(
       '---\r\ntitle: T\r\ndescription: D\r\n---\r\n\r\nLine one\r\nLine two\r\n',

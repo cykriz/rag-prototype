@@ -1,0 +1,11 @@
+{
+  "id": "exp-frontmatter",
+  "base": {
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test"
+  },
+  "vary": { "chunkConfig": ["mdfm-1024-128"] },
+  "evals": ["retrieval", "answers"]
+}

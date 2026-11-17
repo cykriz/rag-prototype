@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "lint": "biome lint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun check",
     "test": "bun --bun vitest run && bun test ./.claude/hooks",
     "test:unit": "bun --bun vitest run --project unit",
     "test:hooks": "bun test ./.claude/hooks",

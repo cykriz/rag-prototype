@@ -14,8 +14,21 @@ describe('documentHash', () => {
   const raw = (description: string, title = 'Widget') =>
     `---\ntitle: ${title}\ndescription: ${description}\n---\n\nWidget is a fictional tool.\n`;
 
-  it('ignores frontmatter edits outside the title', () => {
-    expect(documentHash(parseMarkdown(raw('one'), 'x'))).toBe(documentHash(parseMarkdown(raw('two'), 'x')));
+  it('changes with the description (M19b), but not with other frontmatter keys', () => {
+    expect(documentHash(parseMarkdown(raw('one'), 'x'))).not.toBe(
+      documentHash(parseMarkdown(raw('two'), 'x')),
+    );
+    const withKey = raw('one').replace('---\n\n', 'mode: center\n---\n\n');
+    expect(documentHash(parseMarkdown(withKey, 'x'))).toBe(documentHash(parseMarkdown(raw('one'), 'x')));
+  });
+
+  it('keeps the pre-M19b hash without a description', () => {
+    const doc = { title: 'Widget', body: 'text' };
+    expect(documentHash(doc)).toBe(sha256('Widget\0text'));
+    expect(documentHash(parseMarkdown(raw(''), 'x'))).toBe(
+      documentHash(parseMarkdown('---\ntitle: Widget\n---\n\nWidget is a fictional tool.\n', 'x')),
+    );
+    expect(documentHash({ ...doc, description: 'text' })).not.toBe(documentHash(doc));
   });
 
   it('changes with the title or the body', () => {
