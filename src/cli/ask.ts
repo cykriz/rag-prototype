@@ -1,4 +1,4 @@
-// bun run ask "<question>" [--k 5] [--chunk md-1024-128] [--embed <model>] [--search vector|fts|hybrid]
+// bun run ask "<question>" [--k 5] [--chunk mdfm-1024-128] [--embed <model>] [--search vector|fts|hybrid]
 //   [--rewrite | --expand] [--rerank] [--pipeline baseline|agent]
 // Retrieves (reranked with --rerank, M17), answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 // --pipeline agent (M18b): the LangGraph agent searches itself; its tool-call trace is printed before the answer.

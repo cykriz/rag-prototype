@@ -1,0 +1,1344 @@
+{
+  "schemaVersion": 6,
+  "experimentId": "exp-frontmatter",
+  "evalType": "retrieval",
+  "runId": "eval-retrieval-8658622d-e61f-4f44-b25c-49b88d420e28",
+  "startedAt": "2026-11-17T08:42:04.318Z",
+  "finishedAt": "2026-11-17T08:42:04.754Z",
+  "gitSha": "6cc3ffa824c5547b49a3c905e81447af96690753",
+  "gitDirty": false,
+  "datasetSha256": "89f4a8a420f10fc2fa4c66a08b440627f1d2d0efceb6d41959434f0f5d50b608",
+  "corpusSha": "b6f9cfa0e820b025916e50651b377ee1dff4d173",
+  "config": {
+    "chunkConfig": "mdfm-1024-128",
+    "embed": "nomic-embed-text",
+    "k": 5,
+    "search": "vector",
+    "split": "test",
+    "rewrite": "off",
+    "expand": "off",
+    "rerank": "off",
+    "pipeline": "baseline"
+  },
+  "variedKey": "chunkConfig",
+  "models": {
+    "embed": {
+      "provider": "ollama",
+      "name": "nomic-embed-text",
+      "tag": "nomic-embed-text:latest",
+      "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f"
+    }
+  },
+  "counts": {
+    "questions": 30,
+    "evaluated": 25,
+    "excludedNegative": 5,
+    "rewriteFallbacks": null,
+    "expandFallbacks": null,
+    "rerankFallbacks": null
+  },
+  "aggregate": {
+    "all": {
+      "n": 25,
+      "recall": 0.74,
+      "mrr": 0.6033,
+      "ndcg": 0.603,
+      "keywordCoverage": 0.9
+    },
+    "human": {
+      "n": 16,
+      "recall": 0.75,
+      "mrr": 0.5625,
+      "ndcg": 0.6101,
+      "keywordCoverage": 0.8438
+    },
+    "llm": {
+      "n": 9,
+      "recall": 0.7222,
+      "mrr": 0.6759,
+      "ndcg": 0.5904,
+      "keywordCoverage": 1
+    },
+    "byCategory": {
+      "direct_fact": {
+        "n": 10,
+        "recall": 0.7,
+        "mrr": 0.4667,
+        "ndcg": 0.5262,
+        "keywordCoverage": 0.85
+      },
+      "how_to": {
+        "n": 7,
+        "recall": 0.8571,
+        "mrr": 0.7619,
+        "ndcg": 0.7857,
+        "keywordCoverage": 0.8571
+      },
+      "multi_document": {
+        "n": 5,
+        "recall": 0.7,
+        "mrr": 0.9,
+        "ndcg": 0.6766,
+        "keywordCoverage": 1
+      },
+      "vocabulary_mismatch": {
+        "n": 3,
+        "recall": 0.6667,
+        "mrr": 0.1944,
+        "ndcg": 0.3102,
+        "keywordCoverage": 1
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "q002",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14178,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.667575,
+          "covers": []
+        },
+        {
+          "chunkId": 14172,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.661696,
+          "covers": []
+        },
+        {
+          "chunkId": 14177,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.644543,
+          "covers": []
+        },
+        {
+          "chunkId": 14173,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.643523,
+          "covers": []
+        },
+        {
+          "chunkId": 14858,
+          "sourcePath": "lint/rules/import/prefer-default-export.mdx",
+          "score": 0.642863,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14169,
+          "sourcePath": "bundler/macros.mdx",
+          "score": 0.672931,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15499,
+          "sourcePath": "lint/rules/unicorn/prefer-date-now.mdx",
+          "score": 0.630813,
+          "covers": []
+        },
+        {
+          "chunkId": 16166,
+          "sourcePath": "test/dates-times.mdx",
+          "score": 0.617536,
+          "covers": []
+        },
+        {
+          "chunkId": 15843,
+          "sourcePath": "runtime/cron.mdx",
+          "score": 0.615987,
+          "covers": []
+        },
+        {
+          "chunkId": 14650,
+          "sourcePath": "lint/rules/eslint/no-continue.mdx",
+          "score": 0.608448,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0.5,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14457,
+          "sourcePath": "guides/util/detect-bun.mdx",
+          "score": 0.742751,
+          "covers": []
+        },
+        {
+          "chunkId": 14565,
+          "sourcePath": "lint/rules/bun/fast-check-no-unseeded-random.mdx",
+          "score": 0.738251,
+          "covers": []
+        },
+        {
+          "chunkId": 14521,
+          "sourcePath": "lint/rules/bun-test/no-test-return-statement.mdx",
+          "score": 0.735788,
+          "covers": []
+        },
+        {
+          "chunkId": 14566,
+          "sourcePath": "lint/rules/bun/format.mdx",
+          "score": 0.733868,
+          "covers": []
+        },
+        {
+          "chunkId": 15899,
+          "sourcePath": "runtime/http/error-handling.mdx",
+          "score": 0.733074,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15694,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.722709,
+          "covers": []
+        },
+        {
+          "chunkId": 15702,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.698328,
+          "covers": []
+        },
+        {
+          "chunkId": 14365,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.676361,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14842,
+          "sourcePath": "lint/rules/import/no-named-default.mdx",
+          "score": 0.661097,
+          "covers": []
+        },
+        {
+          "chunkId": 15433,
+          "sourcePath": "lint/rules/unicorn/no-anonymous-default-export.mdx",
+          "score": 0.659381,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14427,
+          "sourcePath": "guides/streams/to-array.mdx",
+          "score": 0.842075,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14428,
+          "sourcePath": "guides/streams/to-arraybuffer.mdx",
+          "score": 0.774392,
+          "covers": []
+        },
+        {
+          "chunkId": 14429,
+          "sourcePath": "guides/streams/to-blob.mdx",
+          "score": 0.748117,
+          "covers": []
+        },
+        {
+          "chunkId": 16065,
+          "sourcePath": "runtime/streams.mdx",
+          "score": 0.747739,
+          "covers": []
+        },
+        {
+          "chunkId": 14432,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.745027,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14425,
+          "sourcePath": "guides/streams/node-readable-to-string.mdx",
+          "score": 0.740904,
+          "covers": []
+        },
+        {
+          "chunkId": 14432,
+          "sourcePath": "guides/streams/to-string.mdx",
+          "score": 0.739663,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14261,
+          "sourcePath": "guides/binary/blob-to-stream.mdx",
+          "score": 0.721745,
+          "covers": []
+        },
+        {
+          "chunkId": 14423,
+          "sourcePath": "guides/streams/node-readable-to-blob.mdx",
+          "score": 0.709092,
+          "covers": []
+        },
+        {
+          "chunkId": 14262,
+          "sourcePath": "guides/binary/blob-to-string.mdx",
+          "score": 0.70599,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14442,
+          "sourcePath": "guides/test/mock-functions.mdx",
+          "score": 0.749104,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 16185,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.741249,
+          "covers": []
+        },
+        {
+          "chunkId": 14967,
+          "sourcePath": "lint/rules/jest/prefer-jest-mocked.mdx",
+          "score": 0.738205,
+          "covers": []
+        },
+        {
+          "chunkId": 16186,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.732837,
+          "covers": []
+        },
+        {
+          "chunkId": 16187,
+          "sourcePath": "test/mocks.mdx",
+          "score": 0.714439,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14937,
+          "sourcePath": "lint/rules/jest/no-disabled-tests.mdx",
+          "score": 0.769311,
+          "covers": []
+        },
+        {
+          "chunkId": 15565,
+          "sourcePath": "lint/rules/vitest/no-disabled-tests.mdx",
+          "score": 0.760316,
+          "covers": []
+        },
+        {
+          "chunkId": 14445,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.755143,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14508,
+          "sourcePath": "lint/rules/bun-test/no-disabled-tests.mdx",
+          "score": 0.7488,
+          "covers": []
+        },
+        {
+          "chunkId": 15612,
+          "sourcePath": "lint/rules/vitest/prefer-todo.mdx",
+          "score": 0.715312,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15783,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.659992,
+          "covers": []
+        },
+        {
+          "chunkId": 15500,
+          "sourcePath": "lint/rules/unicorn/prefer-default-parameters.mdx",
+          "score": 0.638007,
+          "covers": []
+        },
+        {
+          "chunkId": 15755,
+          "sourcePath": "quickstart.mdx",
+          "score": 0.63681,
+          "covers": []
+        },
+        {
+          "chunkId": 14347,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.630986,
+          "covers": []
+        },
+        {
+          "chunkId": 15962,
+          "sourcePath": "runtime/networking/fetch.mdx",
+          "score": 0.628706,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "category": "direct_fact",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.6309,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15997,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.707841,
+          "covers": []
+        },
+        {
+          "chunkId": 15998,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.695578,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15993,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.655977,
+          "covers": []
+        },
+        {
+          "chunkId": 16003,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.654512,
+          "covers": []
+        },
+        {
+          "chunkId": 16000,
+          "sourcePath": "runtime/s3.mdx",
+          "score": 0.637157,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14126,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.732062,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14124,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.68595,
+          "covers": []
+        },
+        {
+          "chunkId": 14127,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.681469,
+          "covers": []
+        },
+        {
+          "chunkId": 14132,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.673972,
+          "covers": []
+        },
+        {
+          "chunkId": 14133,
+          "sourcePath": "bundler/fullstack.mdx",
+          "score": 0.671971,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "category": "how_to",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14434,
+          "sourcePath": "guides/test/bail.mdx",
+          "score": 0.787547,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14450,
+          "sourcePath": "guides/test/timeout.mdx",
+          "score": 0.754408,
+          "covers": []
+        },
+        {
+          "chunkId": 14443,
+          "sourcePath": "guides/test/rerun-each.mdx",
+          "score": 0.725098,
+          "covers": []
+        },
+        {
+          "chunkId": 14555,
+          "sourcePath": "lint/rules/bun-test/require-test-timeout.mdx",
+          "score": 0.712392,
+          "covers": []
+        },
+        {
+          "chunkId": 14445,
+          "sourcePath": "guides/test/skip-tests.mdx",
+          "score": 0.709536,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14453,
+          "sourcePath": "guides/test/watch-mode.mdx",
+          "score": 0.697865,
+          "covers": []
+        },
+        {
+          "chunkId": 16101,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.690112,
+          "covers": []
+        },
+        {
+          "chunkId": 14143,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.653346,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15809,
+          "sourcePath": "runtime/check.mdx",
+          "score": 0.6514,
+          "covers": []
+        },
+        {
+          "chunkId": 16102,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.636718,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14172,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.77183,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14156,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.710026,
+          "covers": []
+        },
+        {
+          "chunkId": 14122,
+          "sourcePath": "bundler/esbuild.mdx",
+          "score": 0.705607,
+          "covers": []
+        },
+        {
+          "chunkId": 14178,
+          "sourcePath": "bundler/minifier.mdx",
+          "score": 0.697206,
+          "covers": []
+        },
+        {
+          "chunkId": 14148,
+          "sourcePath": "bundler/index.mdx",
+          "score": 0.68783,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14375,
+          "sourcePath": "guides/install/yarnlock.mdx",
+          "score": 0.813244,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15650,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.702121,
+          "covers": []
+        },
+        {
+          "chunkId": 15651,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.674106,
+          "covers": []
+        },
+        {
+          "chunkId": 14369,
+          "sourcePath": "guides/install/git-diff-bun-lockfile.mdx",
+          "score": 0.660325,
+          "covers": []
+        },
+        {
+          "chunkId": 15692,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.656118,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 1,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14378,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.811899,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14376,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.798892,
+          "covers": []
+        },
+        {
+          "chunkId": 14494,
+          "sourcePath": "lint/index.mdx",
+          "score": 0.77012,
+          "covers": []
+        },
+        {
+          "chunkId": 14909,
+          "sourcePath": "lint/rules/index.mdx",
+          "score": 0.768163,
+          "covers": []
+        },
+        {
+          "chunkId": 14377,
+          "sourcePath": "guides/lint/migrate-from-eslint.mdx",
+          "score": 0.759614,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "category": "how_to",
+      "origin": "human",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 0,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14388,
+          "sourcePath": "guides/process/spawn-stdout.mdx",
+          "score": 0.676111,
+          "covers": []
+        },
+        {
+          "chunkId": 14387,
+          "sourcePath": "guides/process/spawn-stderr.mdx",
+          "score": 0.652021,
+          "covers": []
+        },
+        {
+          "chunkId": 14717,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.651855,
+          "covers": []
+        },
+        {
+          "chunkId": 14384,
+          "sourcePath": "guides/process/ipc.mdx",
+          "score": 0.650236,
+          "covers": []
+        },
+        {
+          "chunkId": 14484,
+          "sourcePath": "guides/write-file/stdout.mdx",
+          "score": 0.646824,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15692,
+          "sourcePath": "pm/lockfile.mdx",
+          "score": 0.74381,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15648,
+          "sourcePath": "pm/cli/install.mdx",
+          "score": 0.741198,
+          "covers": []
+        },
+        {
+          "chunkId": 14374,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.728988,
+          "covers": []
+        },
+        {
+          "chunkId": 15670,
+          "sourcePath": "pm/cli/prune.mdx",
+          "score": 0.726709,
+          "covers": []
+        },
+        {
+          "chunkId": 14366,
+          "sourcePath": "guides/install/from-npm-install-to-bun-install.mdx",
+          "score": 0.724902,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q028",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 1,
+      "ndcg": 0.6131,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 16207,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.755587,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 16162,
+          "sourcePath": "test/configuration.mdx",
+          "score": 0.718972,
+          "covers": []
+        },
+        {
+          "chunkId": 16208,
+          "sourcePath": "test/reporters.mdx",
+          "score": 0.716068,
+          "covers": []
+        },
+        {
+          "chunkId": 16175,
+          "sourcePath": "test/index.mdx",
+          "score": 0.702243,
+          "covers": []
+        },
+        {
+          "chunkId": 15786,
+          "sourcePath": "runtime/bunfig.mdx",
+          "score": 0.700757,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q030",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.8503,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15693,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.831759,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 14365,
+          "sourcePath": "guides/install/custom-registry.mdx",
+          "score": 0.813642,
+          "covers": []
+        },
+        {
+          "chunkId": 14372,
+          "sourcePath": "guides/install/registry-scope.mdx",
+          "score": 0.795628,
+          "covers": []
+        },
+        {
+          "chunkId": 15694,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.794493,
+          "covers": []
+        },
+        {
+          "chunkId": 15702,
+          "sourcePath": "pm/scopes-registries.mdx",
+          "score": 0.778713,
+          "covers": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q031",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 1,
+      "ndcg": 0.9197,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 1,
+      "spansCovered": [
+        true,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 16102,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.808516,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 14347,
+          "sourcePath": "guides/http/hot.mdx",
+          "score": 0.795542,
+          "covers": []
+        },
+        {
+          "chunkId": 15905,
+          "sourcePath": "runtime/http/server.mdx",
+          "score": 0.743831,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 14134,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.739586,
+          "covers": []
+        },
+        {
+          "chunkId": 14136,
+          "sourcePath": "bundler/hot-reloading.mdx",
+          "score": 0.737118,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q033",
+      "category": "multi_document",
+      "origin": "llm",
+      "recall": 0.5,
+      "reciprocalRank": 0.5,
+      "ndcg": 0.3869,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 2,
+      "spansCovered": [
+        false,
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14717,
+          "sourcePath": "lint/rules/eslint/no-process-env.mdx",
+          "score": 0.737126,
+          "covers": []
+        },
+        {
+          "chunkId": 15859,
+          "sourcePath": "runtime/environment-variables.mdx",
+          "score": 0.725631,
+          "covers": [
+            1
+          ]
+        },
+        {
+          "chunkId": 15079,
+          "sourcePath": "lint/rules/node/no-process-env.mdx",
+          "score": 0.719501,
+          "covers": []
+        },
+        {
+          "chunkId": 14574,
+          "sourcePath": "lint/rules/bun/no-env-at-module-scope.mdx",
+          "score": 0.698971,
+          "covers": []
+        },
+        {
+          "chunkId": 14415,
+          "sourcePath": "guides/runtime/set-env.mdx",
+          "score": 0.690319,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q035",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.3333,
+      "ndcg": 0.5,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 3,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 15067,
+          "sourcePath": "lint/rules/nextjs/no-sync-scripts.mdx",
+          "score": 0.641024,
+          "covers": []
+        },
+        {
+          "chunkId": 14734,
+          "sourcePath": "lint/rules/eslint/no-self-assign.mdx",
+          "score": 0.629715,
+          "covers": []
+        },
+        {
+          "chunkId": 16101,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.629064,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 16102,
+          "sourcePath": "runtime/watch-mode.mdx",
+          "score": 0.625021,
+          "covers": []
+        },
+        {
+          "chunkId": 15992,
+          "sourcePath": "runtime/repl.mdx",
+          "score": 0.612108,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q036",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 1,
+      "reciprocalRank": 0.25,
+      "ndcg": 0.4307,
+      "keywordCoverage": 1,
+      "firstRelevantRank": 4,
+      "spansCovered": [
+        true
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 16005,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.63424,
+          "covers": []
+        },
+        {
+          "chunkId": 15014,
+          "sourcePath": "lint/rules/jsx-a11y/no-access-key.mdx",
+          "score": 0.630857,
+          "covers": []
+        },
+        {
+          "chunkId": 16006,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.630335,
+          "covers": []
+        },
+        {
+          "chunkId": 16004,
+          "sourcePath": "runtime/secrets.mdx",
+          "score": 0.616808,
+          "covers": [
+            0
+          ]
+        },
+        {
+          "chunkId": 15695,
+          "sourcePath": "pm/npmrc.mdx",
+          "score": 0.613399,
+          "covers": []
+        }
+      ]
+    },
+    {
+      "id": "q038",
+      "category": "vocabulary_mismatch",
+      "origin": "llm",
+      "recall": 0,
+      "reciprocalRank": 0,
+      "ndcg": 0,
+      "keywordCoverage": 1,
+      "firstRelevantRank": null,
+      "spansCovered": [
+        false
+      ],
+      "rewrite": null,
+      "expand": null,
+      "rerank": null,
+      "retrieved": [
+        {
+          "chunkId": 14374,
+          "sourcePath": "guides/install/workspaces.mdx",
+          "score": 0.724498,
+          "covers": []
+        },
+        {
+          "chunkId": 15626,
+          "sourcePath": "pm/catalogs.mdx",
+          "score": 0.718292,
+          "covers": []
+        },
+        {
+          "chunkId": 14846,
+          "sourcePath": "lint/rules/import/no-relative-packages.mdx",
+          "score": 0.711176,
+          "covers": []
+        },
+        {
+          "chunkId": 15705,
+          "sourcePath": "pm/workspaces.mdx",
+          "score": 0.709556,
+          "covers": []
+        },
+        {
+          "chunkId": 15678,
+          "sourcePath": "pm/filter.mdx",
+          "score": 0.693011,
+          "covers": []
+        }
+      ]
+    }
+  ]
+}

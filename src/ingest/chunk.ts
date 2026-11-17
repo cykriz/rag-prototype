@@ -5,10 +5,11 @@ import { countTokens } from '../llm/tokens';
 import { findFences, findHeadings, type Heading } from './fences';
 
 /**
- * Default of every CLI that takes --chunk: the config exp-chunk-size selected on dev (M13b), which every later
- * experiment and the README answer numbers use. Until M19 it was the plan's baseline md-512-64.
+ * Default of every CLI that takes --chunk: md-1024-128 (selected by exp-chunk-size on dev, M13b, and used by every
+ * phase 2 experiment) plus the frontmatter description, which exp-frontmatter found not worse on test (M19b).
+ * Until M19 it was the plan's baseline md-512-64, until M19b md-1024-128.
  */
-export const DEFAULT_CHUNK_CONFIG = 'md-1024-128';
+export const DEFAULT_CHUNK_CONFIG = 'mdfm-1024-128';
 
 export interface ChunkConfig {
   key: string;

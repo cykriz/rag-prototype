@@ -1,4 +1,4 @@
-// bun run retrieve "<question>" [--k 5] [--chunk md-1024-128] [--embed <model>] [--search vector|fts|hybrid]
+// bun run retrieve "<question>" [--k 5] [--chunk mdfm-1024-128] [--embed <model>] [--search vector|fts|hybrid]
 //   [--rewrite | --expand] [--rerank]
 // Prints the top k chunks with score, chunk ID and source (docs/PLAN.md M8, M14); with --rewrite it searches with the
 // rewritten query (M15), with --expand with the question and its expansions fused by RRF (M16), and prints the
