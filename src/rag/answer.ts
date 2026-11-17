@@ -9,7 +9,13 @@ import type { ChatProvider, ObjectResult } from '../llm/types';
 import { PostgresLlmCallSink, PostgresRagRequestSink, type RagRequestSink } from '../obs/logger';
 import { type ChunkMetadata, PgRetriever } from '../retrieval/pgRetriever';
 import { type ExpandRecord, type Expander, expanderFor, expandRecord, searchQueries } from './expand';
-import { type PipelineConfig, pipelineName, retrievalDepth } from './pipeline';
+import {
+  type AnswerStyle,
+  answerPipelineName,
+  DEFAULT_ANSWER_STYLE,
+  type PipelineConfig,
+  retrievalDepth,
+} from './pipeline';
 import { ANSWER_SEED, ANSWER_TEMPERATURE, buildAnswerMessages, formatContext, NOT_FOUND } from './prompts';
 import {
   documentCandidate,
@@ -39,6 +45,8 @@ export interface AnswerDeps {
   expand?: Expander;
   /** Reranks the retrieved candidates and keeps the top k (M17); absent = the retriever's hits as they are. */
   rerank?: { reranker: Reranker; k: number };
+  /** The answer prompt (M19c); absent = concise, the prompt of every run before M19c. */
+  answerStyle?: AnswerStyle;
   /** Must equal the requestId of the llm_calls sinks behind retriever and chat; buildAnswerDeps guarantees it. */
   requestId: string;
   runId: string;
@@ -171,7 +179,7 @@ export async function answer(question: string, deps: AnswerDeps): Promise<Answer
   } else {
     const res: ObjectResult<Answer> = await deps.chat.generateObject(
       {
-        messages: buildAnswerMessages(question, context),
+        messages: buildAnswerMessages(question, context, deps.answerStyle),
         temperature: ANSWER_TEMPERATURE,
         seed: ANSWER_SEED,
       },
@@ -249,10 +257,12 @@ export function buildAnswerDeps(
     chunkConfig: string;
     k: number;
     pipeline: PipelineConfig;
+    answerStyle?: AnswerStyle;
     runId: string;
     questionId?: string;
   },
 ): AnswerDeps {
+  const answerStyle = opts.answerStyle ?? DEFAULT_ANSWER_STYLE;
   const { requestId, embedder, chat, requestSink } = requestWiring(sql, config, opts.runId);
   return {
     retriever: new PgRetriever({
@@ -266,9 +276,10 @@ export function buildAnswerDeps(
     ...(opts.pipeline.rewrite === 'on' && { rewrite: rewriterFor(chat) }),
     ...(opts.pipeline.expand === 'on' && { expand: expanderFor(chat) }),
     ...(opts.pipeline.rerank === 'on' && { rerank: { reranker: rerankerFor(chat), k: opts.k } }),
+    answerStyle,
     requestId,
     runId: opts.runId,
-    pipeline: pipelineName(opts.pipeline),
+    pipeline: answerPipelineName(opts.pipeline, answerStyle),
     ...(opts.questionId !== undefined && { questionId: opts.questionId }),
     requestSink,
   };

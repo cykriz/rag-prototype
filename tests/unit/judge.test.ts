@@ -288,6 +288,7 @@ const CONFIG: RunConfig = {
   expand: 'off',
   rerank: 'off',
   pipeline: 'baseline',
+  answerStyle: 'concise',
 };
 const fake = (name: string) => ({ provider: 'fake', name, tag: null, digest: null });
 const META = {

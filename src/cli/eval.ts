@@ -421,6 +421,7 @@ async function evaluateAnswers(p: Prepared): Promise<number> {
                   expand: run.expand,
                   rerank: run.rerank,
                 },
+                answerStyle: run.answerStyle,
                 questionId: entry.id,
               }),
             ),

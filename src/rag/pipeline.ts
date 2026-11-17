@@ -78,6 +78,10 @@ export function pipelineName(p: PipelineConfig): string {
   return [p.search, ...stages].join('+');
 }
 
+/** pipelineName plus `+complete` for the complete answer style (M19c), e.g. `baseline+complete`. */
+export const answerPipelineName = (p: PipelineConfig, style: AnswerStyle): string =>
+  style === DEFAULT_ANSWER_STYLE ? pipelineName(p) : `${pipelineName(p)}+${style}`;
+
 /** Hard limit of executed search_docs calls per agent request (docs/PLAN.md M18a). */
 export const MAX_TOOL_CALLS = 4;
 /**
@@ -92,17 +96,29 @@ type AnswerPipeline = (typeof ANSWER_PIPELINES)[number];
 export const DEFAULT_PIPELINE: AnswerPipeline = 'baseline';
 
 /**
+ * The answer prompt (M19c `ask --style`, `RunConfig.answerStyle`): `concise` is the prompt of every run before M19c,
+ * `complete` combines every relevant chunk. No retrieval stage: retrieval does not depend on it.
+ */
+export const ANSWER_STYLES = ['concise', 'complete'] as const;
+export type AnswerStyle = (typeof ANSWER_STYLES)[number];
+export const DEFAULT_ANSWER_STYLE: AnswerStyle = 'concise';
+
+/**
  * Why a config cannot run with the agent, or null when it can; the one rule behind ask --pipeline agent and
- * RunConfig. The query stages and rerank are not evaluated together with the agent; k is the default k of its tool.
+ * RunConfig. The query stages, rerank and the complete answer style are not evaluated together with the agent (its
+ * answer comes from its own prompt); k is the default k of its tool.
  */
 export function agentConflict(
-  c: { pipeline: AnswerPipeline; k: number } & Pick<PipelineConfig, ChatStage>,
+  c: { pipeline: AnswerPipeline; k: number; answerStyle: AnswerStyle } & Pick<PipelineConfig, ChatStage>,
 ): string | null {
   if (c.pipeline !== 'agent') {
     return null;
   }
   if (activeStages(c).length > 0) {
     return 'the agent pipeline does not combine with rewrite, expand or rerank (not evaluated together)';
+  }
+  if (c.answerStyle !== DEFAULT_ANSWER_STYLE) {
+    return `the agent pipeline does not combine with answer style ${c.answerStyle} (not evaluated together)`;
   }
   if (c.k > MAX_TOOL_K) {
     return `k must be at most ${MAX_TOOL_K} with the agent pipeline, got ${c.k}`;

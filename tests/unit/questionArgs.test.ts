@@ -59,7 +59,7 @@ describe('parseQuestionArgs --rerank', () => {
 });
 
 describe('parseQuestionArgs --pipeline', () => {
-  const ask = { pipelineFlag: true };
+  const ask = { askFlags: true };
 
   it('is only accepted when the caller enables it (ask, not retrieve)', () => {
     expect(() => parseQuestionArgs(['q', '--pipeline', 'agent'])).toThrow();
@@ -81,5 +81,34 @@ describe('parseQuestionArgs --pipeline', () => {
     }
     expect(() => parseQuestionArgs(['q', '--pipeline', 'agent', '--k', '11'], ask)).toThrow('at most 10');
     expect(parseQuestionArgs(['q', '--rerank', '--k', '11'], ask)).toMatchObject({ agent: false, k: 11 });
+  });
+});
+
+describe('parseQuestionArgs --style (M19c)', () => {
+  const ask = { askFlags: true };
+
+  it('is only accepted when the caller enables it (ask, not retrieve)', () => {
+    expect(() => parseQuestionArgs(['q', '--style', 'complete'])).toThrow();
+    expect(parseQuestionArgs(['q'])).toMatchObject({ answerStyle: 'concise' });
+  });
+
+  it('defaults to concise and takes complete with the stages', () => {
+    expect(parseQuestionArgs(['q'], ask)).toMatchObject({ answerStyle: 'concise' });
+    expect(parseQuestionArgs(['q', '--style', 'complete', '--rerank'], ask)).toMatchObject({
+      answerStyle: 'complete',
+      agent: false,
+      pipeline: { rerank: 'on' },
+    });
+  });
+
+  it('rejects unknown values and complete with the agent', () => {
+    expect(() => parseQuestionArgs(['q', '--style', 'long'], ask)).toThrow('--style must be one of');
+    expect(() => parseQuestionArgs(['q', '--pipeline', 'agent', '--style', 'complete'], ask)).toThrow(
+      'does not combine with answer style complete',
+    );
+    expect(parseQuestionArgs(['q', '--pipeline', 'agent', '--style', 'concise'], ask)).toMatchObject({
+      agent: true,
+      answerStyle: 'concise',
+    });
   });
 });

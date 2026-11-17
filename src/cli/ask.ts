@@ -1,18 +1,19 @@
 // bun run ask "<question>" [--k 5] [--chunk mdfm-1024-128] [--embed <model>] [--search vector|fts|hybrid]
-//   [--rewrite | --expand] [--rerank] [--pipeline baseline|agent]
+//   [--rewrite | --expand] [--rerank] [--pipeline baseline|agent] [--style concise|complete]
 // Retrieves (reranked with --rerank, M17), answers with citations or NOT_FOUND, logs the request (docs/PLAN.md M9).
 // --pipeline agent (M18b): the LangGraph agent searches itself; its tool-call trace is printed before the answer.
+// --style complete (M19c): the answer prompt that combines every relevant chunk; not with the agent.
 import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
 import { type AgentResult, buildAgentDeps, runAgent } from '../agent/graph';
 import type { Config } from '../config';
 import { type AnswerResult, answer, buildAnswerDeps, RetrievalError } from '../rag/answer';
-import { ANSWER_PIPELINES, MAX_TOOL_CALLS } from '../rag/pipeline';
+import { ANSWER_PIPELINES, ANSWER_STYLES, MAX_TOOL_CALLS } from '../rag/pipeline';
 import { sourceLabel } from '../retrieval/pgRetriever';
 import { QUESTION_FLAGS, runQuestionCli } from './common';
 import { DB_DOWN, describeError, isDatabaseDown, unwrapStageError } from './errors';
 
-const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS} [--pipeline ${ANSWER_PIPELINES.join('|')}]`;
+const USAGE = `Usage: bun run ask "<question>" ${QUESTION_FLAGS} [--pipeline ${ANSWER_PIPELINES.join('|')}] [--style ${ANSWER_STYLES.join('|')}]`;
 
 /** One line per search_docs call (query, k, returned chunk IDs), then limit and fallback notes (M18b). */
 export function formatAgentTrace(
@@ -104,7 +105,13 @@ function main(argv: string[]): Promise<number> {
         } else {
           res = await answer(
             args.question,
-            buildAnswerDeps(sql, config, { chunkConfig, k: args.k, runId, pipeline: args.pipeline }),
+            buildAnswerDeps(sql, config, {
+              chunkConfig,
+              k: args.k,
+              runId,
+              pipeline: args.pipeline,
+              answerStyle: args.answerStyle,
+            }),
           );
         }
       } catch (err) {
@@ -124,7 +131,7 @@ function main(argv: string[]): Promise<number> {
       }
       return 0;
     },
-    { pipelineFlag: true },
+    { askFlags: true },
   );
 }
 

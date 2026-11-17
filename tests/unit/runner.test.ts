@@ -3,6 +3,7 @@ import type { GoldenEntry } from '../../src/eval/dataset';
 import type { RunConfig } from '../../src/eval/experiment';
 import {
   buildResult,
+  describeRunConfig,
   formatSummary,
   resultFileName,
   runRetrievalEval,
@@ -59,6 +60,7 @@ const CONFIG: RunConfig = {
   expand: 'off',
   rerank: 'off',
   pipeline: 'baseline',
+  answerStyle: 'concise',
 };
 
 async function run(split: RunConfig['split'] = 'test') {
@@ -347,7 +349,7 @@ describe('buildResult', () => {
       'rerank',
       'retrieved',
     ]);
-    expect(out.schemaVersion).toBe(6);
+    expect(out.schemaVersion).toBe(7);
     expect(out.questions[0]?.retrieved[0]?.score).toBe(0.333333);
     expect(out.counts.rewriteFallbacks).toBeNull();
     expect(out.config.rewrite).toBe('off');
@@ -378,6 +380,15 @@ describe('resultFileName', () => {
     );
     expect(resultFileName(at, 'exp-x', 'retrieval', 'model:7b/q4')).toBe(
       '2026-11-15T14-03-12Z_exp-x_model-7b-q4_retrieval.json',
+    );
+  });
+});
+
+describe('describeRunConfig', () => {
+  it('names the answer style only when not concise (M19c)', () => {
+    expect(describeRunConfig(CONFIG)).toBe('md-512-64 / nomic-embed-text, k=5, vector, test split');
+    expect(describeRunConfig({ ...CONFIG, answerStyle: 'complete', rerank: 'on' })).toBe(
+      'md-512-64 / nomic-embed-text, k=5, vector, rerank, complete, test split',
     );
   });
 });

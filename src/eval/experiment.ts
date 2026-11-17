@@ -6,7 +6,9 @@ import { models } from '../config';
 import { parseChunkConfigKey } from '../ingest/chunk';
 import {
   ANSWER_PIPELINES,
+  ANSWER_STYLES,
   agentConflict,
+  DEFAULT_ANSWER_STYLE,
   DEFAULT_EXPAND,
   DEFAULT_PIPELINE,
   DEFAULT_RERANK,
@@ -39,6 +41,7 @@ const Rewrite = z.enum(REWRITE_MODES);
 const Expand = z.enum(EXPAND_MODES);
 const Rerank = z.enum(RERANK_MODES);
 const Pipeline = z.enum(ANSWER_PIPELINES);
+const AnswerStyle = z.enum(ANSWER_STYLES);
 
 const RUN_FIELDS = {
   chunkConfig: ChunkConfigKey,
@@ -50,13 +53,16 @@ const RUN_FIELDS = {
   expand: Expand,
   rerank: Rerank,
   pipeline: Pipeline,
+  answerStyle: AnswerStyle,
 };
 
 /**
- * `rewrite` (M15), `expand` (M16) and `rerank` (M17) default to off and `pipeline` (M19) to baseline, so result
- * files written before them still parse, read as off and baseline. Rewrite and expand both on is refused
- * (assertPipeline); rerank combines with either. The agent refuses every stage and a k above its tool limit
- * (agentConflict); an agent retrieval eval is refused by ExperimentFile.
+ * `rewrite` (M15), `expand` (M16) and `rerank` (M17) default to off, `pipeline` (M19) to baseline and `answerStyle`
+ * (M19c) to concise, so result files written before them still parse, read as off, baseline and concise. The
+ * `answerStyle` default stays concise even if `ask`'s default changes: it defines how older files read.
+ * Rewrite and expand both on is refused (assertPipeline); rerank combines with either. The agent refuses every stage,
+ * the complete answer style and a k above its tool limit (agentConflict); an agent retrieval eval is refused by
+ * ExperimentFile.
  */
 export const RunConfig = z
   .strictObject({
@@ -65,6 +71,7 @@ export const RunConfig = z
     expand: Expand.default(DEFAULT_EXPAND),
     rerank: Rerank.default(DEFAULT_RERANK),
     pipeline: Pipeline.default(DEFAULT_PIPELINE),
+    answerStyle: AnswerStyle.default(DEFAULT_ANSWER_STYLE),
   })
   .refine((c) => !stagesConflict(c), { message: STAGE_CONFLICT, path: ['expand'] })
   .superRefine((c, ctx) => {
@@ -85,6 +92,7 @@ export const VARY_KEYS = [
   'expand',
   'rerank',
   'pipeline',
+  'answerStyle',
 ] as const;
 export type VaryKey = (typeof VARY_KEYS)[number];
 
@@ -93,8 +101,8 @@ const unique = <T>(values: readonly T[]) => new Set(values).size === values.leng
 export const ExperimentFile = z
   .strictObject({
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and "-", like exp-chunk-size'),
-    // Without the rewrite/expand/rerank/pipeline defaults: Zod 4 applies defaults inside partial(), which would set base.rewrite always and
-    // trip the base-vs-vary check below. expandExperiment applies the default.
+    // Without the rewrite/expand/rerank/pipeline/answerStyle defaults: Zod 4 applies defaults inside partial(), which
+    // would set base.rewrite always and trip the base-vs-vary check below. expandExperiment applies the default.
     base: z.strictObject(RUN_FIELDS).partial(),
     vary: z
       .strictObject({
@@ -107,6 +115,7 @@ export const ExperimentFile = z
         expand: z.array(Expand).min(1).refine(unique, 'values must be unique'),
         rerank: z.array(Rerank).min(1).refine(unique, 'values must be unique'),
         pipeline: z.array(Pipeline).min(1).refine(unique, 'values must be unique'),
+        answerStyle: z.array(AnswerStyle).min(1).refine(unique, 'values must be unique'),
       })
       .partial()
       .default({}),

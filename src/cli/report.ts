@@ -11,7 +11,13 @@ import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { RunConfig, VARY_KEYS, type VaryKey } from '../eval/experiment';
 import { plainChunkKey } from '../ingest/chunk';
-import { DEFAULT_EXPAND, DEFAULT_PIPELINE, DEFAULT_RERANK, DEFAULT_REWRITE } from '../rag/pipeline';
+import {
+  DEFAULT_ANSWER_STYLE,
+  DEFAULT_EXPAND,
+  DEFAULT_PIPELINE,
+  DEFAULT_RERANK,
+  DEFAULT_REWRITE,
+} from '../rag/pipeline';
 import { DEFAULT_SEARCH } from '../retrieval/search';
 
 export const START = '<!-- results:start -->';
@@ -310,6 +316,8 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
     skip !== 'rerank' && c.rerank === 'on' && 'rerank=on',
     // Likewise for M19: rows of runs before it read as the baseline pipeline.
     skip !== 'pipeline' && c.pipeline === 'agent' && 'pipeline=agent',
+    // Likewise for M19c: rows of runs before it read as the concise answer style.
+    skip !== 'answerStyle' && c.answerStyle !== DEFAULT_ANSWER_STYLE && `answerStyle=${c.answerStyle}`,
   ]
     .filter(Boolean)
     .join(', ');
@@ -317,13 +325,14 @@ const describe = (c: Config, skip: VaryKey | null = null) =>
 const rowLabel = (e: Experiment, row: Row) =>
   e.variedKey === null ? `${e.id} (${describe(row.config)})` : `${e.id}: ${e.variedKey}=${row.variant}`;
 
-/** The value that means "off" for the M14–M19 techniques; techniqueOff decides which variants get a delta row. */
+/** The value that means "off" for the M14–M19c techniques; techniqueOff decides which variants get a delta row. */
 const TECHNIQUE_DEFAULTS: Partial<Record<VaryKey, string>> = {
   search: DEFAULT_SEARCH,
   rewrite: DEFAULT_REWRITE,
   expand: DEFAULT_EXPAND,
   rerank: DEFAULT_RERANK,
   pipeline: DEFAULT_PIPELINE,
+  answerStyle: DEFAULT_ANSWER_STYLE,
 };
 
 /**

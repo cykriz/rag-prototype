@@ -185,7 +185,7 @@ describe('bun run experiment with the agent pipeline (M19)', () => {
     expect(names).toEqual([expect.stringMatching(/_exp-agent_agent_answers\.json$/)]);
     const result = JSON.parse(await readFile(join(dir, 'results', names[0] ?? ''), 'utf8'));
     expect(result).toMatchObject({
-      schemaVersion: 6,
+      schemaVersion: 7,
       config: { pipeline: 'agent', rerank: 'off' },
       variedKey: 'pipeline',
       counts: { questions: 1, judged: 1, agentToolCalls: 1, agentStoppedAtLimit: 0, agentAnswerFallbacks: 0 },

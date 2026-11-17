@@ -356,6 +356,35 @@ describe('pipeline and deltas (M19)', () => {
     // md-only chunk sizes are no technique: exp-chunk-size (fixture) gets no delta row.
     expect(deltas).not.toContain('exp-chunk-size');
   });
+  it('reads files without config.answerStyle as concise and pairs a complete-only arm with them (M19c)', async () => {
+    const all = await loadResults(FIXTURES);
+    expect(all.every((r) => r.data.config.answerStyle === 'concise')).toBe(true);
+    const base = await answersBase();
+    const complete = (experimentId: string, startedAt: string, variedKey: 'answerStyle' | null) => ({
+      file: `${startedAt}_${experimentId}_answers.json`,
+      data: {
+        ...base,
+        experimentId,
+        startedAt,
+        variedKey,
+        config: { ...base.config, answerStyle: 'complete' as const },
+        aggregate: { all: { ...base.aggregate.all, accuracy: 4, completeness: 4.8 } },
+      },
+    });
+    const block = renderBlock(
+      selectResults([
+        ...all,
+        complete('exp-answer-style', '2026-02-04T10:00:00.000Z', 'answerStyle'),
+        complete('single-complete', '2026-02-04T11:00:00.000Z', null),
+      ]),
+    );
+    expect(block).toContain('### exp-answer-style: answerStyle');
+    expect(block).toContain(`| single-complete (${base.config.chunkConfig}, `);
+    expect(block).toMatch(/\| single-complete \([^)]*answerStyle=complete\) \|/);
+    const deltas = block.slice(block.indexOf('### Phase 2 deltas'), block.indexOf('### KPIs'));
+    expect(deltas).toMatchSnapshot();
+    expect(deltas).toMatch(/\| exp-answer-style: answerStyle=complete \| baseline \([^)]*\) \| – \| – \| -0\.25 \|/);
+  });
 });
 
 describe('replaceBlock', () => {

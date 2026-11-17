@@ -33,6 +33,7 @@ The answer cites the chunks it is based on, or is `NOT_FOUND` when the docs do n
 - `--rewrite` or `--expand` (not both): rewrite the question, or search extra generated queries.
 - `--rerank`: LLM reranking of the top 20 (about 30 s slower per question, see below).
 - `--pipeline agent`: the model calls a search tool itself, up to four times, and prints its trace first.
+- `--style complete`: a fuller answer that combines every relevant chunk instead of a concise one (not with `--pipeline agent`).
 
 `bun run retrieve "<question>"` shows only the retrieved chunks with their scores, which helps to debug a poor answer.
 

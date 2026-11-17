@@ -15,8 +15,8 @@ const BASELINE = join(import.meta.dirname, '../../experiments/baseline.json');
 
 const parse = (raw: unknown) => ExperimentFile.parse(raw);
 const BASE = { chunkConfig: 'md-512-64', embed: 'nomic-embed-text', k: 5, search: 'vector', split: 'test' };
-/** BASE as a parsed RunConfig: rewrite, expand and rerank default to off, pipeline to baseline. */
-const RUN = { ...BASE, rewrite: 'off', expand: 'off', rerank: 'off', pipeline: 'baseline' };
+/** BASE as a parsed RunConfig: rewrite, expand, rerank off, pipeline baseline, answerStyle concise (the defaults). */
+const RUN = { ...BASE, rewrite: 'off', expand: 'off', rerank: 'off', pipeline: 'baseline', answerStyle: 'concise' };
 
 describe('experiment files', () => {
   it('experiments/baseline.json is one retrieval config on the test split', async () => {
@@ -98,6 +98,27 @@ describe('experiment files', () => {
     }
     expect(RunConfig.safeParse({ ...agent, k: 11 }).error?.issues[0]?.message).toMatch(/at most 10/);
     expect(RunConfig.safeParse({ ...RUN, rerank: 'on', k: 11 }).success).toBe(true);
+  });
+
+  it('reads a config without answerStyle as concise and refuses complete with the agent (M19c)', () => {
+    const { answerStyle: _, ...withoutStyle } = RUN;
+    expect(RunConfig.parse(withoutStyle).answerStyle).toBe('concise');
+    expect(RunConfig.parse({ ...RUN, answerStyle: 'complete', rerank: 'on' }).answerStyle).toBe('complete');
+    expect(RunConfig.safeParse({ ...RUN, answerStyle: 'long' }).success).toBe(false);
+    const parsed = RunConfig.safeParse({ ...RUN, pipeline: 'agent', answerStyle: 'complete' });
+    expect(parsed.error?.issues[0]?.message).toMatch(/does not combine with answer style complete/);
+  });
+
+  it('experiments/exp-answer-style.json runs only the complete arm at the M19b default config', async () => {
+    const exp = await loadExperiment(join(import.meta.dirname, '../../experiments/exp-answer-style.json'));
+    expect(expandExperiment(exp)).toEqual([
+      {
+        run: { ...RUN, chunkConfig: 'mdfm-1024-128', answerStyle: 'complete' },
+        variedKey: 'answerStyle',
+        label: 'complete',
+      },
+    ]);
+    expect(exp.evals).toEqual(['answers']);
   });
 
   it('refuses a retrieval eval of the agent, in base or in vary', () => {

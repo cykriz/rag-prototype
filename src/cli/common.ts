@@ -7,8 +7,11 @@ import { DEFAULT_CHUNK_CONFIG, parseChunkConfigKey } from '../ingest/chunk';
 import { isConnectionError } from '../llm/retry';
 import {
   ANSWER_PIPELINES,
+  ANSWER_STYLES,
+  type AnswerStyle,
   agentConflict,
   assertPipeline,
+  DEFAULT_ANSWER_STYLE,
   DEFAULT_EXPAND,
   DEFAULT_PIPELINE,
   DEFAULT_RERANK,
@@ -24,9 +27,12 @@ export const DEFAULT_K = 5;
 /** Flags shared by retrieve and ask, for their usage lines. */
 export const QUESTION_FLAGS = `[--k ${DEFAULT_K}] [--chunk ${DEFAULT_CHUNK_CONFIG}] [--embed <model>] [--search ${SEARCH_MODES.join('|')}] [--rewrite | --expand] [--rerank]`;
 
-/** Options of parseQuestionArgs/runQuestionCli; only ask takes --pipeline, so retrieve keeps rejecting it. */
+/**
+ * Options of parseQuestionArgs/runQuestionCli; only ask takes --pipeline and --style (M19c), so retrieve keeps
+ * rejecting them.
+ */
 export interface QuestionArgsOptions {
-  pipelineFlag?: boolean;
+  askFlags?: boolean;
 }
 
 export type QuestionArgs =
@@ -41,6 +47,8 @@ export type QuestionArgs =
       pipeline: PipelineConfig;
       /** --pipeline agent (ask only, M18b): the agent searches with pipeline.search; the other stages are off. */
       agent: boolean;
+      /** --style (ask only, M19c): the answer prompt; concise without the flag. */
+      answerStyle: AnswerStyle;
     };
 
 /** Throws on a usage error (exit 2 in the CLIs). */
@@ -58,7 +66,10 @@ export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}
       expand: { type: 'boolean', default: DEFAULT_EXPAND === 'on' },
       rerank: { type: 'boolean', default: DEFAULT_RERANK === 'on' },
       help: { type: 'boolean', short: 'h', default: false },
-      ...(opts.pipelineFlag && { pipeline: { type: 'string', default: 'baseline' } }),
+      ...(opts.askFlags && {
+        pipeline: { type: 'string', default: DEFAULT_PIPELINE },
+        style: { type: 'string', default: DEFAULT_ANSWER_STYLE },
+      }),
     },
   });
   if (values.help) {
@@ -85,13 +96,18 @@ export function parseQuestionArgs(argv: string[], opts: QuestionArgsOptions = {}
   if (!(ANSWER_PIPELINES as readonly unknown[]).includes(mode)) {
     throw new Error(`--pipeline must be one of ${ANSWER_PIPELINES.join(', ')}, got "${mode}"`);
   }
+  const style = 'style' in values ? values.style : DEFAULT_ANSWER_STYLE;
+  if (!(ANSWER_STYLES as readonly unknown[]).includes(style)) {
+    throw new Error(`--style must be one of ${ANSWER_STYLES.join(', ')}, got "${style}"`);
+  }
+  const answerStyle = style as AnswerStyle;
   const agent = mode === 'agent';
   // --search stays with the agent: it picks the search mode of its tool.
-  const conflict = agentConflict({ pipeline: agent ? 'agent' : 'baseline', k, ...pipeline });
+  const conflict = agentConflict({ pipeline: agent ? 'agent' : 'baseline', k, answerStyle, ...pipeline });
   if (conflict !== null) {
     throw new Error(`--pipeline agent: ${conflict}`);
   }
-  return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline, agent };
+  return { help: false, question, k, chunk: values.chunk, embed: values.embed, pipeline, agent, answerStyle };
 }
 
 export interface RetrievalSetup {

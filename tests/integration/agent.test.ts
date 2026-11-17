@@ -23,6 +23,7 @@ import type { ChatProvider, GenerateRequest, GenerateResult, ObjectResult } from
 import { LoggedChatProvider, PostgresLlmCallSink } from '../../src/obs/logger';
 import { RetrievalError } from '../../src/rag/answer';
 import { MAX_TOOL_CALLS, MAX_TOOL_K } from '../../src/rag/pipeline';
+import { ANSWER_SYSTEM_PROMPT } from '../../src/rag/prompts';
 
 const FIXTURES = join(import.meta.dirname, '../fixtures/docs');
 const CONFIG = loadConfig({ CHAT_PROVIDER: 'fake', EMBED_PROVIDER: 'fake' });
@@ -249,7 +250,8 @@ describe('agent graph', () => {
       status: 'ok',
       answerFallback: true,
     });
-    // The fallback prompt shows the union as context, not the agent conversation.
+    // The fallback prompt shows the union as context, not the agent conversation, under the concise prompt (M19c).
+    expect(fake.calls[2]?.[0]?.content).toBe(ANSWER_SYSTEM_PROMPT);
     expect(fake.calls[2]?.[1]?.content).toContain(`[chunk:${target.id}]`);
     expect(await operations(runId)).toEqual([
       ['agent_step', 'ok'],

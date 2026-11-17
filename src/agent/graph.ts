@@ -189,6 +189,7 @@ function buildGraph(question: string, deps: AgentDeps) {
         },
       };
     }
+    // Always the concise answer prompt: the agent is not evaluated with the complete style (agentConflict, M19c).
     const res = await deps.chat.generateObject(
       {
         messages: buildAnswerMessages(question, formatContext(state.retrieved)),

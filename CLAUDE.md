@@ -23,7 +23,8 @@ Local, offline RAG over the Bun documentation. Full design, milestones and schem
   (top k chunks with scores, higher is better; needs an ingest of that config and model)
 - Ask: `bun run ask "<question>" [--k 5] [--chunk mdfm-1024-128] [--embed <model>] [--search vector|fts|hybrid] [--rewrite | --expand] [--rerank]` (answer with chunk citations
   or `NOT_FOUND`; writes `rag_requests` and `llm_calls` rows; needs the ingest and Ollama). `--pipeline agent` runs the
-  LangGraph agent instead (≤ 4 `search_docs` calls, trace printed first; no `--rewrite`/`--expand`/`--rerank`, `--k` ≤ 10)
+  LangGraph agent instead (≤ 4 `search_docs` calls, trace printed first; no `--rewrite`/`--expand`/`--rerank`, `--k` ≤ 10).
+  `--style complete` (M19c) uses the answer prompt that combines every relevant chunk (default `concise`; not with the agent)
 - Evals: `bun run eval:retrieval --config experiments/baseline.json [--split dev]` and
   `bun run eval:answers --config experiments/baseline.json [--split dev] [--seed <n>]` (answers + LLM judge; needs the
   ingest and Ollama with chat and judge model); both write `results/<timestamp>_<experiment>_<type>.json`

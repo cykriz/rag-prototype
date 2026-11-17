@@ -2,7 +2,14 @@
 // file of §7. Pure apart from the injected search function, so unit tests need neither database nor model.
 
 import { type Expander, type ExpandRecord, expandRecord, searchQueries } from '../rag/expand';
-import { activeStages, assertPipeline, CHAT_STAGES, type ChatStage, retrievalDepth } from '../rag/pipeline';
+import {
+  activeStages,
+  assertPipeline,
+  CHAT_STAGES,
+  type ChatStage,
+  DEFAULT_ANSWER_STYLE,
+  retrievalDepth,
+} from '../rag/pipeline';
 import { type Reranker, type RerankRecord, rerankItems, rerankRecord } from '../rag/rerank';
 import { type RewriteRecord, type Rewriter, rewriteRecord } from '../rag/rewrite';
 import type { SearchHit } from '../retrieval/search';
@@ -33,8 +40,9 @@ import { coverage } from './relevance';
  * 6 (M19): `config.pipeline` (`baseline` or `agent`); answers files carry `questions[].agent` (`{ trace, toolCalls,
  * skippedToolCalls, stoppedAtLimit, answerFallback }` or null) and `counts.agentToolCalls`/`agentStoppedAtLimit`/
  * `agentAnswerFallbacks` (null for baseline); with the agent, `retrievedIds` is the union of its tool results.
+ * 7 (M19c): `config.answerStyle` (`concise` or `complete`); files before it read as concise.
  */
-export const RESULT_SCHEMA_VERSION = 6;
+export const RESULT_SCHEMA_VERSION = 7;
 
 /**
  * Top `depth` hits per question, in the order of `queries`: one query list per question (the question alone, or the
@@ -293,6 +301,7 @@ export function resultHeader<T extends EvalType>(meta: RunMeta, evalType: T) {
       expand: meta.config.expand,
       rerank: meta.config.rerank,
       pipeline: meta.config.pipeline,
+      answerStyle: meta.config.answerStyle,
     },
     variedKey: meta.variedKey,
   };
@@ -392,7 +401,7 @@ export function resultFileName(
 
 /**
  * `md-512-64 / nomic-embed-text, k=5, vector, rerank, test split` for the console summaries; stages only when on,
- * `agent` only with the agent pipeline.
+ * `agent` only with the agent pipeline, the answer style only when not concise (M19c).
  */
 export function describeRunConfig(config: RunConfig): string {
   const stages = activeStages(config);
@@ -402,6 +411,7 @@ export function describeRunConfig(config: RunConfig): string {
     config.search,
     ...stages,
     ...(config.pipeline === 'agent' ? ['agent'] : []),
+    ...(config.answerStyle !== DEFAULT_ANSWER_STYLE ? [config.answerStyle] : []),
     `${config.split} split`,
   ].join(', ');
 }

@@ -10,7 +10,14 @@ import type { RagRequestRecord, RagRequestSink } from '../../src/obs/logger';
 import { type AnswerDeps, answer, buildAnswerDeps, RetrievalError } from '../../src/rag/answer';
 import { expanderFor } from '../../src/rag/expand';
 import { RERANK_CANDIDATES } from '../../src/rag/pipeline';
-import { buildAnswerMessages, buildRerankMessages, formatContext, NOT_FOUND } from '../../src/rag/prompts';
+import {
+  ANSWER_SYSTEM_PROMPT,
+  ANSWER_SYSTEM_PROMPT_COMPLETE,
+  buildAnswerMessages,
+  buildRerankMessages,
+  formatContext,
+  NOT_FOUND,
+} from '../../src/rag/prompts';
 import { documentCandidate, rerankerFor } from '../../src/rag/rerank';
 import { rewriterFor } from '../../src/rag/rewrite';
 import { ChatStageError } from '../../src/rag/stage';
@@ -60,6 +67,16 @@ describe('buildAnswerMessages', () => {
   it('renders the system rules and the context format', () => {
     expect(buildAnswerMessages('How do I read env vars?', formatContext(DOCS))).toMatchSnapshot();
   });
+
+  it('picks the system prompt per answer style, concise by default (M19c)', () => {
+    const context = formatContext(DOCS);
+    expect(buildAnswerMessages('q', context, 'concise')).toEqual(buildAnswerMessages('q', context));
+    expect(buildAnswerMessages('q', context)[0]?.content).toBe(ANSWER_SYSTEM_PROMPT);
+    const complete = buildAnswerMessages('How do I read env vars?', context, 'complete');
+    expect(complete[0]?.content).toBe(ANSWER_SYSTEM_PROMPT_COMPLETE);
+    expect(complete[1]).toEqual(buildAnswerMessages('How do I read env vars?', context)[1]);
+    expect(ANSWER_SYSTEM_PROMPT_COMPLETE).toMatchSnapshot();
+  });
 });
 
 describe('answer', () => {
@@ -91,6 +108,13 @@ describe('answer', () => {
     expect(res.latencyMs).toBeGreaterThanOrEqual(0);
     // The judge (M12) gets exactly the context the model saw.
     expect(res.context).toBe(formatContext(DOCS));
+  });
+
+  it('sends the complete prompt with answerStyle complete (M19c)', async () => {
+    const { deps, chat } = setup([reply(true, 'Use Bun.env or process.env.', [11, 12])]);
+    deps.answerStyle = 'complete';
+    await answer('How do I read env vars?', deps);
+    expect(chat.calls[0]).toEqual(buildAnswerMessages('How do I read env vars?', formatContext(DOCS), 'complete'));
   });
 
   it('writes the golden question ID into the request row', async () => {
@@ -337,6 +361,19 @@ describe('buildAnswerDeps with rerank', () => {
     const deps = build('off', 5);
     expect(retrieverK(deps)).toBe(5);
     expect(deps.rerank).toBeUndefined();
+  });
+
+  it('names the pipeline with +complete and wires the answer style (M19c)', () => {
+    const opts = { chunkConfig: 'md-1024-128', k: 5, runId: 'test-run' };
+    const vector = { search: 'vector', rewrite: 'off', expand: 'off', rerank: 'off' } as const;
+    const plain = buildAnswerDeps(sql, config, { ...opts, pipeline: vector });
+    expect(plain).toMatchObject({ pipeline: 'baseline', answerStyle: 'concise' });
+    const complete = buildAnswerDeps(sql, config, { ...opts, pipeline: vector, answerStyle: 'complete' });
+    expect(complete).toMatchObject({ pipeline: 'baseline+complete', answerStyle: 'complete' });
+    const hybrid = { ...vector, search: 'hybrid', rerank: 'on' } as const;
+    expect(buildAnswerDeps(sql, config, { ...opts, pipeline: hybrid, answerStyle: 'complete' }).pipeline).toBe(
+      'hybrid+rerank+complete',
+    );
   });
 });
 
